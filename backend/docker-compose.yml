@@ -1,0 +1,17 @@
+# docker-compose.yml example
+services:
+  mongo1:
+    image: mongo
+    ports:
+      - 27017:27017
+    command: ['mongod', '--replSet', 'rs0']
+  mongo2:
+    image: mongo
+    ports:
+      - 27018:27017
+    command: ['mongod', '--replSet', 'rs0']
+  mongo3:
+    image: mongo
+    ports:
+      - 27019:27017
+    command: ['mongod', '--replSet', 'rs0']

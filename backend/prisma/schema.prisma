@@ -1,0 +1,86 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client { 
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  username  String    @unique
+  name      String?   @db.VarChar(100)
+  projects  Project[]
+  password  String    @db.VarChar(255)
+  isActive  Boolean   @default(true)
+  roleId    Int
+  role      Role      @relation("UserRoles", fields: [roleId], references: [id])
+  updatedAt DateTime  @updatedAt
+  createdAt DateTime  @default(now())
+} 
+
+model Permission {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?  @db.VarChar(100)
+  roles       Role[]   @relation("RolePermissions")
+  createdAt   DateTime @default(now()) 
+  updatedAt   DateTime @updatedAt
+}
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?  @db.VarChar(100)
+  users       User[]   @relation("UserRoles")
+  permissions Permission[] @relation("RolePermissions")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  title       String   @unique
+  description String?  @db.VarChar(100)
+  ownerId     Int
+  owner       User     @relation(fields: [ownerId], references: [id])
+  tasks       Task[]
+  sprints     Sprint[] 
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Sprint {
+  id          Int      @id @default(autoincrement())
+  title       String   @unique
+  description String?  @db.VarChar(100)
+  projectId   Int
+  project     Project  @relation(fields: [projectId], references: [id])
+  startDate   DateTime
+  endDate     DateTime
+  status      String   @default("PLANNED") // PLANNED, IN_PROGRESS, COMPLETED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  title       String   @unique
+  description String?  @db.VarChar(100)
+  projectId   Int
+  project     Project  @relation(fields: [projectId], references: [id])
+  status      String   @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Article {
+  id          Int      @id @default(autoincrement())
+  title       String   @unique
+  description String?
+  body        String
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
