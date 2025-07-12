@@ -1,7 +1,4 @@
-# docker-compose.yml
-
 services:
-
   postgres:
     image: postgres:13.5
     restart: always
@@ -11,8 +8,16 @@ services:
     volumes:
       - postgres:/var/lib/postgresql/data
     ports:
-      - '5432:5432'
+      - "5432:5432"
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
 
 volumes:
   postgres:
-
+  redis-data:

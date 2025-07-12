@@ -11,14 +11,43 @@ model User {
   id        Int       @id @default(autoincrement())
   username  String    @unique
   name      String?   @db.VarChar(100)
+  avatar    String?   @db.VarChar(255)
   projects  Project[]
   password  String    @db.VarChar(255)
   isActive  Boolean   @default(true)
   roleId    Int
   role      Role      @relation("UserRoles", fields: [roleId], references: [id])
+  userProfile UserProfile?
   updatedAt DateTime  @updatedAt
   createdAt DateTime  @default(now())
 } 
+
+model UserProfile {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @unique
+  name        String?  @db.VarChar(100)
+  avatar     String?  @db.VarChar(255)
+  email       String?  @unique @db.VarChar(100)
+  phone       String?  @db.VarChar(20)
+  dateOfBirth DateTime? // Optional
+  description String?  @db.VarChar(255)
+  address     String?  @db.VarChar(255)
+  bio         String?  @db.VarChar(255)
+  location    String?  @db.VarChar(100)
+  website     String?  @db.VarChar(100)
+  socialLinks String?  @db.VarChar(255) // JSON or comma-separated links
+  interests   String?  @db.VarChar(255) // JSON or comma-separated interests
+  skills      String?  @db.VarChar(255) // JSON or comma-separated skills
+  education   String?  @db.VarChar(255) // JSON or comma-separated education
+  experience  String?  @db.VarChar(255) // JSON or comma-separated work experience
+  achievements String? @db.VarChar(255) // JSON or comma-separated achievements
+  certifications String? @db.VarChar(255) // JSON or comma-separated certifications
+  hobbies     String?  @db.VarChar(255) // JSON or comma-separated hobbies
+  languages   String?  @db.VarChar(255) // JSON or comma-separated languages
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
 
 model Permission {
   id          Int      @id @default(autoincrement())

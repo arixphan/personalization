@@ -19,7 +19,10 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@/shared": ["./src/shared"],
+      "@/context": ["./src/context"],
+      "@/ui": ["./src/shared/ui"]
     }
   },
   "include": [

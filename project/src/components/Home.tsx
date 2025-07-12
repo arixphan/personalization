@@ -6,7 +6,8 @@ import {
   DollarSign, 
   BookOpen, 
   FileText,
-  ArrowRight
+  ArrowRight,
+  TrendingUp
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -34,6 +35,13 @@ const Home: React.FC = () => {
       description: 'Track your expenses and manage your finances.',
       color: 'bg-purple-500',
       link: '/finance' 
+    },
+    { 
+      title: 'Trading Management', 
+      icon: <TrendingUp size={24} />, 
+      description: 'Track your market analysis and trading performance.',
+      color: 'bg-orange-500',
+      link: '/trading' 
     },
     { 
       title: 'Diary', 

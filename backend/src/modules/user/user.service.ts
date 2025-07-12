@@ -41,7 +41,6 @@ export class UserService {
         data: {
           username: registerUserDto.username,
           password: hashedPassword,
-          name: registerUserDto.name,
           roleId: USER_ROLE.USER,
         },
       });
@@ -69,6 +68,17 @@ export class UserService {
   findByUsername(username: string) {
     return this.prismaService.user.findUnique({
       where: { username },
+    });
+  }
+
+  findAll() {
+    return this.prismaService.user.findMany({
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        roleId: true,
+      },
     });
   }
 }

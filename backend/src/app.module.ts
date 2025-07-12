@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { CacheModule } from '@nestjs/cache-manager';
+
 import { AppController } from './app.controller';
 import { UserModule } from './modules/user/user.module';
 import { AppService } from './app.service';
@@ -9,9 +11,13 @@ import { AuthModule } from './modules/auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { PermissionModule } from './modules/permission/permission.module';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { PermissionGuard } from './guards/permission.guard';
 
 @Module({
   imports: [
+    CacheModule.register({
+      isGlobal: true, // Makes cache available globally
+    }),
     ConfigModule.forRoot({
       isGlobal: true, // makes config available globally
       envFilePath: '.env', // default, can be omitted
@@ -28,6 +34,10 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PermissionGuard,
     },
   ],
 })

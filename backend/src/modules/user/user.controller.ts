@@ -3,6 +3,7 @@ import { UserService } from './user.service';
 import { RegisterUserDto, registerUserSchema } from './dto/register-user.dto';
 import { Public } from 'src/decorators/public.decorator';
 import { ZodValidationPipe } from 'src/pipes/zod.pipe';
+import { Permissions } from 'src/decorators/permission.decorator';
 
 @Controller('user')
 export class UserController {
@@ -18,5 +19,11 @@ export class UserController {
   @Get('profile')
   getProfile(@Request() req) {
     return req.user;
+  }
+
+  @Get('/')
+  @Permissions('USER_READ')
+  getUsers() {
+    return this.userService.findAll();
   }
 }

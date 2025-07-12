@@ -272,84 +272,103 @@ const Blog: React.FC = () => {
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
-      className={`p-3 sm:p-4 rounded-lg ${
+      className={`p-2 sm:p-4 rounded-lg ${
         theme === 'dark' ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white hover:bg-gray-50'
       } transition-colors group`}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center space-x-2 sm:space-x-3 mb-2">
-            {post.coverImage && (
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden flex-shrink-0">
-                <img
-                  src={post.coverImage}
-                  alt={post.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <h3 className={`text-sm sm:text-lg font-medium truncate ${
-                theme === 'dark' ? 'text-white' : 'text-gray-900'
-              }`}>
-                {post.title}
-              </h3>
-              <p className={`text-xs sm:text-sm truncate ${
-                theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-              }`}>
-                {post.description}
-              </p>
-            </div>
+      <div className="flex items-start gap-2 sm:gap-3">
+        {/* Image - smaller on mobile */}
+        {post.coverImage && (
+          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden flex-shrink-0">
+            <img
+              src={post.coverImage}
+              alt={post.title}
+              className="w-full h-full object-cover"
+            />
           </div>
-          
-          <div className="flex items-center flex-wrap gap-1 sm:gap-2">
-            <div className="flex flex-wrap gap-1">
-              {post.categories.slice(0, 2).map((category) => (
-                <span
-                  key={category}
-                  className={`px-1.5 py-0.5 sm:px-2 sm:py-1 text-xs rounded-full ${
-                    theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  {category}
-                </span>
-              ))}
-              {post.categories.length > 2 && (
-                <span className={`px-1.5 py-0.5 sm:px-2 sm:py-1 text-xs rounded-full ${
-                  theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'
-                }`}>
-                  +{post.categories.length - 2}
-                </span>
-              )}
-            </div>
-            
-            <span className={`px-1.5 py-0.5 sm:px-2 sm:py-1 text-xs rounded-full ${getStatusColor(post.status)}`}>
+        )}
+        
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          {/* Title and Status - Mobile optimized */}
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <h3 className={`text-sm sm:text-base font-medium line-clamp-2 ${
+              theme === 'dark' ? 'text-white' : 'text-gray-900'
+            }`}>
+              {post.title}
+            </h3>
+            <span className={`px-1.5 py-0.5 sm:px-2 sm:py-1 text-xs rounded-full flex-shrink-0 ${getStatusColor(post.status)}`}>
               {post.status}
             </span>
-            
-            <span className={`text-xs ${
-              theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
-            }`}>
-              {post.updatedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-            </span>
           </div>
-        </div>
-        
-        <div className="flex items-center space-x-1 sm:space-x-2 ml-2 sm:ml-4">
-          <button
-            className={`p-1.5 sm:p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity ${
-              theme === 'dark' ? 'hover:bg-gray-600' : 'hover:bg-gray-100'
-            }`}
-          >
-            <Eye size={14} className="sm:w-4 sm:h-4" />
-          </button>
-          <button
-            className={`p-1.5 sm:p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity ${
-              theme === 'dark' ? 'hover:bg-gray-600' : 'hover:bg-gray-100'
-            }`}
-          >
-            <Edit size={14} className="sm:w-4 sm:h-4" />
-          </button>
+          
+          {/* Description - Hidden on very small screens */}
+          <p className={`text-xs sm:text-sm line-clamp-1 sm:line-clamp-2 mb-2 ${
+            theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+          } hidden xs:block`}>
+            {post.description}
+          </p>
+          
+          {/* Meta information - Compact mobile layout */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+              {/* Categories - Show fewer on mobile */}
+              <div className="flex gap-1">
+                {post.categories.slice(0, window.innerWidth < 640 ? 1 : 2).map((category) => (
+                  <span
+                    key={category}
+                    className={`px-1.5 py-0.5 text-xs rounded-full ${
+                      theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    {category}
+                  </span>
+                ))}
+                {post.categories.length > (window.innerWidth < 640 ? 1 : 2) && (
+                  <span className={`px-1.5 py-0.5 text-xs rounded-full ${
+                    theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'
+                  }`}>
+                    +{post.categories.length - (window.innerWidth < 640 ? 1 : 2)}
+                  </span>
+                )}
+              </div>
+              
+              {/* Date and read time - Compact */}
+              <div className="flex items-center gap-2 text-xs">
+                <span className={`flex items-center gap-1 ${
+                  theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
+                }`}>
+                  <Calendar size={10} />
+                  <span className="hidden sm:inline">{post.updatedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                  <span className="sm:hidden">{post.updatedAt.getDate()}/{post.updatedAt.getMonth() + 1}</span>
+                </span>
+                <span className={`flex items-center gap-1 ${
+                  theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
+                }`}>
+                  <BookOpen size={10} />
+                  <span>{post.readTime}m</span>
+                </span>
+              </div>
+            </div>
+
+            {/* Action buttons - Smaller on mobile */}
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                className={`p-1.5 rounded-lg ${
+                  theme === 'dark' ? 'hover:bg-gray-600' : 'hover:bg-gray-100'
+                }`}
+              >
+                <Eye size={12} className="sm:w-4 sm:h-4" />
+              </button>
+              <button
+                className={`p-1.5 rounded-lg ${
+                  theme === 'dark' ? 'hover:bg-gray-600' : 'hover:bg-gray-100'
+                }`}
+              >
+                <Edit size={12} className="sm:w-4 sm:h-4" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </motion.div>
@@ -527,7 +546,7 @@ const Blog: React.FC = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="space-y-2 sm:space-y-3"
+                  className="space-y-1 sm:space-y-2"
                 >
                   {groupPosts.map((post) => (
                     <PostListItem key={post.id} post={post} />

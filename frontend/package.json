@@ -3,29 +3,42 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev --turbopack -p 3001",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "jose": "^6.0.11",
+    "lucide-react": "^0.525.0",
     "mongodb": "^6.15.0",
-    "next": "15.3.1",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "motion": "^12.23.3",
+    "next": "15.3.5",
+    "next-themes": "^0.4.6",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
     "react-icons": "^5.5.0",
+    "server-only": "^0.0.1",
+    "set-cookie-parser": "^2.7.1",
     "uuid": "^11.1.0",
     "zod": "^3.24.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
+    "@tailwindcss/postcss": "^4.1.11",
     "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/react": "19.1.8",
+    "@types/react-dom": "19.1.6",
+    "@types/set-cookie-parser": "^2.4.10",
+    "autoprefixer": "10.4.15",
     "eslint": "^9",
-    "eslint-config-next": "15.3.1",
+    "eslint-config-next": "15.3.5",
+    "postcss": "^8.4.35",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "overrides": {
+    "@types/react": "19.1.8",
+    "@types/react-dom": "19.1.6"
   }
 }
