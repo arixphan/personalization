@@ -1,24 +1,22 @@
 // app/api/refresh/route.ts
-import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+
 import { AuthEndpoint } from "@/constants/endpoints";
-import { Fetcher } from "@/lib/fetcher";
 
 export async function POST() {
   const cookieStore = await cookies();
   const refreshToken = cookieStore.get("refresh_token");
-  console.log("refreshToken", refreshToken);
   if (!refreshToken) {
     return NextResponse.json({ error: "No refresh token" }, { status: 401 });
   }
 
   try {
-    const response = await Fetcher.post(
-      AuthEndpoint.refreshToken,
-      {},
-      undefined,
-      `refresh_token=${refreshToken.value}`
-    );
+    const response = await fetch(AuthEndpoint.refreshToken, {
+      headers: {
+        refresh_token: refreshToken.value,
+      },
+    });
 
     const data = await response.json();
 
@@ -29,7 +27,10 @@ export async function POST() {
       );
     }
 
-    const responseWithCookie = NextResponse.json({ success: true });
+    const responseWithCookie = NextResponse.json({
+      success: true,
+      access_token: data.access_token,
+    });
     responseWithCookie.cookies.set("access_token", data.access_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

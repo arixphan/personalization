@@ -10,6 +10,7 @@ export const useRefreshAccessToken = () => {
 
   useEffect(() => {
     const refresh = async () => {
+      console.log("Refreshing access token...");
       try {
         const res = await fetch(REFRESH_TOKEN_ENDPOINT, {
           method: "POST",
@@ -19,14 +20,15 @@ export const useRefreshAccessToken = () => {
         const data = await res.json();
 
         if (!res.ok || data.error) {
-          router.replace("/sign-in");
+          router.replace("/signin");
         }
+        localStorage.setItem("access_token", data.access_token);
       } catch {
-        router.replace("/sign-in");
+        router.replace("/signin");
       }
     };
 
-    const timer = setInterval(refresh, 30 * 60 * 3000 * 25); // 25 minutes
+    const timer = setInterval(refresh, 5 * 60 * 1000); // 25 minutes
     return () => clearInterval(timer);
   }, [router]);
 };

@@ -1,11 +1,12 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { Eye, EyeOff, User, Lock, Chrome } from "lucide-react";
 import SocialButton from "../ui/SocialButton";
 import Link from "next/link";
 import { signInAction, SignInInput } from "../actions/login";
+import { useRouter } from "next/navigation";
 
 interface SignInState {
   errors?: {
@@ -14,6 +15,7 @@ interface SignInState {
     _form?: string[];
   };
   success?: boolean;
+  token?: string;
 }
 
 export const SignInForm = () => {
@@ -22,6 +24,7 @@ export const SignInForm = () => {
     username: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
 
   const [state, formAction, isPending] = useActionState<SignInState, FormData>(
     signInAction,
@@ -41,6 +44,15 @@ export const SignInForm = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
+  useEffect(() => {
+    if (state.success) {
+      if (state.token) {
+        localStorage.setItem("access_token", state.token);
+      }
+      router.push("/");
+    }
+  }, [router, state.success, state.token]);
 
   return (
     <form action={formAction} className="space-y-6">
@@ -201,11 +213,11 @@ export const SignInForm = () => {
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         type="submit"
-        disabled={isPending}
+        disabled={isPending || state.success}
         aria-busy={isPending}
         aria-describedby={isPending ? "loading-message" : undefined}
         className={`w-full m-0 py-3 px-4 rounded-lg font-medium transition-all duration-200 text-white ${
-          isPending
+          isPending || state.success
             ? "bg-gray-400 cursor-not-allowed"
             : "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl"
         }`}

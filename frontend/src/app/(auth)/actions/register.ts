@@ -1,8 +1,9 @@
 "use server";
 
-import { AuthEndpoint } from "@/constants/endpoints";
-import { Fetcher } from "@/lib/fetcher";
 import { z } from "zod";
+
+import { AuthEndpoint } from "@/constants/endpoints";
+import { ServerApiHandler } from "@/lib/server-api";
 
 // Schema definition
 const registerSchema = z
@@ -93,7 +94,7 @@ const makeApiRequest = async (
   password: string
 ): Promise<RegisterState> => {
   try {
-    const response = await Fetcher.post(AuthEndpoint.singUp, {
+    const response = await ServerApiHandler.post(AuthEndpoint.signIn, {
       username,
       password,
     });
@@ -101,7 +102,6 @@ const makeApiRequest = async (
     if (response.ok) {
       return createSuccessState("Account created successfully!");
     }
-
     return await handleApiError(response);
   } catch (error) {
     // Handle specific network errors

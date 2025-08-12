@@ -36,6 +36,25 @@ export const verifyToken = cache(async () => {
       return { isAuth: false, userId: null };
     }
 
+    // Check if token is expired
+    if (session.exp && Date.now() >= session.exp * 1000) {
+      return { isAuth: false, userId: null, error: "TOKEN_EXPIRED" };
+    }
+
+    // // Optional: Check if token was issued too long ago (for additional security)
+    // if (
+    //   session.iat &&
+    //   Date.now() - session.iat * 1000 > 30 * 24 * 60 * 60 * 1000
+    // ) {
+    //   // 30 days
+    //   return { isAuth: false, userId: null, error: "TOKEN_TOO_OLD" };
+    // }
+
+    // // Optional: Validate other claims
+    // if (session.userId && typeof session.userId !== "string") {
+    //   return { isAuth: false, userId: null, error: "INVALID_USER_ID" };
+    // }
+
     return { isAuth: true, userId: session?.userId };
   } catch {
     return { isAuth: false, userId: null };

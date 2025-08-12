@@ -1,23 +1,19 @@
 "use server";
 
-import { AuthEndpoint } from "@/constants/endpoints";
-import { Fetcher } from "@/lib/fetcher";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+
+import { AuthEndpoint } from "@/constants/endpoints";
+import { ServerApiHandler } from "@/lib/server-api";
 
 export async function logout() {
   try {
     const cookieStore = await cookies();
 
-    const accessToken = cookieStore.get("access_token");
+    const { status } = await ServerApiHandler.post(AuthEndpoint.logout, {});
 
-    const response = await Fetcher.post(
-      AuthEndpoint.logout,
-      {},
-      accessToken?.value
-    );
-
-    if (response.ok) {
+    console.log("status", status);
+    if (status === 200) {
       cookieStore.delete("refresh_token");
       cookieStore.delete("access_token");
       redirect("/signin");

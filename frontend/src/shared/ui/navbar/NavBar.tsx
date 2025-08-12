@@ -6,9 +6,14 @@ import {
   BookOpen,
   FileText,
   Settings,
+  LucideProps,
 } from "lucide-react";
 import NavLink from "./NavLink";
-import React, { Suspense } from "react";
+import React, {
+  ForwardRefExoticComponent,
+  RefAttributes,
+  Suspense,
+} from "react";
 import { LogoutButton } from "../buttons/LogoutButton";
 
 const ThemeSwitcher = React.lazy(async () => {
@@ -17,7 +22,17 @@ const ThemeSwitcher = React.lazy(async () => {
   };
 });
 
-const NavBar: React.FC = () => {
+interface NavBarProps {
+  items: Array<{
+    to: string;
+    label: string;
+    icon: ForwardRefExoticComponent<
+      Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>
+    >;
+  }>;
+}
+
+export const NavBar: React.FC<NavBarProps> = ({ items }) => {
   return (
     <nav className="w-16 min-h-screen transition-colors duration-300 flex flex-col items-center py-8 fixed bg-white text-gray-700 border-r border-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700">
       <div className="flex flex-col items-center space-y-6">
@@ -27,24 +42,17 @@ const NavBar: React.FC = () => {
           icon={<Home size={24} />}
           isActive={true}
         />
-
-        <NavLink
-          to="/projects"
-          label="Projects"
-          icon={<ClipboardList size={24} />}
-        />
-
-        <NavLink to="/time" label="Time" icon={<Calendar size={24} />} />
-
-        <NavLink
-          to="/finance"
-          label="Finance"
-          icon={<DollarSign size={24} />}
-        />
-
-        <NavLink to="/diary" label="Diary" icon={<BookOpen size={24} />} />
-
-        <NavLink to="/blog" label="Blog" icon={<FileText size={24} />} />
+        {items.map((item, index) => {
+          const Icon = item.icon;
+          return (
+            <NavLink
+              key={index}
+              to={item.to}
+              label={item.label}
+              icon={<Icon size={24} />}
+            />
+          );
+        })}
       </div>
 
       <div className="mt-auto flex flex-col items-center space-y-6">
@@ -61,5 +69,3 @@ const NavBar: React.FC = () => {
     </nav>
   );
 };
-
-export default NavBar;

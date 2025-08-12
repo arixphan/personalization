@@ -3,8 +3,11 @@ import { Geist, Geist_Mono } from "next/font/google";
 
 import { ThemeContext } from "@/shared/context/ThemeContext";
 import { AppLayout } from "@/shared/ui/layout/AppLayout";
-import "../globals.css";
 import { ApplicationContext } from "@/shared/context/ApplicationContext";
+import { Toaster } from "@/components/ui/sonner";
+import "../globals.css";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Providers } from "./providers";
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -32,11 +35,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ApplicationContext>
-          <ThemeContext>
-            <AppLayout>{children}</AppLayout>
-          </ThemeContext>
-        </ApplicationContext>
+        <Providers>
+          <Toaster position="top-center" duration={3000} />
+          <AppLayout>{children}</AppLayout>
+        </Providers>
       </body>
     </html>
   );

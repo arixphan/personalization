@@ -1,11 +1,11 @@
 "use server";
 
-import { AuthEndpoint, REFRESH_TOKEN_ENDPOINT } from "@/constants/endpoints";
-import { Fetcher } from "@/lib/fetcher";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { z } from "zod";
 import setCookieParser from "set-cookie-parser";
+import { z } from "zod";
+
+import { AuthEndpoint, REFRESH_TOKEN_ENDPOINT } from "@/constants/endpoints";
+import { ServerApiHandler } from "@/lib/server-api";
 
 // Define the validation schema
 const signInSchema = z.object({
@@ -22,6 +22,7 @@ interface SignInState {
     _form?: string[];
   };
   success?: boolean;
+  token?: string;
 }
 
 export async function signInAction(
@@ -46,15 +47,17 @@ export async function signInAction(
   const { username, password } = validatedFields.data;
 
   try {
-    const response = await Fetcher.post(AuthEndpoint.singUp, {
-      username,
-      password,
-    });
+    const { data, responseHeaders } = await ServerApiHandler.post(
+      AuthEndpoint.singUp,
+      {
+        username,
+        password,
+      }
+    );
 
-    if (response.ok) {
+    if (data) {
       // Get cookies from NestJS response and forward them
-      const setCookieHeader = response.headers.get("set-cookie");
-      const data = await response.json();
+      const setCookieHeader = responseHeaders?.get("set-cookie");
       const cookieStore = await cookies();
 
       // Store access token in httpOnly cookie
@@ -93,16 +96,15 @@ export async function signInAction(
         });
       }
 
-      redirect("/");
+      return {
+        success: true,
+        token: data.access_token,
+      };
     }
-
-    const data = await response.json();
 
     return {
       errors: {
-        _form: [
-          "error" in data ? data.error : "Server error, please try again",
-        ],
+        _form: ["Server error, please try again"],
       },
     };
   } catch (error) {
