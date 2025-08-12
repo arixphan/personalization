@@ -14,10 +14,15 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     username: string,
     password: string,
   ): Promise<Omit<User, 'password'> & { permissions: string[] }> {
-    const user = await this.authService.validateUser(username, password);
+    const { user, error } = await this.authService.validateUser(
+      username,
+      password,
+    );
+
     if (!user) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException(error || 'Unauthenticated');
     }
+
     return user;
   }
 }

@@ -1,7 +1,11 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PERMISSION_KEY } from 'src/decorators/permission.decorator';
-import { UnauthorizedError } from 'src/exceptions/UnauthorizedError';
 
 @Injectable()
 export class PermissionGuard implements CanActivate {
@@ -23,7 +27,9 @@ export class PermissionGuard implements CanActivate {
     const user = request.user;
 
     if (!user || !user.permissions) {
-      throw new UnauthorizedError();
+      throw new ForbiddenException(
+        "The user doesn't have permission to do the action",
+      );
     }
 
     // Check if user has at least one required role

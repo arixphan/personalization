@@ -4,6 +4,7 @@ import { RegisterUserDto, registerUserSchema } from './dto/register-user.dto';
 import { Public } from 'src/decorators/public.decorator';
 import { ZodValidationPipe } from 'src/pipes/zod.pipe';
 import { Permissions } from 'src/decorators/permission.decorator';
+import { PERMISSIONS } from 'src/constants/permission';
 
 @Controller('user')
 export class UserController {
@@ -22,7 +23,7 @@ export class UserController {
   }
 
   @Get('/')
-  @Permissions('USER_READ')
+  @Permissions(PERMISSIONS.USER_READ_ALL)
   getUsers() {
     return this.userService.findAll();
   }

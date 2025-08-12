@@ -7,8 +7,8 @@ import { PasswordService } from 'src/modules/shared/password.service';
 @Injectable()
 export class UserService {
   constructor(
-    readonly prismaService: PrismaService,
-    private passwordService: PasswordService,
+    private readonly prismaService: PrismaService,
+    private readonly passwordService: PasswordService,
   ) {}
 
   private readonly logger = new Logger(UserService.name);

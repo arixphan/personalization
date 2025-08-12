@@ -5,6 +5,7 @@ datasource db {
 
 generator client { 
   provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearchPostgres"]
 }
 
 model User {
@@ -70,22 +71,28 @@ model Role {
 
 model Project {
   id          Int      @id @default(autoincrement())
-  title       String   @unique
-  description String?  @db.VarChar(100)
+  title       String   @db.VarChar(100) @unique
+  type        String   
+  description String?  @db.VarChar(500)
+  version     String   @default("1.0")
+  status      String   @default("ACTIVE") // ACTIVE, ON-HOLD, COMPLETED, ARCHIVED
+  columns     String[] @db.Text
+  tags        String[] @db.Text
   ownerId     Int
   owner       User     @relation(fields: [ownerId], references: [id])
   tasks       Task[]
-  sprints     Sprint[] 
+  phases      Phase[] 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
-model Sprint {
+model Phase {
   id          Int      @id @default(autoincrement())
   title       String   @unique
   description String?  @db.VarChar(100)
   projectId   Int
   project     Project  @relation(fields: [projectId], references: [id])
+  tasks       Task[]   
   startDate   DateTime
   endDate     DateTime
   status      String   @default("PLANNED") // PLANNED, IN_PROGRESS, COMPLETED
@@ -99,6 +106,8 @@ model Task {
   description String?  @db.VarChar(100)
   projectId   Int
   project     Project  @relation(fields: [projectId], references: [id])
+  phaseId     Int?    
+  phase       Phase?   @relation(fields: [phaseId], references: [id])
   status      String   @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

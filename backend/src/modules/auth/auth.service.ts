@@ -1,15 +1,15 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { User } from '@prisma/client';
-
 import { PermissionService } from 'src/modules/permission/permission.service';
 import { PasswordService } from 'src/modules/shared/password.service';
 import { UserService } from 'src/modules/user/user.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import { User } from '@prisma/client';
+
 import { JwtPayload } from './dto/jwt-payload';
-import { AuthenticationError } from 'src/exceptions/AuthenticationError';
 
 @Injectable()
 export class AuthService {
@@ -26,21 +26,37 @@ export class AuthService {
   async validateUser(
     username: string,
     password: string,
-  ): Promise<(Omit<User, 'password'> & { permissions: string[] }) | null> {
+  ): Promise<{
+    user: (Omit<User, 'password'> & { permissions: string[] }) | null;
+    error?: string;
+  }> {
     const user = await this.userService.findByUsername(username);
+
+    if (!user) {
+      return {
+        user: null,
+        error: 'Username or password is incorrect',
+      };
+    }
+
     const isPass = await this.passwordService.comparePasswords(
       password,
       user?.password || '',
     );
-    if (user && isPass) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...result } = user;
-      const permissions = await this.permissionService.getPermissionsByRoleId(
-        user.roleId,
-      );
-      return { ...result, permissions: permissions || [] };
+
+    if (!isPass) {
+      return {
+        user: null,
+        error: 'Username or password is incorrect',
+      };
     }
-    return null;
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: storedPassword, ...result } = user;
+    const permissions = await this.permissionService.getPermissionsByRoleId(
+      user.roleId,
+    );
+    return { user: { ...result, permissions: permissions || [] } };
   }
 
   async login(user: Omit<User, 'password'> & { permissions: string[] }) {
@@ -73,28 +89,33 @@ export class AuthService {
   }
 
   async refreshToken(clientRefreshToken: string): Promise<string> {
-    const userId = this.jwtService.decode<JwtPayload>(clientRefreshToken)?.sub;
+    try {
+      const userId =
+        this.jwtService.verify<JwtPayload>(clientRefreshToken)?.sub;
 
-    const refresh_token = await this.cacheManager.get<string>(
-      userId.toString(),
-    );
+      const refresh_token = await this.cacheManager.get<string>(
+        userId.toString(),
+      );
 
-    if (!refresh_token || refresh_token !== clientRefreshToken) {
-      throw new AuthenticationError('Invalid or expired refresh token');
+      if (!refresh_token || refresh_token !== clientRefreshToken) {
+        throw new UnauthorizedException('Invalid or expired refresh token');
+      }
+
+      const payload = this.jwtService.decode(refresh_token);
+
+      if (!payload) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      const { iat, exp, ...userInfo } = payload;
+
+      const newAccessToken = this.jwtService.sign(userInfo, {
+        expiresIn: this.configService.get<string>('JWT_ACCESS_EXPIRATION_TIME'),
+      });
+
+      return newAccessToken;
+    } catch {
+      throw new UnauthorizedException('Token is expired');
     }
-
-    const payload = this.jwtService.decode(refresh_token);
-
-    if (!payload) {
-      throw new AuthenticationError('Invalid refresh token');
-    }
-
-    const { iat, exp, ...userInfo } = payload;
-
-    const newAccessToken = this.jwtService.sign(userInfo, {
-      expiresIn: this.configService.get<string>('JWT_ACCESS_EXPIRATION_TIME'),
-    });
-
-    return newAccessToken;
   }
 }

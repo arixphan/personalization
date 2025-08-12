@@ -73,7 +73,7 @@ async function main() {
   await prisma.user.create({
     data: {
       username: 'superadmin',
-      password: '$2b$08$eh/yFHX8xTtNB47UXHZMWuB.C76lYQtjagX5uxTJ8ZPQJonYWytQO', // superadmin@123
+      password: '$2b$08$eh/yFHX8xTtNB47UXHZMWuB.C76lYQtjagX5uxTJ8ZPQJonYWytQO', // superamin@123
       name: 'Admin User',
       role: {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access

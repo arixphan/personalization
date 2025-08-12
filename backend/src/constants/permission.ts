@@ -1,0 +1,7 @@
+export enum PERMISSIONS {
+  // User
+  USER_READ_ALL = 'USER_READ_ALL',
+  // Project
+  PROJECT_WRITE = 'PROJECT_WRITE',
+  PROJECT_READ = 'PROJECT_READ',
+}

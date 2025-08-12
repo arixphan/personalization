@@ -1,3 +1,5 @@
+import { Response } from 'express';
+import { LocalAuthGuard } from 'src/guards/local-auth.guard';
 import {
   Controller,
   Request,
@@ -6,12 +8,11 @@ import {
   Res,
   HttpStatus,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { Public } from '../../decorators/public.decorator';
-import { LocalAuthGuard } from 'src/guards/local-auth.guard';
-import { JwtTokenRequest, LoginRequest } from './auth.types';
-import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
+
+import { Public } from '../../decorators/public.decorator';
+import { AuthService } from './auth.service';
+import { JwtTokenRequest, LoginRequest } from './auth.types';
 
 @Controller('auth')
 export class AuthController {
@@ -39,7 +40,7 @@ export class AuthController {
       maxAge: this.configService.get<number>('CACHE_TTL'),
     });
 
-    return { access_token };
+    return res.status(HttpStatus.OK).json({ access_token });
   }
 
   @Post('logout')
@@ -56,7 +57,7 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
     });
 
-    return { message: 'Logout successfully' };
+    return res.status(HttpStatus.OK).json({ message: 'Logout successfully' });
   }
 
   @Public()
@@ -81,6 +82,6 @@ export class AuthController {
         .json({ message: 'Invalid refresh token' });
     }
 
-    return { access_token: newAccessToken };
+    return res.status(HttpStatus.OK).json({ access_token: newAccessToken });
   }
 }
