@@ -18,11 +18,27 @@ export interface ApiRequestOptions {
   signal?: AbortSignal;
 }
 
-export interface ApiResponse<T> {
+
+export type ApiResponse<T> = SuccessApiResponse<T> | FailureApiResponse<T>
+
+export interface SuccessApiResponse<T> {
   status: number;
   data: T | null;
+  responseHeaders?: Headers;
+}
+
+export interface FailureApiResponse<T> {
+  status: number;
   error: string | null;
   responseHeaders?: Headers;
+}
+
+export function isSuccessApiResponse<T>(res: ApiResponse<T>): res is SuccessApiResponse<T>  {
+  return "data" in res
+}
+
+export function isFailureApiResponse<T>(res: ApiResponse<T>): res is FailureApiResponse<T>  {
+  return "error" in res
 }
 
 // base-api.ts
@@ -74,6 +90,7 @@ export abstract class BaseApi {
         signal: options?.signal,
       });
 
+
       const contentType = response.headers.get("Content-Type");
       const isJson = contentType?.includes("application/json");
       const responseData = isJson ? await response.json() : null;
@@ -93,11 +110,11 @@ export abstract class BaseApi {
         error: null,
         responseHeaders: response.headers,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         status: 0,
         data: null,
-        error: error?.message || "Unknown error",
+        error: error instanceof Error ? error?.message : "Unknown error",
       };
     }
   }

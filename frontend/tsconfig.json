@@ -22,7 +22,8 @@
       "@/*": ["./src/*"],
       "@/shared": ["./src/shared"],
       "@/context": ["./src/context"],
-      "@/ui": ["./src/shared/ui"]
+      "@/ui": ["./src/shared/ui"],
+      "@personalization/shared": ["../shared"]
     }
   },
   "include": [

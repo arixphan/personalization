@@ -6,13 +6,6 @@ export enum AuthEndpoint {
 }
 export const REFRESH_TOKEN_ENDPOINT = "/api/auth/refresh";
 
-// export const ProjectEndpoint = {
-//   list: "projects",
-//   create: "projects",
-//   update: "projects/[id]",
-//   detail: "projects/[id]",
-// };
-
 export class EndpointFactory {
   baseUrl: string;
   constructor(baseUrl: string) {

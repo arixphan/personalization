@@ -12,7 +12,6 @@ export async function logout() {
 
     const { status } = await ServerApiHandler.post(AuthEndpoint.logout, {});
 
-    console.log("status", status);
     if (status === 200) {
       cookieStore.delete("refresh_token");
       cookieStore.delete("access_token");

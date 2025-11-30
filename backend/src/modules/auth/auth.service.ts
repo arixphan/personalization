@@ -9,7 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 
-import { JwtPayload } from './dto/jwt-payload';
+import { JwtPayload } from '@personalization/shared';
 
 @Injectable()
 export class AuthService {
@@ -22,6 +22,18 @@ export class AuthService {
   ) {}
 
   @Inject(CACHE_MANAGER) private cacheManager: Cache;
+
+  getExpiresIn(): number {
+    const expiresIn = this.configService.get<number>(
+      'JWT_ACCESS_EXPIRATION_TIME',
+    );
+    if (!expiresIn) {
+      throw new Error(
+        'JWT_ACCESS_EXPIRATION_TIME is not defined in the environment variables',
+      );
+    }
+    return expiresIn;
+  }
 
   async validateUser(
     username: string,
@@ -69,7 +81,7 @@ export class AuthService {
 
     const refresh_token = this.jwtService.sign(payload);
     const access_token = this.jwtService.sign(payload, {
-      expiresIn: this.configService.get<string>('JWT_ACCESS_EXPIRATION_TIME'),
+      expiresIn: this.getExpiresIn(),
     });
 
     await this.cacheManager.set(
@@ -110,7 +122,7 @@ export class AuthService {
       const { iat, exp, ...userInfo } = payload;
 
       const newAccessToken = this.jwtService.sign(userInfo, {
-        expiresIn: this.configService.get<string>('JWT_ACCESS_EXPIRATION_TIME'),
+        expiresIn: this.getExpiresIn(),
       });
 
       return newAccessToken;

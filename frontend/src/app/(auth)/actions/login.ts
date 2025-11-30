@@ -55,6 +55,7 @@ export async function signInAction(
       }
     );
 
+
     if (data) {
       // Get cookies from NestJS response and forward them
       const setCookieHeader = responseHeaders?.get("set-cookie");
@@ -102,9 +103,11 @@ export async function signInAction(
       };
     }
 
+
+
     return {
       errors: {
-        _form: ["Server error, please try again"],
+        _form: ["Username or password are incorrect"],
       },
     };
   } catch (error) {

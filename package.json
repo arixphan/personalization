@@ -1,0 +1,23 @@
+{
+  "name": "personalization",
+  "version": "1.0.0",
+  "description": "A web app contains multiple tools that assist daily task: time management, project management,  finance management",
+  "scripts": {
+    "dev": "",
+    "frontend:dev": "",
+    "backend:dev": "",
+    "frontend:build": "",
+    "backend:build": "",
+    "build": ""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arixphan/personalization.git"
+  },
+  "author": "", 
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/arixphan/personalization/issues"
+  },
+  "homepage": "https://github.com/arixphan/personalization#readme"
+}
