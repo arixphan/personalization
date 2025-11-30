@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "description": "A web app contains multiple tools that assist daily task: time management, project management,  finance management",
   "scripts": {
-    "dev": "",
-    "frontend:dev": "",
-    "backend:dev": "",
-    "frontend:build": "",
-    "backend:build": "",
-    "build": ""
+    "dev": "pnpm -C shared dev & pnpm -C frontend dev & pnpm -C backend dev",
+    "frontend:dev": "pnpm -C frontend dev",
+    "backend:dev": "pnpm -C backend dev",
+    "shared:dev": "pnpm -C shared dev",
+    "frontend:build": "pnpm -C frontend build",
+    "backend:build": "pnpm -C backend build",
+    "shared:build": "pnpm -C shared build",
+    "build": "pnpm -C shared build && pnpm -C frontend build && pnpm -C backend build"
   },
   "repository": {
     "type": "git",

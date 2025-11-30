@@ -1,6 +1,7 @@
 "use client"; // Error boundaries must be Client Components
 
 import { useEffect } from "react";
+import { ErrorMessage } from "@/components/ui/error-message";
 
 export default function Error({
   error,
@@ -11,20 +12,20 @@ export default function Error({
 }) {
   useEffect(() => {
     // Log the error to an error reporting service
-    console.error(error);
+    console.error("Projects page error:", error);
+    
+    // You can integrate with error tracking services here:
+    // Sentry.captureException(error);
+    // LogRocket.captureException(error);
   }, [error]);
 
   return (
-    <div>
-      <h2>Something went wrong!</h2>
-      <button
-        onClick={
-          // Attempt to recover by trying to re-render the segment
-          () => reset()
-        }
-      >
-        Try again
-      </button>
-    </div>
+    <ErrorMessage
+      message={
+        error.message || "An unexpected error occurred while loading projects."
+      }
+      onRetry={reset}
+      showHomeButton={true}
+    />
   );
 }

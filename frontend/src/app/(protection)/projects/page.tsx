@@ -2,20 +2,27 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 
-import { isErrorResponse } from "@/lib/utils";
-
 import { findProjects } from "./_actions/project";
 import { ProjectList } from "./_ui/project-list";
+import { ErrorDisplay } from "./_ui/error-display";
 
 export default async function ProjectsPage() {
   const response = await findProjects();
 
-  if (isErrorResponse(response)) {
+  // Check if response is an error
+  if ("error" in response) {
     return (
-      <div>
-        <h2>Sorry! Something went wrong!</h2>
-        <p>Please refresh to try again</p>
-      </div>
+      <ErrorDisplay message={response.error} statusCode={response.statusCode} />
+    );
+  }
+
+  // Handle case where data might be missing
+  if (!response.data || !response.meta) {
+    return (
+      <ErrorDisplay
+        message="No projects data available. Please try again later."
+        statusCode={500}
+      />
     );
   }
 

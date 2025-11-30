@@ -20,7 +20,7 @@ const itemVariants = {
   visible: {
     y: 0,
     opacity: 1,
-    transition: { type: "spring", stiffness: 300, damping: 24 },
+    transition: { type: "spring" as const, stiffness: 300, damping: 24 },
   },
 };
 
@@ -52,17 +52,18 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
     <motion.div
       key={project.id}
       variants={itemVariants}
+      initial="hidden" 
+      animate="visible"
       className="rounded-xl p-6 bg-white hover:bg-gray-50 dark:bg-gray-800/50 dark:hover:bg-gray-800/80 transition-colors group"
-      tabIndex={0}
       onClick={onClick}
-      onKeyDown={onKeyDown}
+      onKeyDown={onKeyDown} 
     >
       <div className="flex items-start justify-between h-full">
         <div className="flex-1 cursor-pointer flex flex-col h-full">
           <div>
             <div
               className={`inline-flex p-3 rounded-lg ${
-                PROJECT_STATUS_STYlE[project.status]
+                PROJECT_STATUS_STYlE[project.status as ProjectStatus] ?? ""
               }`}
             >
               <Folder size={24} />

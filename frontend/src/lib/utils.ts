@@ -46,7 +46,3 @@ export function buildQueryString(
 
   return searchParams.toString();
 }
-
-export function isErrorResponse(obj: object): obj is { error: string } {
-  return "error" in obj;
-}
