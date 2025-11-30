@@ -16,17 +16,13 @@ import {
 
 import {
   CreateProjectDto,
-  createProjectSchema,
-} from './dto/create-project.dto';
-import { FindAllByOwnerIdDto } from './dto/find-all-by-owner-id.dto';
-import {
+  CreateProjectSchema,
   UpdateProjectStatusDto,
-  updateProjectStatusSchema,
-} from './dto/update-project-status.dto';
-import {
+  UpdateProjectStatusSchema,
   UpdateProjectDto,
-  updateProjectSchema,
-} from './dto/update-project.dto';
+  UpdateProjectSchema,
+} from '@personalization/shared';
+import { FindAllByOwnerIdDto } from './dto/find-all-by-owner-id.dto';
 import { ProjectsService } from './projects.service';
 
 @Controller('projects')
@@ -36,7 +32,7 @@ export class ProjectsController {
   @Post()
   @Permissions(PERMISSIONS.PROJECT_WRITE)
   create(
-    @Body(new ZodValidationPipe(createProjectSchema))
+    @Body(new ZodValidationPipe(CreateProjectSchema))
     createProjectDto: CreateProjectDto,
     @CurrentUserId() userId: number,
   ) {
@@ -61,7 +57,7 @@ export class ProjectsController {
   @Permissions(PERMISSIONS.PROJECT_WRITE)
   update(
     @Param('id') id: string,
-    @Body(new ZodValidationPipe(updateProjectSchema))
+    @Body(new ZodValidationPipe(UpdateProjectSchema))
     updateProjectDto: UpdateProjectDto,
     @CurrentUserId() userId: number,
   ) {
@@ -72,7 +68,7 @@ export class ProjectsController {
   @Permissions(PERMISSIONS.PROJECT_WRITE)
   status(
     @Param('id') id: string,
-    @Body(new ZodValidationPipe(updateProjectStatusSchema))
+    @Body(new ZodValidationPipe(UpdateProjectStatusSchema))
     updateProjectStatusDto: UpdateProjectStatusDto,
     @CurrentUserId() userId: number,
   ) {

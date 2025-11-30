@@ -4654,8 +4654,6 @@ snapshots:
 
   '@personalization/shared@file:../shared':
     dependencies:
-      class-transformer: 0.5.1
-      class-validator: 0.14.3
       zod: 3.25.76
 
   '@pkgr/core@0.2.9': {}

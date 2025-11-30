@@ -1,6 +1,6 @@
 import { IsEnum, IsOptional } from 'class-validator';
 import { PaginationDto } from 'src/dtos/pagination.dto';
-import { ProjectStatus, ProjectType } from '../enums/project-type.enum';
+import { ProjectStatus, ProjectType } from '@personalization/shared';
 import { Transform, Type } from 'class-transformer';
 
 function parseCommaSeparated(

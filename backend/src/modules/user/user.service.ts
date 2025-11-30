@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { RegisterUserDto } from './dto/register-user.dto';
+import { RegisterUserDto } from '@personalization/shared';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { USER_ROLE } from 'src/constants/user';
 import { PasswordService } from 'src/modules/shared/password.service';

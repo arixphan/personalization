@@ -6,10 +6,9 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { CreateProjectDto } from './dto/create-project.dto';
+import { CreateProjectDto, UpdateProjectDto } from '@personalization/shared';
 import { PrismaService } from '../prisma';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { UpdateProjectDto } from './dto/update-project.dto';
 import { paginator } from 'src/lib/paginator';
 import { Prisma } from '@prisma/client';
 import { FindAllByOwnerIdDto } from './dto/find-all-by-owner-id.dto';

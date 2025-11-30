@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, UsePipes, Request } from '@nestjs/common';
 import { UserService } from './user.service';
-import { RegisterUserDto, registerUserSchema } from './dto/register-user.dto';
+import { RegisterUserDto, RegisterUserSchema } from '@personalization/shared';
 import { Public } from 'src/decorators/public.decorator';
 import { ZodValidationPipe } from 'src/pipes/zod.pipe';
 import { Permissions } from 'src/decorators/permission.decorator';
@@ -12,7 +12,7 @@ export class UserController {
 
   @Post('register')
   @Public()
-  @UsePipes(new ZodValidationPipe(registerUserSchema))
+  @UsePipes(new ZodValidationPipe(RegisterUserSchema))
   register(@Body() createUserDto: RegisterUserDto) {
     return this.userService.register(createUserDto);
   }
