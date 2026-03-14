@@ -8,9 +8,13 @@ export { UpdateProjectStatusDto, UpdateProjectStatusSchema } from "./dtos/projec
 // Constants
 export { TASK_TYPES } from "./constants/task";
 export type { TaskType } from "./constants/task";
+
 export {
   PROJECT_STATUS_LABELS,
   PROJECT_TYPE_LABELS,
   ProjectStatus,
   ProjectType,
+  DEFAULT_PROJECT_STATUSES,
 } from "./constants/project";
+export { USER_ROLE, USER_ROLE_NAME } from "./constants/user";
+export { PERMISSIONS } from "./constants/permission";

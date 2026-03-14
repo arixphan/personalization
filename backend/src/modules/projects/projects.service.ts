@@ -6,7 +6,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { CreateProjectDto, UpdateProjectDto } from '@personalization/shared';
+import { CreateProjectDto, UpdateProjectDto, DEFAULT_PROJECT_STATUSES } from '@personalization/shared';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { paginator } from 'src/lib/paginator';
 import { Prisma } from '@prisma/client';
@@ -14,7 +14,6 @@ import { FindAllByOwnerIdDto } from './dto/find-all-by-owner-id.dto';
 import { ProjectsRepository } from './projects.repository';
 
 const paginate = paginator({ page: 1, perPage: 10 });
-const defaultStatus = ['ACTIVE', 'ON-HOLD', 'COMPLETED'];
 
 @Injectable()
 export class ProjectsService {
@@ -59,7 +58,7 @@ export class ProjectsService {
       search,
       sortOrder,
       sortBy,
-      status = defaultStatus,
+      status = DEFAULT_PROJECT_STATUSES,
       type,
     } = findAllDto;
     const sanitizedTerm = search

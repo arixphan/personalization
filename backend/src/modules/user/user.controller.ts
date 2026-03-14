@@ -4,7 +4,7 @@ import { RegisterUserDto, RegisterUserSchema } from '@personalization/shared';
 import { Public } from 'src/decorators/public.decorator';
 import { ZodValidationPipe } from 'src/pipes/zod.pipe';
 import { Permissions } from 'src/decorators/permission.decorator';
-import { PERMISSIONS } from 'src/constants/permission';
+import { PERMISSIONS } from '@personalization/shared';
 
 @Controller('user')
 export class UserController {

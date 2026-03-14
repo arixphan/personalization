@@ -14,6 +14,12 @@ export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
   ARCHIVED: "Archived",
 } as const;
 
+export const DEFAULT_PROJECT_STATUSES: ProjectStatus[] = [
+  ProjectStatus.active,
+  ProjectStatus["on-hold"],
+  ProjectStatus.completed,
+];
+
 export const PROJECT_TYPE_LABELS = {
   Software: "Software",
   WebApplication: "Web Application",

@@ -1,4 +1,4 @@
-import { PERMISSIONS } from 'src/constants/permission';
+import { PERMISSIONS } from '@personalization/shared';
 import { CurrentUserId } from 'src/decorators/current-user-id.decorator';
 import { Permissions } from 'src/decorators/permission.decorator';
 import { ZodValidationPipe } from 'src/pipes/zod.pipe';

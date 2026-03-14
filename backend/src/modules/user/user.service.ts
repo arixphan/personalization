@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { RegisterUserDto } from '@personalization/shared';
-import { USER_ROLE } from 'src/constants/user';
+import { USER_ROLE } from '@personalization/shared';
 import { PasswordService } from 'src/modules/shared/password.service';
 import { UserRepository } from './user.repository';
 
