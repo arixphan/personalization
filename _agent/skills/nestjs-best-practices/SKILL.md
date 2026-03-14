@@ -1,3 +1,7 @@
+---
+name: NestJS Best Practices
+description: Architecture, dependency injection, and performance guide for NestJS applications, optimized for AI-assisted refactoring.
+---
 # NestJS Best Practices
 
 **Version 1.1.0**

@@ -24,6 +24,7 @@ export type ApiResponse<T> = SuccessApiResponse<T> | FailureApiResponse<T>
 export interface SuccessApiResponse<T> {
   status: number;
   data: T | null;
+  error: null;
   responseHeaders?: Headers;
 }
 
@@ -55,14 +56,15 @@ export abstract class BaseApi {
   protected async buildHeaders(
     customHeaders?: HeadersInit
   ): Promise<HeadersInit> {
-    const headers: HeadersInit = {
-      "Content-Type": "application/json",
-      ...customHeaders,
-    };
+    const headers = new Headers(customHeaders);
+
+    if (!headers.has("Content-Type")) {
+      headers.set("Content-Type", "application/json");
+    }
 
     const token = await this.getAccessToken();
     if (token) {
-      headers.Authorization = `Bearer ${token}`;
+      headers.set("Authorization", `Bearer ${token}`);
     }
 
     return headers;

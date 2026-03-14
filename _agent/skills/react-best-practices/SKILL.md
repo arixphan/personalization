@@ -1,3 +1,7 @@
+---
+name: React & Next.js Best Practices
+description: Comprehensive performance optimization and architecture guide for React and Next.js applications, covering bundle size, waterfalls, and server-side performance.
+---
 # React Best Practices
 
 **Version 1.0.0**  
