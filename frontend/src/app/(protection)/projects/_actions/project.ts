@@ -89,3 +89,18 @@ export async function getProject(id: string) {
     statusCode: 500,
   };
 }
+export async function updateProject(id: number, data: any) {
+  const response = await ServerApiHandler.patch<Project>(
+    ProjectEndpoint.update(id.toString()),
+    data
+  );
+
+  if (isSuccessApiResponse(response) && response.data) {
+    return { data: response.data };
+  }
+
+  return {
+    error: response.error || "Failed to update project.",
+    statusCode: response.status || 500,
+  };
+}

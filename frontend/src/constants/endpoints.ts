@@ -29,3 +29,14 @@ export class EndpointFactory {
 }
 
 export const ProjectEndpoint = new EndpointFactory("projects");
+
+export class TicketEndpointFactory extends EndpointFactory {
+  constructor() {
+    super("tickets");
+  }
+  public listByProject(projectId: number): string {
+    return `${this.baseUrl}/project/${projectId}`;
+  }
+}
+
+export const TicketEndpoint = new TicketEndpointFactory();

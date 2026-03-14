@@ -36,10 +36,10 @@ interface ProjectCardProps {
   project: Project;
 }
 
-const boardUrl = `/${MODULE_ROUTES.project.prefix}/${MODULE_ROUTES.project.routes.board}`;
-
 export const ProjectCard = ({ project }: ProjectCardProps) => {
   const router = useRouter();
+  const boardUrl = `/${MODULE_ROUTES.project.prefix}/${project.id}/board`;
+
   const onClick = () => {
     router.push(boardUrl);
   };

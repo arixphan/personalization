@@ -36,11 +36,11 @@ export interface FailureApiResponse<T> {
 }
 
 export function isSuccessApiResponse<T>(res: ApiResponse<T>): res is SuccessApiResponse<T>  {
-  return "data" in res
+  return res.error === null;
 }
 
 export function isFailureApiResponse<T>(res: ApiResponse<T>): res is FailureApiResponse<T>  {
-  return "error" in res
+  return res.error !== null;
 }
 
 // base-api.ts
@@ -140,6 +140,14 @@ export abstract class BaseApi {
     options?: ApiRequestOptions
   ) {
     return this.request<T>("PUT", endpoint, data, options);
+  }
+
+  public patch<T = any>(
+    endpoint: string,
+    data?: any,
+    options?: ApiRequestOptions
+  ) {
+    return this.request<T>("PATCH", endpoint, data, options);
   }
 
   public delete<T = any>(endpoint: string, options?: ApiRequestOptions) {

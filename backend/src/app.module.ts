@@ -16,6 +16,7 @@ import {
   ProjectsModule,
   ShareModule,
   UserModule,
+  TicketsModule,
 } from './modules';
 
 @Module({
@@ -41,6 +42,7 @@ import {
     ShareModule,
     PermissionModule,
     ProjectsModule,
+    TicketsModule,
   ],
   controllers: [AppController],
   providers: [

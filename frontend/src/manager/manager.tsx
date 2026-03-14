@@ -32,7 +32,7 @@ export const MODULE_ROUTES: Record<
       main: "/",
       new: "/new",
       update: "/[id]",
-      board: "/board",
+      board: "/[id]/board",
     },
   },
 };

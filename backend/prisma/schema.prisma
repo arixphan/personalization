@@ -80,7 +80,7 @@ model Project {
   tags        String[] @db.Text
   ownerId     Int
   owner       User     @relation(fields: [ownerId], references: [id])
-  tasks       Task[]
+  tickets     Ticket[]
   phases      Phase[] 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -88,27 +88,32 @@ model Project {
 
 model Phase {
   id          Int      @id @default(autoincrement())
-  title       String   @unique
+  title       String
   description String?  @db.VarChar(100)
   projectId   Int
   project     Project  @relation(fields: [projectId], references: [id])
-  tasks       Task[]   
-  startDate   DateTime
-  endDate     DateTime
+  tickets     Ticket[]   
+  startDate   DateTime?
+  endDate     DateTime?
   status      String   @default("PLANNED") // PLANNED, IN_PROGRESS, COMPLETED
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@unique([projectId, title])
 }
 
-model Task {
+model Ticket {
   id          Int      @id @default(autoincrement())
   title       String   @unique
-  description String?  @db.VarChar(100)
+  description String?  @db.VarChar(500)
   projectId   Int
   project     Project  @relation(fields: [projectId], references: [id])
   phaseId     Int?    
   phase       Phase?   @relation(fields: [phaseId], references: [id])
   status      String   @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED
+  priority    String?  @default("medium")  // highest, high, medium, low, lowest
+  type        String?  @default("task")    // task, story, bug, epic
+  position    Float    @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

@@ -1,21 +1,19 @@
 "use client";
 import React, { useState } from "react";
 
-import { ProjectStatus, TASK_TYPES, TaskType } from "@personalization/shared";
+import { ProjectStatus } from "@personalization/shared";
 
 import {
-  Search,
   Plus,
   Play,
   Pause,
   CheckCircle,
   MoreHorizontal,
-  Calendar,
   Target,
-  Clock,
   AlertCircle,
   Settings,
-  X,
+  LayoutGrid,
+  LayoutList,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { AnimatePresence, motion } from "motion/react";
@@ -26,6 +24,11 @@ interface KanbanBoardProps {
   onStatusChange: (status: ProjectStatus) => void;
   onEndPhase: () => void;
   onShowSettings: () => void;
+  onNewTicket: () => void;
+  isBacklog: boolean;
+  onToggleBacklog: (isBacklog: boolean) => void;
+  ticketCount: number;
+  completedCount: number;
 }
 
 export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
@@ -34,20 +37,14 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
   onStatusChange,
   onEndPhase,
   onShowSettings,
+  onNewTicket,
+  isBacklog,
+  onToggleBacklog,
+  ticketCount,
+  completedCount,
 }) => {
   const { theme } = useTheme();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [priorityFilter, setPriorityFilter] = useState<string>("all");
-  const [typeFilter, setTypeFilter] = useState<string>("all");
   const [showProjectActions, setShowProjectActions] = useState(false);
-
-  // Mock sprint data
-  const currentSprint = {
-    name: "Sprint 3",
-    startDate: new Date("2024-01-15"),
-    endDate: new Date("2024-01-29"),
-    progress: 65,
-  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -110,7 +107,7 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
                     theme === "dark" ? "text-gray-400" : "text-gray-600"
                   }`}
                 >
-                  0 tickets • 0 completed
+                  {ticketCount} tickets • {completedCount} completed
                 </span>
               </div>
             </div>
@@ -121,6 +118,7 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
+              onClick={onNewTicket}
               className={`px-4 py-2 rounded-lg flex items-center justify-center space-x-2 ${
                 theme === "dark"
                   ? "bg-blue-600 hover:bg-blue-700 text-white"
@@ -129,6 +127,22 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
             >
               <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />
               <span>New Ticket</span>
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => onToggleBacklog(!isBacklog)}
+              className={`px-4 py-2 rounded-lg flex items-center justify-center space-x-2 ${
+                isBacklog
+                  ? "bg-purple-600 text-white shadow-lg shadow-purple-500/20"
+                  : theme === "dark"
+                  ? "bg-gray-700 hover:bg-gray-600 text-white"
+                  : "bg-gray-100 hover:bg-gray-200 text-gray-900"
+              } transition-all font-medium`}
+            >
+              {isBacklog ? <LayoutGrid size={16} /> : <LayoutList size={16} />}
+              <span>{isBacklog ? "Kanban Board" : "Backlog"}</span>
             </motion.button>
 
             <div className="relative">
@@ -188,7 +202,7 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
                                 : "text-gray-500"
                             }`}
                           >
-                            Complete {currentSprint.name}
+                            Complete current sprint
                           </div>
                         </div>
                       </button>
@@ -325,146 +339,8 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
             </div>
           </div>
         </div>
-
-        {/* Sprint Information */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
-          <div
-            className={`p-3 sm:p-4 rounded-lg ${
-              theme === "dark" ? "bg-gray-700/50" : "bg-gray-50"
-            }`}
-          >
-            <div className="flex items-center space-x-2 mb-1 sm:mb-2">
-              <Calendar size={14} className="text-blue-500 sm:w-4 sm:h-4" />
-              <span
-                className={`text-xs sm:text-sm font-medium ${
-                  theme === "dark" ? "text-white" : "text-gray-900"
-                }`}
-              >
-                Current Sprint
-              </span>
-            </div>
-            <div
-              className={`text-base sm:text-lg font-bold ${
-                theme === "dark" ? "text-white" : "text-gray-900"
-              }`}
-            >
-              {currentSprint.name}
-            </div>
-            <div
-              className={`text-xs sm:text-sm ${
-                theme === "dark" ? "text-gray-400" : "text-gray-600"
-              }`}
-            >
-              <span className="hidden sm:inline">
-                {currentSprint.startDate.toLocaleDateString()} -{" "}
-                {currentSprint.endDate.toLocaleDateString()}
-              </span>
-              <span className="sm:hidden">
-                {currentSprint.startDate.toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                })}{" "}
-                -{" "}
-                {currentSprint.endDate.toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                })}
-              </span>
-            </div>
-          </div>
-
-          <div
-            className={`p-3 sm:p-4 rounded-lg ${
-              theme === "dark" ? "bg-gray-700/50" : "bg-gray-50"
-            }`}
-          >
-            <div className="flex items-center space-x-2 mb-1 sm:mb-2">
-              <Clock size={14} className="text-green-500 sm:w-4 sm:h-4" />
-              <span
-                className={`text-xs sm:text-sm font-medium ${
-                  theme === "dark" ? "text-white" : "text-gray-900"
-                }`}
-              >
-                Progress
-              </span>
-            </div>
-            <div
-              className={`text-base sm:text-lg font-bold ${
-                theme === "dark" ? "text-white" : "text-gray-900"
-              }`}
-            >
-              {currentSprint.progress}%
-            </div>
-            <div
-              className={`w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1.5 sm:h-2 mt-2`}
-            >
-              <div
-                className="bg-green-500 h-1.5 sm:h-2 rounded-full transition-all duration-300"
-                style={{ width: `${currentSprint.progress}%` }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="flex flex-col gap-3 sm:gap-4">
-          <div className="flex-1 relative">
-            <Search
-              className={`absolute left-3 top-1/2 -translate-y-1/2 ${
-                theme === "dark" ? "text-gray-400" : "text-gray-500"
-              } sm:w-5 sm:h-5`}
-              size={18}
-            />
-            <input
-              type="text"
-              placeholder="Search tickets..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={`w-full pl-9 sm:pl-10 pr-4 py-2 sm:py-3 rounded-lg border text-sm sm:text-base ${
-                theme === "dark"
-                  ? "bg-gray-800 border-gray-700 text-white"
-                  : "bg-white border-gray-300"
-              }`}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 sm:flex sm:space-x-4">
-            <select
-              value={priorityFilter}
-              onChange={(e) => setPriorityFilter(e.target.value)}
-              className={`px-3 sm:px-4 py-2 sm:py-3 rounded-lg border text-sm sm:text-base ${
-                theme === "dark"
-                  ? "bg-gray-800 border-gray-700 text-white"
-                  : "bg-white border-gray-300"
-              }`}
-            >
-              <option value="all">All Priorities</option>
-              <option value="highest">Highest</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-              <option value="lowest">Lowest</option>
-            </select>
-
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className={`px-3 sm:px-4 py-2 sm:py-3 rounded-lg border text-sm sm:text-base ${
-                theme === "dark"
-                  ? "bg-gray-800 border-gray-700 text-white"
-                  : "bg-white border-gray-300"
-              }`}
-            >
-              <option value="all">All Types</option>
-              {Object.values(TASK_TYPES).map((type: TaskType) => (
-                <option key={type} value={type}>
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
       </div>
     </div>
   );
 };
+

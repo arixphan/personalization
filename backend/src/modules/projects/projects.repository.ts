@@ -10,16 +10,31 @@ export class ProjectsRepository {
 
   async create(createProjectDto: CreateProjectDto, ownerId: number) {
     const { title, type, description, columns, tags, version } = createProjectDto;
-    return this.prisma.project.create({
-      data: {
-        title,
-        description,
-        type,
-        version,
-        tags,
-        columns,
-        ownerId,
-      },
+    
+    return this.prisma.$transaction(async (tx) => {
+      const project = await tx.project.create({
+        data: {
+          title,
+          description,
+          type,
+          version,
+          tags,
+          columns,
+          ownerId,
+        },
+      });
+
+      await tx.phase.create({
+        data: {
+          title: 'Active Phase',
+          status: 'IN_PROGRESS',
+          projectId: project.id,
+          startDate: undefined,
+          endDate: undefined,
+        } as any,
+      });
+
+      return project;
     });
   }
 
@@ -53,6 +68,12 @@ export class ProjectsRepository {
   async findByIdAndOwnerOrThrow(id: number, ownerId: number) {
     return this.prisma.project.findUniqueOrThrow({
       where: { id, ownerId },
+      include: {
+        phases: {
+          where: { status: 'IN_PROGRESS' },
+          take: 1,
+        },
+      },
     });
   }
 

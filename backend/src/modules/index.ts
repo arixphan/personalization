@@ -4,3 +4,4 @@ export { PrismaModule, PrismaService } from './prisma';
 export { ProjectsModule, ProjectsService } from './projects';
 export { ShareModule, PasswordService } from './shared';
 export { UserModule, UserService } from './user';
+export { TicketsModule, TicketsService } from './tickets';
