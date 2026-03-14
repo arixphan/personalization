@@ -1,22 +1,20 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { RegisterUserDto } from '@personalization/shared';
-import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { USER_ROLE } from 'src/constants/user';
 import { PasswordService } from 'src/modules/shared/password.service';
+import { UserRepository } from './user.repository';
 
 @Injectable()
 export class UserService {
   constructor(
-    private readonly prismaService: PrismaService,
+    private readonly userRepository: UserRepository,
     private readonly passwordService: PasswordService,
   ) {}
 
   private readonly logger = new Logger(UserService.name);
 
   private async checkIfEmailExists(username: string) {
-    const existingUser = await this.prismaService.user.findUnique({
-      where: { username },
-    });
+    const existingUser = await this.userRepository.findByUsername(username);
 
     if (existingUser) {
       throw new HttpException(
@@ -37,12 +35,10 @@ export class UserService {
         registerUserDto.password,
       );
 
-      await this.prismaService.user.create({
-        data: {
-          username: registerUserDto.username,
-          password: hashedPassword,
-          roleId: USER_ROLE.USER,
-        },
+      await this.userRepository.create({
+        username: registerUserDto.username,
+        password: hashedPassword,
+        roleId: USER_ROLE.USER,
       });
 
       return {
@@ -66,19 +62,10 @@ export class UserService {
   }
 
   findByUsername(username: string) {
-    return this.prismaService.user.findUnique({
-      where: { username },
-    });
+    return this.userRepository.findByUsername(username);
   }
 
   findAll() {
-    return this.prismaService.user.findMany({
-      select: {
-        id: true,
-        username: true,
-        name: true,
-        roleId: true,
-      },
-    });
+    return this.userRepository.findAll();
   }
 }

@@ -7,18 +7,18 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { CreateProjectDto, UpdateProjectDto } from '@personalization/shared';
-import { PrismaService } from '../prisma';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { paginator } from 'src/lib/paginator';
 import { Prisma } from '@prisma/client';
 import { FindAllByOwnerIdDto } from './dto/find-all-by-owner-id.dto';
+import { ProjectsRepository } from './projects.repository';
 
 const paginate = paginator({ page: 1, perPage: 10 });
 const defaultStatus = ['ACTIVE', 'ON-HOLD', 'COMPLETED'];
 
 @Injectable()
 export class ProjectsService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(private readonly projectsRepository: ProjectsRepository) {}
   private readonly logger = new Logger(ProjectsService.name);
 
   private requireOwnerId(userId) {
@@ -41,19 +41,7 @@ export class ProjectsService {
     this.requireOwnerId(userId);
 
     try {
-      const { title, type, description, columns, tags, version } =
-        createProjectDto;
-      const project = await this.prismaService.project.create({
-        data: {
-          title,
-          description,
-          type,
-          version,
-          tags,
-          columns,
-          ownerId: userId,
-        },
-      });
+      const project = await this.projectsRepository.create(createProjectDto, userId);
       return project;
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
@@ -89,23 +77,15 @@ export class ProjectsService {
 
     return paginate(
       async () => {
-        return this.prismaService.project.count({ where });
+        return this.projectsRepository.count(where);
       },
       async (take: number, skip: number) => {
-        return this.prismaService.project.findMany({
+        return this.projectsRepository.findMany(
+          where,
           skip,
           take,
-          where,
-          orderBy: this.buildFindAllOrderBy(sortBy, sortOrder),
-          select: {
-            id: true,
-            title: true,
-            description: true,
-            status: true,
-            type: true,
-            createdAt: true,
-          },
-        });
+          this.buildFindAllOrderBy(sortBy, sortOrder)
+        );
       },
       {
         page,
@@ -145,9 +125,7 @@ export class ProjectsService {
   async findOne(id: number, userId: number) {
     this.requireOwnerId(userId);
     try {
-      const project = await this.prismaService.project.findUniqueOrThrow({
-        where: { id, ownerId: userId },
-      });
+      const project = await this.projectsRepository.findByIdAndOwnerOrThrow(id, userId);
       return project;
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
@@ -165,10 +143,7 @@ export class ProjectsService {
   async update(id: number, updateProjectDto: UpdateProjectDto, userId: number) {
     this.requireOwnerId(userId);
 
-    const project = await this.prismaService.project.findUnique({
-      where: { id: id },
-      select: { id: true, ownerId: true },
-    });
+    const project = await this.projectsRepository.findById(id);
 
     if (!project) {
       throw new NotFoundException('Project not found');
@@ -181,12 +156,7 @@ export class ProjectsService {
     }
 
     try {
-      return await this.prismaService.project.update({
-        where: { id },
-        data: {
-          ...updateProjectDto,
-        },
-      });
+      return await this.projectsRepository.update(id, updateProjectDto);
     } catch (error) {
       this.logger.error('Failed to update project', error);
 
@@ -200,9 +170,7 @@ export class ProjectsService {
   async updateStatus(id: number, status: string, userId: number) {
     this.requireOwnerId(userId);
     try {
-      const project = await this.prismaService.project.findUnique({
-        where: { id, ownerId: userId },
-      });
+      const project = await this.projectsRepository.findByIdAndOwner(id, userId);
 
       if (!project) {
         throw new NotFoundException(
@@ -210,10 +178,7 @@ export class ProjectsService {
         );
       }
 
-      const updatedProject = await this.prismaService.project.update({
-        where: { id, ownerId: userId },
-        data: { status },
-      });
+      const updatedProject = await this.projectsRepository.updateStatus(id, status, userId);
       return updatedProject;
     } catch (error) {
       if (error instanceof NotFoundException) {
