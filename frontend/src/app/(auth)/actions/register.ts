@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { AuthEndpoint } from "@/constants/endpoints";
 import { ServerApiHandler } from "@/lib/server-api";
+import { FailureApiResponse, isSuccessApiResponse } from "@/lib/base-api";
 
 // Schema definition
 const registerSchema = z
@@ -63,9 +64,9 @@ const createSuccessState = (message: string): RegisterState => ({
   message,
 });
 
-const handleApiError = async (response: Response): Promise<RegisterState> => {
+const handleApiError = async (response: FailureApiResponse<any>): Promise<RegisterState> => {
   try {
-    const errorData: ApiErrorResponse = await response.json();
+    const errorData: ApiErrorResponse =  response.data;
 
     switch (response.status) {
       case 400:
@@ -99,7 +100,8 @@ const makeApiRequest = async (
       password,
     });
 
-    if (response.ok) {
+
+    if (isSuccessApiResponse(response)) {
       return createSuccessState("Account created successfully!");
     }
     return await handleApiError(response);

@@ -1,15 +1,9 @@
-import { ProjectStatus } from "../_types/project";
+import { PROJECT_STATUS_LABELS, ProjectStatus } from "@personalization/shared";
 
-
-const statusLabel = {
-  [ProjectStatus.ACTIVE]: "Active",
-  [ProjectStatus["ON-HOLD"]]: "On Hold",
-  [ProjectStatus.COMPLETED]: "Completed",
-  [ProjectStatus.ARCHIVED]: "Archived",
-};
 export function getStatusLabel(status: ProjectStatus): string {
-  return statusLabel[status] || "Unknown Status";
+  return PROJECT_STATUS_LABELS[status] || "Unknown Status";
 }
 
 export function getTypeLabel(status: string): string {
   return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+}

@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -11,7 +15,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "plugins": [
       {
@@ -19,10 +23,18 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"],
-      "@/shared": ["./src/shared"],
-      "@/context": ["./src/context"],
-      "@/ui": ["./src/shared/ui"],
+      "@/*": [
+        "./src/*"
+      ],
+      "@/shared": [
+        "./src/shared"
+      ],
+      "@/context": [
+        "./src/context"
+      ],
+      "@/ui": [
+        "./src/shared/ui"
+      ]
     }
   },
   "include": [
@@ -30,7 +42,10 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "src/app/database/db.env"
+    "src/app/database/db.env",
+    ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }

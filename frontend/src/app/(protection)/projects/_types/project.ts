@@ -1,4 +1,4 @@
-export { ProjectStatus, ProjectType } from '@personalization/shared';
+import { ProjectStatus } from "@personalization/shared";
 
 export interface Project {
   id: string;

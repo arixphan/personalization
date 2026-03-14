@@ -13,9 +13,10 @@ import {
 } from "@/components/ui/input/custom-select";
 import { PaginatedMeta } from "@/lib/base-api";
 import { capitalizeWords, enumToSelectOptions } from "@/lib/utils";
+import { ProjectStatus, PROJECT_TYPE_LABELS } from "@personalization/shared";
 
 import { fetchProjects, ProjectFilter } from "../_lib/dal";
-import { Project, ProjectStatus, ProjectType } from "../_types/project";
+import { Project } from "../_types/project";
 import { ProjectCard } from "./project-card";
 
 const containerVariants = {
@@ -33,12 +34,12 @@ const allOption: SelectOption = {
 const statusOptions: SelectOption[] = [
   allOption,
   ...enumToSelectOptions(ProjectStatus)
-    .filter((op) => op.value !== ProjectStatus.ARCHIVED)
+    .filter((op) => op.value !== ProjectStatus.archived)
     .map((op) => ({ ...op, label: capitalizeWords(op.label.toLowerCase()) })),
 ];
 const typeOptions: SelectOption[] = [
   allOption,
-  ...enumToSelectOptions(ProjectType),
+  ...enumToSelectOptions(PROJECT_TYPE_LABELS),
 ];
 
 interface ProjectListProps {

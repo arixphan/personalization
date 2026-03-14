@@ -13,13 +13,13 @@ import {
 } from "@/components/ui/input";
 import { enumToSelectOptions } from "@/lib/utils";
 import { zodErrorsToMap } from "@/lib/validation";
+import { PROJECT_TYPE_LABELS } from "@personalization/shared";
 
 import { BaseProjectDto, BaseProjectSchema } from "../../_lib/dto";
-import { ProjectType } from "../../_types/project";
 import { ColumnInput } from "./column-input";
 import { TagInput } from "./tag-input";
 
-const projectTypes = enumToSelectOptions(ProjectType);
+const projectTypes = enumToSelectOptions(PROJECT_TYPE_LABELS);
 
 const predefinedTags = [
   "Backend",

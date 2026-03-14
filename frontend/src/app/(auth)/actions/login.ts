@@ -55,6 +55,8 @@ export async function signInAction(
       }
     );
 
+    console.log(data);
+
 
     if (data) {
       // Get cookies from NestJS response and forward them

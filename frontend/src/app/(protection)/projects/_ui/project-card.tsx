@@ -1,4 +1,4 @@
-import { KeyboardEvent, KeyboardEventHandler } from "react";
+import { KeyboardEvent } from "react";
 import { Folder, Settings } from "lucide-react";
 
 import { motion } from "motion/react";
@@ -7,12 +7,13 @@ import Link from "next/link";
 
 import { useRouter } from "next/navigation";
 
+import { ProjectStatus } from "@personalization/shared";
 import { KeyboardKey } from "@/constants/keyboard";
 
 import { MODULE_ROUTES } from "@/manager/manager";
 
 import { getTypeLabel } from "../_lib/format";
-import { Project, ProjectStatus } from "../_types/project";
+import { Project } from "../_types/project";
 import { StatusTag } from "./tags/StatusTag";
 
 const itemVariants = {
@@ -25,10 +26,10 @@ const itemVariants = {
 };
 
 const PROJECT_STATUS_STYlE: Record<ProjectStatus, string> = {
-  [ProjectStatus.ACTIVE]: "bg-green-500/20 text-green-500",
-  [ProjectStatus["ON-HOLD"]]: "bg-yellow-500/20 text-yellow-500",
-  [ProjectStatus.COMPLETED]: "bg-blue-500/20 text-blue-500",
-  [ProjectStatus.ARCHIVED]: "bg-gray-500/20 text-gray-500",
+  [ProjectStatus.archived]: "bg-green-500/20 text-green-500",
+  [ProjectStatus["on-hold"]]: "bg-yellow-500/20 text-yellow-500",
+  [ProjectStatus.completed]: "bg-blue-500/20 text-blue-500",
+  [ProjectStatus.active]: "bg-gray-500/20 text-gray-500",
 };
 
 interface ProjectCardProps {
@@ -52,11 +53,11 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
     <motion.div
       key={project.id}
       variants={itemVariants}
-      initial="hidden" 
+      initial="hidden"
       animate="visible"
       className="rounded-xl p-6 bg-white hover:bg-gray-50 dark:bg-gray-800/50 dark:hover:bg-gray-800/80 transition-colors group"
       onClick={onClick}
-      onKeyDown={onKeyDown} 
+      onKeyDown={onKeyDown}
     >
       <div className="flex items-start justify-between h-full">
         <div className="flex-1 cursor-pointer flex flex-col h-full">

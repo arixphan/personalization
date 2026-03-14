@@ -30,6 +30,7 @@ export interface SuccessApiResponse<T> {
 export interface FailureApiResponse<T> {
   status: number;
   error: string | null;
+  data: T | null;
   responseHeaders?: Headers;
 }
 
