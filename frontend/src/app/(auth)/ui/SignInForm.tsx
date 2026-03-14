@@ -40,7 +40,7 @@ export const SignInForm = () => {
     blur: { scale: 1, transition: { duration: 0.2 } },
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };

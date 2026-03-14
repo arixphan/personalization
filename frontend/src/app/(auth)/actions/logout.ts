@@ -23,7 +23,8 @@ export async function logout() {
       message: "Cannot logout successfully",
     };
   } catch (error) {
-    if (error?.digest?.includes("NEXT_REDIRECT")) {
+    const err = error as { digest?: string };
+    if (err?.digest?.includes("NEXT_REDIRECT")) {
       throw error;
     }
 

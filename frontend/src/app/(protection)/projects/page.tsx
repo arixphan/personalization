@@ -1,31 +1,11 @@
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { Button } from "@/components/ui/button";
+import { ProjectListWrapper } from "./_ui/project-list-wrapper";
+import { Skeleton } from "@/components/ui/skeleton";
 
-import { findProjects } from "./_actions/project";
-import { ProjectList } from "./_ui/project-list";
-import { ErrorDisplay } from "./_ui/error-display";
-
-export default async function ProjectsPage() {
-  const response = await findProjects();
-
-  // Check if response is an error
-  if ("error" in response) {
-    return (
-      <ErrorDisplay message={response.error} statusCode={response.statusCode} />
-    );
-  }
-
-  // Handle case where data might be missing
-  if (!response.data || !response.meta) {
-    return (
-      <ErrorDisplay
-        message="No projects data available. Please try again later."
-        statusCode={500}
-      />
-    );
-  }
-
+export default function ProjectsPage() {
   return (
     <div>
       <header className="mb-8">
@@ -46,10 +26,18 @@ export default async function ProjectsPage() {
           </Link>
         </div>
       </header>
-      <ProjectList
-        initialProjects={response.data}
-        initialMeta={response.meta}
-      />
+
+      <Suspense
+        fallback={
+          <div className="space-y-4">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-12 w-full" />
+          </div>
+        }
+      >
+        <ProjectListWrapper />
+      </Suspense>
     </div>
   );
 }

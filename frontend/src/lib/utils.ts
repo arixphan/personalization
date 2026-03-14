@@ -46,3 +46,13 @@ export function buildQueryString(
 
   return searchParams.toString();
 }
+
+export function isErrorResponse(
+  response: unknown
+): response is { error: string; statusCode: number } {
+  return (
+    typeof response === "object" &&
+    response !== null &&
+    "error" in response
+  );
+}
