@@ -1,0 +1,29 @@
+# Frontend Project Rules & Conventions
+
+You are working on a Next.js project with an App Router. Adhere to the following conventions strictly.
+
+## File & Folder Naming
+- **Folders**: Always use `kebab-case` (e.g., `projects`, `board-view`).
+- **Files**:
+  - Components: Always use `kebab-case.tsx` (e.g., `kanban-column.tsx`, `kanban-board.tsx`).
+  - Utilities/Actions/Lib: Always use `kebab-case.ts` (e.g., `base-api.ts`, `project-actions.ts`).
+  - Next.js reserved files: `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`.
+
+## Project Structure (src/app)
+- **Route Groups**: Use `(auth)`, `(protection)`, etc., to group logical routes.
+- **Route-Specific Resources**: For complex routes, use internal folders with an underscore prefix:
+  - `_ui/`: Component logic for the route.
+  - `_actions/`: Server actions for the route.
+  - `_lib/`: Utilities for the route.
+  - `_types/`: TS interfaces/types for the route.
+
+## Coding Standards
+- **TypeScript**: Use strict typing. Prefer `interface` over `type` for props.
+- **Components**: Functional components only. Default export for pages/layouts, named exports for components in `_ui` or `components/ui`.
+- **Naming**:
+  - React Components: `PascalCase`.
+  - Functions/Variables: `camelCase`.
+  - Constants: `SCREAMING_SNAKE_CASE`.
+  - Props: `[ComponentName]Props`.
+- **Styling**: Tailwind CSS. Use template literals for dynamic classes.
+- **Backend Communication**: Use Server Actions for mutations and `src/lib/base-api.ts` factory patterns for API calls.
