@@ -1,7 +1,7 @@
 "use client";
 
 import { Chrome, Eye, EyeOff, Lock, User } from "lucide-react";
-import SocialButton from "./SocialButton";
+import SocialButton from "./social-button";
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import Link from "next/link";

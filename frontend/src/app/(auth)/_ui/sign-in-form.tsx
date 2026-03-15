@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { Eye, EyeOff, User, Lock, Chrome } from "lucide-react";
-import SocialButton from "./SocialButton";
+import SocialButton from "./social-button";
 import Link from "next/link";
 import { signInAction, SignInInput } from "../actions/login";
 import { useRouter } from "next/navigation";

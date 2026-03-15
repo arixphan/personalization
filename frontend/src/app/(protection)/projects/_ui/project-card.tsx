@@ -15,7 +15,7 @@ import { MODULE_ROUTES } from "@/manager/manager";
 
 import { getTypeLabel } from "../_lib/format";
 import { Project } from "../_types/project";
-import { StatusTag } from "./tags/StatusTag";
+import { StatusTag } from "./tags/status-tag";
 
 const itemVariants = {
   hidden: { y: 20, opacity: 0 },

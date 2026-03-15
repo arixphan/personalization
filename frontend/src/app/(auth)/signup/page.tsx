@@ -1,5 +1,5 @@
-import { AuthContainer } from "../_ui/AuthContainer";
-import { SignUpForm } from "../_ui/SignUpForm";
+import { AuthContainer } from "../_ui/auth-container";
+import { SignUpForm } from "../_ui/sign-up-form";
 
 export default function SignUpPage() {
   return (

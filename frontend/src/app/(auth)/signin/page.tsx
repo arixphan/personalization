@@ -1,5 +1,5 @@
-import { AuthContainer } from "../_ui/AuthContainer";
-import { SignInForm } from "../_ui/SignInForm";
+import { AuthContainer } from "../_ui/auth-container";
+import { SignInForm } from "../_ui/sign-in-form";
 
 export default function SignInPage() {
   return (
