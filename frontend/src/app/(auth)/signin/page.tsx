@@ -1,7 +1,7 @@
-import { AuthContainer } from "../ui/AuthContainer";
-import { SignInForm } from "../ui/SignInForm";
+import { AuthContainer } from "../_ui/AuthContainer";
+import { SignInForm } from "../_ui/SignInForm";
 
-export default function RegisterPage() {
+export default function SignInPage() {
   return (
     <AuthContainer
       title="Welcome Back"

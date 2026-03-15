@@ -62,8 +62,10 @@ export const verifyToken = cache(async () => {
 });
 
 export const guardAuth = cache(async () => {
-  const { isAuth } = await verifyToken();
-  if (!isAuth) {
+  const { isAuth, error } = await verifyToken();
+  // If not authenticated and it's not just an expired token, redirect to signin
+  // We allow expired tokens to pass through so the client-side hook can attempt a refresh
+  if (!isAuth && error !== "TOKEN_EXPIRED") {
     redirect("/signin");
   }
 });

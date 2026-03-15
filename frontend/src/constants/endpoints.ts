@@ -1,6 +1,6 @@
 export enum AuthEndpoint {
-  signIn = "user/register",
-  singUp = "auth/login",
+  signIn = "auth/login",
+  signUp = "user/register",
   logout = "auth/logout",
   refreshToken = "auth/refresh",
 }

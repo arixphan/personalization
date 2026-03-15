@@ -17,18 +17,26 @@ export const useRefreshAccessToken = () => {
           credentials: "include",
         });
 
+        if (!res.ok) {
+          router.replace("/signin");
+          return;
+        }
+
         const data = await res.json();
 
-        if (!res.ok || data.error) {
+        if (data.error) {
           router.replace("/signin");
         }
-        localStorage.setItem("access_token", data.access_token);
-      } catch {
+      } catch (error) {
+        console.error("Failed to refresh token:", error);
         router.replace("/signin");
       }
     };
 
-    const timer = setInterval(refresh, 5 * 60 * 1000); // 25 minutes
+    // Initial check/refresh if needed
+    refresh();
+
+    const timer = setInterval(refresh, 25 * 60 * 1000); // 25 minutes
     return () => clearInterval(timer);
   }, [router]);
 };

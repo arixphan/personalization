@@ -48,7 +48,7 @@ export async function signInAction(
 
   try {
     const { data, responseHeaders } = await ServerApiHandler.post(
-      AuthEndpoint.singUp,
+      AuthEndpoint.signIn,
       {
         username,
         password,

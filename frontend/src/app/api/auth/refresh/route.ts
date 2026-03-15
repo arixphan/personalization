@@ -12,9 +12,11 @@ export async function POST() {
   }
 
   try {
-    const response = await fetch(AuthEndpoint.refreshToken, {
+    const baseUrl = process.env.SERVER_BASE_URL || "http://localhost:3000/api";
+    const response = await fetch(`${baseUrl}/${AuthEndpoint.refreshToken}`, {
+      method: "POST",
       headers: {
-        refresh_token: refreshToken.value,
+        Cookie: `refresh_token=${refreshToken.value}`,
       },
     });
 
@@ -31,16 +33,18 @@ export async function POST() {
       success: true,
       access_token: data.access_token,
     });
+
     responseWithCookie.cookies.set("access_token", data.access_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 60 * 15, // 15 minutes
+      maxAge: 60 * 30, // 30 minutes
       path: "/",
     });
 
     return responseWithCookie;
-  } catch {
+  } catch (error) {
+    console.error("Refresh token error:", error);
     return NextResponse.json({ error: "Network error" }, { status: 500 });
   }
 }

@@ -1,7 +1,7 @@
-import { AuthContainer } from "../ui/AuthContainer";
-import { SignUpForm } from "../ui/SignUpForm";
+import { AuthContainer } from "../_ui/AuthContainer";
+import { SignUpForm } from "../_ui/SignUpForm";
 
-export default function RegisterPage() {
+export default function SignUpPage() {
   return (
     <AuthContainer
       title="Create Account"
