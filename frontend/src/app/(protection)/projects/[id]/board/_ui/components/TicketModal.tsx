@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Save, Trash2, User, Clock, AlertCircle } from 'lucide-react';
+import { X, Save, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { CustomInput, CustomSelect, CustomTextarea } from '@/components/ui/input';
 import { Ticket } from '../KanbanCard';
+import { TICKET_TYPES, TicketType, getTicketTypeStyles } from '@/lib/ticket-utils';
+import { cn } from '@/lib/utils';
 
 interface TicketModalProps {
   isOpen: boolean;
@@ -67,7 +71,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 flex items-center justify-center p-4"
           />
 
           {/* Modal */}
@@ -75,103 +79,120 @@ export const TicketModal: React.FC<TicketModalProps> = ({
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none p-4"
+            className="fixed inset-0 z-40 flex items-center justify-center pointer-events-none p-4"
           >
             <div className="bg-white dark:bg-gray-900 w-full max-w-2xl rounded-2xl shadow-2xl pointer-events-auto overflow-hidden flex flex-col max-h-[90vh]">
               {/* Header */}
               <div className="flex items-center justify-between p-4 sm:p-6 border-b dark:border-gray-800">
-                <h2 className="text-xl font-bold dark:text-white">
+                <h2 className="text-2xl font-semibold tracking-tight dark:text-white">
                   {ticket ? `Edit Ticket #${ticket.id}` : 'Create New Ticket'}
                 </h2>
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={onClose}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                  className="rounded-full"
                 >
                   <X size={20} className="dark:text-gray-400" />
-                </button>
+                </Button>
               </div>
 
               {/* Form Content */}
               <form onSubmit={handleSubmit} className="overflow-y-auto p-4 sm:p-6 space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="E.g., Implementation of design system"
-                    className="w-full px-4 py-2 rounded-lg border dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all outline-none"
-                  />
-                </div>
+                <CustomInput
+                  id="title"
+                  label="Title"
+                  required
+                  value={title}
+                  onChange={setTitle}
+                  placeholder="E.g., Implementation of design system"
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Description
-                  </label>
-                  <textarea
-                    rows={4}
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Describe the ticket in detail..."
-                    className="w-full px-4 py-2 rounded-lg border dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all outline-none resize-none"
-                  />
-                </div>
+                <CustomTextarea
+                  id="description"
+                  label="Description"
+                  value={description}
+                  onChange={setDescription}
+                  placeholder="Describe the ticket in detail..."
+                  rows={4}
+                />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Status
-                    </label>
-                    <select
-                      value={status}
-                      onChange={(e) => setStatus(e.target.value)}
-                      className="w-full px-4 py-2 rounded-lg border dark:border-gray-700 dark:bg-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      {columns.map((col) => (
-                        <option key={col} value={col}>
-                          {col.charAt(0).toUpperCase() + col.slice(1).replace(/_/g, ' ')}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <CustomSelect
+                    id="status"
+                    label="Status"
+                    value={status}
+                    onChange={setStatus}
+                    options={columns.map(col => ({
+                      value: col,
+                      label: col.charAt(0).toUpperCase() + col.slice(1).replace(/_/g, ' ')
+                    }))}
+                  />
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Priority
-                    </label>
-                    <select
-                      value={priority}
-                      onChange={(e) => setPriority(e.target.value)}
-                      className="w-full px-4 py-2 rounded-lg border dark:border-gray-700 dark:bg-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="highest">Highest</option>
-                      <option value="high">High</option>
-                      <option value="medium">Medium</option>
-                      <option value="low">Low</option>
-                      <option value="lowest">Lowest</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Type
-                    </label>
-                    <select
-                      value={type}
-                      onChange={(e) => setType(e.target.value)}
-                      className="w-full px-4 py-2 rounded-lg border dark:border-gray-700 dark:bg-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="task">Task</option>
-                      <option value="story">Story</option>
-                      <option value="bug">Bug</option>
-                      <option value="epic">Epic</option>
-                    </select>
-                  </div>
+                  <CustomSelect
+                    id="priority"
+                    label="Priority"
+                    value={priority}
+                    onChange={setPriority}
+                    options={[
+                      { value: 'highest', label: 'Highest' },
+                      { value: 'high', label: 'High' },
+                      { value: 'medium', label: 'Medium' },
+                      { value: 'low', label: 'Low' },
+                      { value: 'lowest', label: 'Lowest' },
+                    ]}
+                  />
                 </div>
-              </form>
+
+                    <div className="flex flex-col space-y-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-sm font-medium">
+                          Type
+                        </label>
+                        <Badge 
+                          variant="outline"
+                          className={cn(
+                            "uppercase tracking-wider px-2 py-0.5 border-none",
+                            getTicketTypeStyles(type).color,
+                            getTicketTypeStyles(type).bgColor,
+                            getTicketTypeStyles(type).darkBgColor
+                          )}
+                        >
+                          {type}
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {(Object.keys(TICKET_TYPES) as TicketType[]).map((t) => {
+                          const config = TICKET_TYPES[t];
+                          const Icon = config.icon;
+                          const isSelected = type === t;
+                          return (
+                            <button
+                              key={t}
+                              type="button"
+                              onClick={() => setType(t)}
+                              className={cn(
+                                "flex items-center space-x-3 px-3 py-2 rounded-lg border transition-all text-left",
+                                isSelected 
+                                  ? cn(config.borderColor, config.bgColor, config.darkBgColor, "ring-2 ring-offset-2 ring-blue-500/20")
+                                  : "border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-white dark:bg-gray-800"
+                              )}
+                            >
+                              <div className={cn("p-1.5 rounded-md", isSelected ? "bg-white dark:bg-gray-900" : config.bgColor, config.darkBgColor)}>
+                                <Icon size={14} className={config.color} />
+                              </div>
+                              <span className={cn(
+                                "text-sm font-medium capitalize",
+                                isSelected ? config.color : "text-gray-600 dark:text-gray-400"
+                              )}>
+                                {t}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                </form>
 
               {/* Footer Actions */}
               <div className="p-4 sm:p-6 border-t dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 flex items-center justify-between">
@@ -200,6 +221,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
                     onClick={handleSubmit}
                     variant="default"
                     className="flex items-center space-x-2 px-6"
+                    size="lg"
                   >
                     <Save size={18} />
                     <span>{ticket ? 'Save Changes' : 'Create Ticket'}</span>

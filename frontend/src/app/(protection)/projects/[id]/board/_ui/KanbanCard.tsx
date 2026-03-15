@@ -5,15 +5,15 @@ import {
   ArrowUp, 
   ArrowDown, 
   Minus, 
-  Bug, 
-  BookOpen, 
-  CheckSquare, 
-  Layers,
   User,
   Calendar,
   MessageSquare,
-  Paperclip
+  Paperclip,
+  ChevronsUp,
+  ChevronsDown
 } from 'lucide-react';
+import { TicketTypeIcon, getTicketTypeStyles } from '@/lib/ticket-utils';
+import { cn } from '@/lib/utils';
 
 export interface Ticket {
   id: number;
@@ -57,42 +57,29 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({ ticket, theme, onTicketC
   const getPriorityIcon = (priority: string = 'medium') => {
     switch (priority) {
       case 'highest':
-        return <ArrowUp size={14} className="text-red-600" />;
+        return <ChevronsUp size={14} className="text-rose-600" />;
       case 'high':
-        return <ArrowUp size={14} className="text-red-500" />;
+        return <ArrowUp size={14} className="text-orange-500" />;
       case 'medium':
-        return <Minus size={14} className="text-yellow-500" />;
+        return <Minus size={14} className="text-amber-500" />;
       case 'low':
-        return <ArrowDown size={14} className="text-green-500" />;
+        return <ArrowDown size={14} className="text-emerald-500" />;
       case 'lowest':
-        return <ArrowDown size={14} className="text-green-600" />;
+        return <ChevronsDown size={14} className="text-emerald-600" />;
       default:
         return <Minus size={14} className="text-gray-500" />;
     }
   };
 
-  const getTypeIcon = (type: string = 'task') => {
-    switch (type) {
-      case 'story':
-        return <BookOpen size={14} className="text-green-500" />;
-      case 'task':
-        return <CheckSquare size={14} className="text-blue-500" />;
-      case 'bug':
-        return <Bug size={14} className="text-red-500" />;
-      case 'epic':
-        return <Layers size={14} className="text-purple-500" />;
-      default:
-        return <CheckSquare size={14} className="text-blue-500" />;
-    }
-  };
+
 
   const getPriorityColor = (priority: string = 'medium') => {
     switch (priority) {
-      case 'highest': return 'border-l-red-600';
-      case 'high': return 'border-l-red-500';
-      case 'medium': return 'border-l-yellow-500';
-      case 'low': return 'border-l-green-500';
-      case 'lowest': return 'border-l-green-600';
+      case 'highest': return 'border-l-rose-600';
+      case 'high': return 'border-l-orange-500';
+      case 'medium': return 'border-l-amber-500';
+      case 'low': return 'border-l-emerald-500';
+      case 'lowest': return 'border-l-emerald-600';
       default: return 'border-l-gray-500';
     }
   };
@@ -104,42 +91,43 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({ ticket, theme, onTicketC
       {...attributes}
       {...listeners}
       onClick={() => onTicketClick(ticket.id)}
-      className={`
-        rounded-lg p-2.5 sm:p-4 cursor-pointer border-l-4 ${getPriorityColor(ticket.priority)}
-        ${isDragging ? 'opacity-50' : 'opacity-100'}
-        ${
-          theme === 'dark'
-            ? 'bg-gray-700 hover:bg-gray-600'
-            : 'bg-white hover:bg-gray-50'
-        }
-        transition-all shadow-sm hover:shadow-md mb-2
-      `}
+      className={cn(
+        "rounded-lg p-2.5 sm:p-4 cursor-pointer border-l-4",
+        getTicketTypeStyles(ticket.type || 'task').borderLeftColor,
+        isDragging ? 'opacity-50' : 'opacity-100',
+        theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-white hover:bg-gray-50',
+        "transition-all shadow-sm hover:shadow-md mb-2 group"
+      )}
     >
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-2">
-          <span className={`text-xs font-mono ${
-            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-          }`}>
+          <TicketTypeIcon type={ticket.type || 'task'} size={12} />
+          <span className={cn(
+            "text-[10px] font-bold uppercase tracking-wider",
+            getTicketTypeStyles(ticket.type || 'task').color
+          )}>
+            {ticket.type || 'task'}
+          </span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <span className={cn(
+            "text-[10px] font-mono",
+            theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
+          )}>
             #{ticket.id}
           </span>
-          {getTypeIcon(ticket.type)}
-        </div>
-        <div className="flex items-center space-x-1">
-          {getPriorityIcon(ticket.priority)}
-          {ticket.storyPoints && (
-            <span className={`text-xs px-1.5 py-0.5 rounded ${
-              theme === 'dark' ? 'bg-gray-600 text-gray-300' : 'bg-gray-100 text-gray-600'
-            }`}>
-              {ticket.storyPoints}
-            </span>
-          )}
+          <div className="p-1 rounded-full bg-gray-100 dark:bg-gray-800">
+            {getPriorityIcon(ticket.priority)}
+          </div>
         </div>
       </div>
 
       <h4
-        className={`font-medium mb-1.5 sm:mb-2 line-clamp-2 ${
-          theme === 'dark' ? 'text-white' : 'text-gray-900'
-        } text-xs sm:text-base`}
+        className={cn(
+          "font-semibold mb-2 line-clamp-2 transition-colors",
+          theme === 'dark' ? 'text-gray-100 group-hover:text-white' : 'text-gray-800 group-hover:text-blue-600',
+          "text-sm sm:text-base"
+        )}
       >
         {ticket.title}
       </h4>

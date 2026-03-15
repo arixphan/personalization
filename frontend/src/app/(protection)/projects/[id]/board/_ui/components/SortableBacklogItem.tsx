@@ -2,8 +2,10 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { motion } from 'motion/react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ChevronsUp, ArrowUp, Minus, ArrowDown, ChevronsDown } from 'lucide-react';
 import { Ticket } from '../KanbanCard';
+import { TicketTypeIcon, getTicketTypeStyles } from '@/lib/ticket-utils';
+import { cn } from '@/lib/utils';
 
 interface SortableBacklogItemProps {
   ticket: Ticket;
@@ -36,6 +38,20 @@ export const SortableBacklogItem = React.memo<SortableBacklogItemProps>(({
     opacity: isDragging && !isOverlay ? 0.3 : 1,
   };
 
+  const getPriorityInfo = (priority: string = 'medium') => {
+    switch (priority) {
+      case 'highest': return { color: 'bg-rose-500', icon: <ChevronsUp size={12} className="text-white" /> };
+      case 'high': return { color: 'bg-orange-500', icon: <ArrowUp size={12} className="text-white" /> };
+      case 'medium': return { color: 'bg-amber-500', icon: <Minus size={12} className="text-white" /> };
+      case 'low': return { color: 'bg-emerald-500', icon: <ArrowDown size={12} className="text-white" /> };
+      case 'lowest': return { color: 'bg-emerald-600', icon: <ChevronsDown size={12} className="text-white" /> };
+      default: return { color: 'bg-gray-500', icon: <Minus size={12} className="text-white" /> };
+    }
+  };
+
+  const priorityInfo = getPriorityInfo(ticket.priority);
+  const typeStyles = getTicketTypeStyles(ticket.type || 'task');
+
   return (
     <div
       ref={setNodeRef}
@@ -43,34 +59,38 @@ export const SortableBacklogItem = React.memo<SortableBacklogItemProps>(({
       {...attributes}
       {...listeners}
       onClick={() => !isOverlay && onTicketClick(ticket.id)}
-      className={`group p-4 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+      className={cn(
+        "group p-4 rounded-xl border flex items-center justify-between cursor-pointer transition-all border-l-4",
+        typeStyles.borderLeftColor,
         isOverlay ? 'shadow-2xl ring-2 ring-blue-500 bg-white dark:bg-gray-800 scale-105' : 
         theme === 'dark'
           ? 'bg-gray-800/50 border-gray-700 hover:bg-gray-800'
           : 'bg-white border-gray-200 hover:shadow-md'
-      }`}
+      )}
     >
 
       <div className="flex items-center space-x-4 flex-1">
-        <div className={`w-2 h-2 rounded-full ${
-          ticket.priority === 'highest' ? 'bg-red-500' :
-          ticket.priority === 'high' ? 'bg-orange-500' :
-          ticket.priority === 'medium' ? 'bg-yellow-500' :
-          'bg-blue-500'
-        }`} />
+        <div className={cn("w-6 h-6 rounded-full flex items-center justify-center shrink-0 shadow-sm", priorityInfo.color)}>
+          {priorityInfo.icon}
+        </div>
         <div>
-          <h4 className="font-medium dark:text-white group-hover:text-blue-500 transition-colors">
+          <h4 className={cn(
+            "font-semibold transition-colors line-clamp-1",
+            theme === 'dark' ? 'text-gray-100 group-hover:text-white' : 'text-gray-800 group-hover:text-blue-600'
+          )}>
             {ticket.title}
           </h4>
           <div className="flex items-center space-x-3 mt-1">
-            <span className="text-xs text-gray-500 uppercase font-semibold">TKT-{ticket.id}</span>
-            <span className={`text-[10px] px-2 py-0.5 rounded uppercase font-bold ${
-              ticket.type === 'bug' ? 'bg-red-100 text-red-600 dark:bg-red-900/20' :
-              ticket.type === 'story' ? 'bg-green-100 text-green-600 dark:bg-green-900/20' :
-              'bg-gray-100 text-gray-600 dark:bg-gray-700'
-            }`}>
-              {ticket.type}
-            </span>
+            <span className="text-[10px] text-gray-500 font-mono tracking-tight">#{ticket.id}</span>
+            <div className="flex items-center space-x-1.5">
+              <TicketTypeIcon type={ticket.type || 'task'} size={10} className="p-0.5 border-none bg-transparent" />
+              <span className={cn(
+                "text-[10px] font-bold uppercase tracking-wider",
+                typeStyles.color
+              )}>
+                {ticket.type || 'task'}
+              </span>
+            </div>
           </div>
         </div>
       </div>
