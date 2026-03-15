@@ -19,7 +19,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { SortableBacklogItem } from './SortableBacklogItem';
+import { SortableBacklogItem } from './sortable-backlog-item';
 import { updateTicket } from '../../../../_actions/ticket';
 import { toast } from 'sonner';
 
