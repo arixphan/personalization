@@ -1,4 +1,9 @@
-# Frontend Conventions
+---
+name: Personalization Frontend Conventions
+description: Architecture, naming, and engineering principles for the Personalization project.
+---
+
+# Personalization Frontend Conventions
 
 This document outlines the coding standards, file structures, and naming conventions for the frontend of the Personalization project.
 
