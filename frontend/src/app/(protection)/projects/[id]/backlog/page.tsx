@@ -1,4 +1,4 @@
-import { KanbanView } from "../board/_ui/board-view";
+import { BacklogPageView } from "./_ui/backlog-page-view";
 import { getProject } from "../../_actions/project";
 import { getTicketsByProject } from "../../_actions/ticket";
 import { isErrorResponse } from "@/lib/utils";
@@ -21,7 +21,7 @@ export default async function BacklogPage({
 
   return (
     <div>
-      <KanbanView project={projectResponse.data} initialTickets={initialTickets} defaultIsBacklog={true} />
+      <BacklogPageView project={projectResponse.data} initialTickets={initialTickets} />
     </div>
   );
 }

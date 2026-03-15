@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'motion/react';
-import { Ticket } from '../KanbanCard';
+import { Ticket } from './kanban-card';
 import { ArrowRight, Search, Filter, MoreVertical, LayoutGrid, LayoutList } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import {
@@ -20,7 +20,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { SortableBacklogItem } from './sortable-backlog-item';
-import { updateTicket } from '../../../../_actions/ticket';
+import { updateTicket } from '../../../_actions/ticket';
 import { toast } from 'sonner';
 
 interface BacklogViewProps {

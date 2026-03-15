@@ -37,8 +37,8 @@ import {
   horizontalListSortingStrategy,
   arrayMove,
 } from '@dnd-kit/sortable';
-import { KanbanColumn } from '../KanbanColumn';
-import { KanbanCard, type Ticket } from '../KanbanCard';
+import { KanbanColumn } from '../kanban-column';
+import { KanbanCard, type Ticket } from '../../../_ui/components/kanban-card';
 import { updateTicket } from '../../../../_actions/ticket';
 import { updateProject } from '../../../../_actions/project';
 import { toast } from 'sonner';

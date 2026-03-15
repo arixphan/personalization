@@ -4,7 +4,7 @@ import { X, Save, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CustomInput, CustomSelect, MarkdownEditor } from '@/components/ui/input';
-import { Ticket } from '../KanbanCard';
+import { Ticket } from './kanban-card';
 import { TICKET_TYPES, TicketType, getTicketTypeStyles } from '@/lib/ticket-utils';
 import { cn } from '@/lib/utils';
 

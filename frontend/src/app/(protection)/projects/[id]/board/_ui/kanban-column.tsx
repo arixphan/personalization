@@ -6,7 +6,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { KanbanCard, Ticket } from './KanbanCard';
+import { KanbanCard, Ticket } from '../../_ui/components/kanban-card';
 import { GripVertical } from 'lucide-react';
 
 interface KanbanColumnProps {

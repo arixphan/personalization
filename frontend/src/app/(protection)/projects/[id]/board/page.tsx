@@ -1,4 +1,4 @@
-import { KanbanView } from "./_ui/board-view";
+import { BoardView } from "./_ui/board-view";
 import { getProject } from "../../_actions/project";
 import { getTicketsByProject } from "../../_actions/ticket";
 import { isErrorResponse } from "@/lib/utils";
@@ -21,7 +21,7 @@ export default async function BoardPage({
 
   return (
     <div>
-      <KanbanView project={projectResponse.data} initialTickets={initialTickets} />
+      <BoardView project={projectResponse.data} initialTickets={initialTickets} />
     </div>
   );
 }

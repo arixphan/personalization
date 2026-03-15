@@ -3,7 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { motion } from 'motion/react';
 import { ArrowRight, ChevronsUp, ArrowUp, Minus, ArrowDown, ChevronsDown } from 'lucide-react';
-import { Ticket } from '../KanbanCard';
+import { Ticket } from './kanban-card';
 import { TicketTypeIcon, getTicketTypeStyles } from '@/lib/ticket-utils';
 import { cn } from '@/lib/utils';
 
