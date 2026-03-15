@@ -3,7 +3,7 @@ import { TICKET_TYPES } from '../../constants/ticket';
 
 export const CreateTicketSchema = z.object({
   title: z.string().min(3).max(100),
-  description: z.string().max(500).nullish(),
+  description: z.string().nullish(),
   projectId: z.number(),
   phaseId: z.number().nullish(),
   status: z.string().optional(),

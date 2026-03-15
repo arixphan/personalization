@@ -78,29 +78,25 @@ export const KanbanView = ({ project, initialTickets, defaultIsBacklog = false }
 
   const handleTicketsChange = useCallback((updatedSubset: Ticket[]) => {
     setTickets(prev => {
-      const updatedMap = new Map(updatedSubset.map(t => [t.id, t]));
-      let hasChanges = false;
-
-      const nextTickets = prev.map(t => {
-        if (updatedMap.has(t.id)) {
-          const updated = updatedMap.get(t.id)!;
-          if (updated !== t) {
-            hasChanges = true;
-            return updated;
-          }
-        }
-        return t;
-      });
-
-      // If there are somehow any completely new tickets in the subset, append them
-      const prevIds = new Set(prev.map(t => t.id));
-      const newTickets = updatedSubset.filter(t => !prevIds.has(t.id));
-
-      if (newTickets.length > 0) {
-        return [...nextTickets, ...newTickets];
+      const updatedIds = new Set(updatedSubset.map(t => t.id));
+      
+      // Find the index of the first ticket in the current state that matches the updated subset
+      // This helps us keep the "board" tickets in their general position relative to others (like backlog)
+      const firstIdx = prev.findIndex(t => t && updatedIds.has(t.id));
+      
+      // Remove all updated tickets from the current list
+      const filtered = prev.filter(t => t && !updatedIds.has(t.id));
+      
+      if (firstIdx === -1) {
+        // If none were found (e.g., all are new), just append
+        return [...filtered, ...updatedSubset];
       }
-
-      return hasChanges ? nextTickets : prev;
+      
+      // Re-insert the updated subset at the original starting position
+      const nextTickets = [...filtered];
+      nextTickets.splice(firstIdx, 0, ...updatedSubset);
+      
+      return nextTickets;
     });
   }, []);
 
@@ -144,7 +140,7 @@ export const KanbanView = ({ project, initialTickets, defaultIsBacklog = false }
   };
 
   const handleMoveToBoard = async (ticketId: number) => {
-    if (!activePhaseId) {
+    if (!activePhaseId || !project?.id) {
       toast.error("No active phase found to move ticket to");
       return;
     }

@@ -105,7 +105,7 @@ model Phase {
 model Ticket {
   id          Int      @id @default(autoincrement())
   title       String   @unique
-  description String?  @db.VarChar(500)
+  description String?
   projectId   Int
   phaseId     Int?
   status      String   @default("PENDING")

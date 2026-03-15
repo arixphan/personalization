@@ -87,17 +87,23 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
   // Sync state with props when they change (e.g. after a full re-fetch)
   React.useEffect(() => {
-    setTickets(initialTickets);
+    // Only update if the length or IDs have changed to avoid resetting optimistic updates
+    if (initialTickets.length !== tickets.length || 
+        JSON.stringify(initialTickets.map(t => t.id)) !== JSON.stringify(tickets.map(t => t.id))) {
+      setTickets(initialTickets);
+    }
   }, [initialTickets]);
 
   React.useEffect(() => {
-    setColumns(initialColumns);
+    if (JSON.stringify(initialColumns) !== JSON.stringify(columns)) {
+      setColumns(initialColumns);
+    }
   }, [initialColumns]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 5, // Avoid accidental drags when clicking
+        distance: 8, // Increase distance to better distinguish between click and drag
       },
     }),
     useSensor(KeyboardSensor, {

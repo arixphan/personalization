@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Save, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CustomInput, CustomSelect, CustomTextarea } from '@/components/ui/input';
+import { CustomInput, CustomSelect, MarkdownEditor } from '@/components/ui/input';
 import { Ticket } from '../KanbanCard';
 import { TICKET_TYPES, TicketType, getTicketTypeStyles } from '@/lib/ticket-utils';
 import { cn } from '@/lib/utils';
@@ -108,13 +108,12 @@ export const TicketModal: React.FC<TicketModalProps> = ({
                   placeholder="E.g., Implementation of design system"
                 />
 
-                <CustomTextarea
+                <MarkdownEditor
                   id="description"
                   label="Description"
                   value={description}
                   onChange={setDescription}
-                  placeholder="Describe the ticket in detail..."
-                  rows={4}
+                  placeholder="Describe the ticket in detail using markdown..."
                 />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
