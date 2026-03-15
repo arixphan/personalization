@@ -1,103 +1,103 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearchPostgres"]
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client { 
-  provider = "prisma-client-js"
-  previewFeatures = ["fullTextSearchPostgres"]
+model User {
+  id          Int          @id @default(autoincrement())
+  username    String       @unique
+  name        String?      @db.VarChar(100)
+  password    String       @db.VarChar(255)
+  isActive    Boolean      @default(true)
+  roleId      Int
+  updatedAt   DateTime     @updatedAt
+  createdAt   DateTime     @default(now())
+  avatar      String?      @db.VarChar(255)
+  projects    Project[]
+  role        Role         @relation("UserRoles", fields: [roleId], references: [id])
+  userProfile UserProfile?
 }
 
-model User {
-  id        Int       @id @default(autoincrement())
-  username  String    @unique
-  name      String?   @db.VarChar(100)
-  avatar    String?   @db.VarChar(255)
-  projects  Project[]
-  password  String    @db.VarChar(255)
-  isActive  Boolean   @default(true)
-  roleId    Int
-  role      Role      @relation("UserRoles", fields: [roleId], references: [id])
-  userProfile UserProfile?
-  updatedAt DateTime  @updatedAt
-  createdAt DateTime  @default(now())
-} 
-
 model UserProfile {
-  id          Int      @id @default(autoincrement())
-  userId      Int      @unique
-  name        String?  @db.VarChar(100)
-  avatar     String?  @db.VarChar(255)
-  email       String?  @unique @db.VarChar(100)
-  phone       String?  @db.VarChar(20)
-  dateOfBirth DateTime? // Optional
-  description String?  @db.VarChar(255)
-  address     String?  @db.VarChar(255)
-  bio         String?  @db.VarChar(255)
-  location    String?  @db.VarChar(100)
-  website     String?  @db.VarChar(100)
-  socialLinks String?  @db.VarChar(255) // JSON or comma-separated links
-  interests   String?  @db.VarChar(255) // JSON or comma-separated interests
-  skills      String?  @db.VarChar(255) // JSON or comma-separated skills
-  education   String?  @db.VarChar(255) // JSON or comma-separated education
-  experience  String?  @db.VarChar(255) // JSON or comma-separated work experience
-  achievements String? @db.VarChar(255) // JSON or comma-separated achievements
-  certifications String? @db.VarChar(255) // JSON or comma-separated certifications
-  hobbies     String?  @db.VarChar(255) // JSON or comma-separated hobbies
-  languages   String?  @db.VarChar(255) // JSON or comma-separated languages
-  user        User     @relation(fields: [userId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             Int       @id @default(autoincrement())
+  userId         Int       @unique
+  name           String?   @db.VarChar(100)
+  avatar         String?   @db.VarChar(255)
+  email          String?   @unique @db.VarChar(100)
+  phone          String?   @db.VarChar(20)
+  dateOfBirth    DateTime?
+  description    String?   @db.VarChar(255)
+  address        String?   @db.VarChar(255)
+  bio            String?   @db.VarChar(255)
+  location       String?   @db.VarChar(100)
+  website        String?   @db.VarChar(100)
+  socialLinks    String?   @db.VarChar(255)
+  interests      String?   @db.VarChar(255)
+  skills         String?   @db.VarChar(255)
+  education      String?   @db.VarChar(255)
+  experience     String?   @db.VarChar(255)
+  achievements   String?   @db.VarChar(255)
+  certifications String?   @db.VarChar(255)
+  hobbies        String?   @db.VarChar(255)
+  languages      String?   @db.VarChar(255)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  user           User      @relation(fields: [userId], references: [id])
 }
 
 model Permission {
   id          Int      @id @default(autoincrement())
   name        String   @unique
   description String?  @db.VarChar(100)
-  roles       Role[]   @relation("RolePermissions")
-  createdAt   DateTime @default(now()) 
+  createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  roles       Role[]   @relation("RolePermissions")
 }
 
 model Role {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  description String?  @db.VarChar(100)
-  users       User[]   @relation("UserRoles")
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  description String?      @db.VarChar(100)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  users       User[]       @relation("UserRoles")
   permissions Permission[] @relation("RolePermissions")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 }
 
 model Project {
   id          Int      @id @default(autoincrement())
-  title       String   @db.VarChar(100) @unique
-  type        String   
+  title       String   @unique @db.VarChar(100)
   description String?  @db.VarChar(500)
-  version     String   @default("1.0")
-  status      String   @default("ACTIVE") // ACTIVE, ON-HOLD, COMPLETED, ARCHIVED
-  columns     String[] @db.Text
-  tags        String[] @db.Text
   ownerId     Int
-  owner       User     @relation(fields: [ownerId], references: [id])
-  tickets     Ticket[]
-  phases      Phase[] 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  type        String
+  status      String   @default("ACTIVE")
+  columns     String[]
+  tags        String[]
+  version     String   @default("1.0")
+  phases      Phase[]
+  owner       User     @relation(fields: [ownerId], references: [id])
+  tickets     Ticket[]
 }
 
 model Phase {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   title       String
-  description String?  @db.VarChar(100)
+  description String?   @db.VarChar(100)
   projectId   Int
-  project     Project  @relation(fields: [projectId], references: [id])
-  tickets     Ticket[]   
   startDate   DateTime?
   endDate     DateTime?
-  status      String   @default("PLANNED") // PLANNED, IN_PROGRESS, COMPLETED
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  status      String    @default("PLANNED")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  project     Project   @relation(fields: [projectId], references: [id])
+  tickets     Ticket[]
 
   @@unique([projectId, title])
 }
@@ -107,15 +107,15 @@ model Ticket {
   title       String   @unique
   description String?  @db.VarChar(500)
   projectId   Int
-  project     Project  @relation(fields: [projectId], references: [id])
-  phaseId     Int?    
-  phase       Phase?   @relation(fields: [phaseId], references: [id])
-  status      String   @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED
-  priority    String?  @default("medium")  // highest, high, medium, low, lowest
-  type        String?  @default("task")    // task, story, bug, epic
-  position    Float    @default(0)
+  phaseId     Int?
+  status      String   @default("PENDING")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  priority    String?  @default("medium")
+  type        String?  @default("task")
+  position    Float    @default(0)
+  phase       Phase?   @relation(fields: [phaseId], references: [id])
+  project     Project  @relation(fields: [projectId], references: [id])
 }
 
 model Article {

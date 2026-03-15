@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Save, Trash2, User, Clock, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Ticket } from '../KanbanCard';
 
 interface TicketModalProps {
@@ -176,31 +177,33 @@ export const TicketModal: React.FC<TicketModalProps> = ({
               <div className="p-4 sm:p-6 border-t dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 flex items-center justify-between">
                 <div>
                   {ticket && onDelete && (
-                    <button
+                    <Button
                       type="button"
+                      variant="destructive"
                       onClick={() => onDelete(ticket.id)}
-                      className="flex items-center space-x-2 px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors font-medium"
+                      className="flex items-center space-x-2"
                     >
                       <Trash2 size={18} />
                       <span className="hidden sm:inline">Delete</span>
-                    </button>
+                    </Button>
                   )}
                 </div>
                 <div className="flex items-center space-x-3">
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={onClose}
-                    className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors font-medium"
                   >
                     Cancel
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={handleSubmit}
-                    className="flex items-center space-x-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-lg shadow-blue-500/20 font-medium"
+                    variant="default"
+                    className="flex items-center space-x-2 px-6"
                   >
                     <Save size={18} />
                     <span>{ticket ? 'Save Changes' : 'Create Ticket'}</span>
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>

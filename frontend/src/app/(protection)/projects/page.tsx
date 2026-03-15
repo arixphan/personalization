@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProjectListWrapper } from "./_ui/project-list-wrapper";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,16 +11,17 @@ export default function ProjectsPage() {
       <header className="mb-8">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-4xl font-bold tracking-tight text-foreground">
               Projects
             </h1>
-            <p className="mt-2 text-gray-600 dark:text-gray-300">
+            <p className="mt-2 text-muted-foreground">
               Manage and track all your projects in one place
             </p>
           </div>
 
           <Link href="/projects/new">
-            <Button variant="outline" className="text-lg">
+            <Button variant="default" size="lg" className="gap-2">
+              <Plus size={18} />
               New Project
             </Button>
           </Link>

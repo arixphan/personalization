@@ -13,9 +13,9 @@ export default async function EditProjectPage({
 
   if (isErrorResponse(response)) {
     return (
-      <div>
-        <h2>Sorry! Something went wrong!</h2>
-        <p>Please refresh to try again</p>
+      <div className="p-6">
+        <h2 className="text-2xl font-semibold text-destructive">Sorry! Something went wrong!</h2>
+        <p className="text-muted-foreground mt-2">Please refresh to try again</p>
       </div>
     );
   }
@@ -23,8 +23,8 @@ export default async function EditProjectPage({
   return (
     <div className="p-6">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Edit New Project
+        <h1 className="text-4xl font-bold tracking-tight text-foreground">
+          Edit Project
         </h1>
       </header>
       <UpdateProjectForm initialProject={response.data} />

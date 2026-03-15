@@ -6,6 +6,7 @@ import {
   SelectItem,
 } from "@/components/ui/select"; // Adjust import based on your actual setup
 import { useMemo } from "react";
+import { cn } from "@/lib/utils";
 
 export type SelectOption = {
   value: string;
@@ -68,9 +69,10 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
           id={id}
           aria-invalid={!!error}
           aria-describedby={error ? errorId : undefined}
-          className={`w-full px-3 py-2 rounded-md border transition-colors text-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-            error ? "border-red-500" : "border-gray-300"
-          }`}
+          className={cn(
+            "w-full px-3 py-2 rounded-md border transition-colors text-md focus-visible:ring-ring/50 focus-visible:ring-[3px] outline-none",
+            error ? "border-destructive focus-visible:ring-destructive/20" : "border-gray-300 dark:border-gray-800"
+          )}
         >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>

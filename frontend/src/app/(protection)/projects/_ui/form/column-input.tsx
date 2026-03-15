@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Plus, X } from "lucide-react";
-import { Input } from "@/components/ui/input/input";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 interface ColumnInputProps {
@@ -47,13 +48,14 @@ export const ColumnInput = ({
             }
             maxLength={maxLength}
           />
-          <button
+          <Button
             type="button"
             onClick={addColumn}
-            className="px-4 py-2 border rounded-md transition-colors border-gray-200 bg-white dark:bg-gray-800/50 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-500"
+            variant="outline"
+            size="icon"
           >
             <Plus className="w-4 h-4" />
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -62,16 +64,18 @@ export const ColumnInput = ({
           <Badge
             variant="outline"
             key={index}
-            className="flex items-center space-x-2 px-3 py-2 rounded-md border border-gray-200 bg-white dark:bg-gray-800/50 dark:border-gray-800"
+            className="flex items-center space-x-2 px-3 py-2 rounded-md border border-input bg-card/30"
           >
             <span className="text-sm">{column}</span>
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon"
               onClick={() => removeColumn(column)}
-              className="text-xs dark:hover:text-gray-300 hover:text-gray-600 transition-colors"
+              className="h-6 w-6"
             >
               <X className="w-3 h-3" />
-            </button>
+            </Button>
           </Badge>
         ))}
       </div>

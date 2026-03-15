@@ -241,7 +241,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex flex-row h-full overflow-x-auto pb-4 gap-4">
+          <div className="flex flex-row h-full overflow-x-auto pb-4 gap-1.5 sm:gap-4 snap-x snap-mandatory">
             {displayColumns.map((column) => (
               <KanbanColumn
                 key={column.id}

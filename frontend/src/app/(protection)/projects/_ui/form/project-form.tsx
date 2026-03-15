@@ -139,8 +139,8 @@ export const ProjectForm = ({
   return (
     <div className="space-y-8">
       {/* Basic Information */}
-      <div className="p-6 rounded-lg border border-gray-200 bg-white dark:bg-gray-800/50 dark:border-gray-800">
-        <h2 className="text-xl font-semibold mb-6 flex items-center">
+      <div className="p-6 rounded-xl border bg-card/50">
+        <h2 className="text-2xl font-semibold mb-6 flex items-center">
           <Code className="w-5 h-5 mr-2" />
           {title}
         </h2>
@@ -194,8 +194,8 @@ export const ProjectForm = ({
       </div>
 
       {/* Kanban Columns */}
-      <div className="p-6 rounded-lg border border-gray-200 bg-white dark:bg-gray-800/50 dark:border-gray-800">
-        <h2 className="text-xl font-semibold mb-6 flex items-center">
+      <div className="p-6 rounded-xl border bg-card/50">
+        <h2 className="text-2xl font-semibold mb-6 flex items-center">
           <List className="w-5 h-5 mr-2" />
           Kanban Board Columns
         </h2>
@@ -208,8 +208,8 @@ export const ProjectForm = ({
       </div>
 
       {/* Project Tags */}
-      <div className="p-6 rounded-lg border border-gray-200 bg-white dark:bg-gray-800/50 dark:border-gray-800">
-        <h2 className="text-xl font-semibold mb-6 flex items-center">
+      <div className="p-6 rounded-xl border bg-card/50">
+        <h2 className="text-2xl font-semibold mb-6 flex items-center">
           <Tag className="w-5 h-5 mr-2" />
           Project Tags
         </h2>
@@ -225,16 +225,17 @@ export const ProjectForm = ({
       {/* Submit Button */}
       <div className="flex justify-end space-x-4">
         <Button
-          variant="outline"
-          className="text-lg"
+          variant="ghost"
+          size="lg"
           onClick={() => router.back()}
           disabled={isSubmitting}
         >
           Cancel
         </Button>
         <Button
-          variant="outline"
-          className="text-lg bg-black text-white dark:bg-white dark:text-black"
+          variant="default"
+          size="lg"
+          className="gap-2"
           onClick={handleSubmit}
           disabled={isSubmitting}
         >

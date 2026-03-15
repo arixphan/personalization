@@ -19,6 +19,30 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { AnimatePresence, motion } from "motion/react";
+import { Button } from "@/components/ui/button";
+import {
+  CustomInput,
+  CustomSelect,
+  SelectOption,
+} from "@/components/ui/input";
+
+const priorityOptions: SelectOption[] = [
+  { value: "all", label: "All Priorities" },
+  { value: "highest", label: "Highest" },
+  { value: "high", label: "High" },
+  { value: "medium", label: "Medium" },
+  { value: "low", label: "Low" },
+  { value: "lowest", label: "Lowest" },
+];
+
+const typeOptions: SelectOption[] = [
+  { value: "all", label: "All Types" },
+  { value: "feature", label: "Feature" },
+  { value: "bug", label: "Bug" },
+  { value: "task", label: "Task" },
+  { value: "story", label: "Story" },
+  { value: "epic", label: "Epic" },
+];
 
 interface KanbanBoardProps {
   projectId: number;
@@ -91,27 +115,26 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
     : `/projects/${projectId}/backlog`;
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col min-w-0">
       {/* Enhanced Project Header */}
       <div
-        className={`mb-4 sm:mb-6 p-4 sm:p-6 rounded-xl ${
+        className={`mb-3 sm:mb-6 p-3 sm:p-6 rounded-xl ${
           theme === "dark" ? "bg-gray-800" : "bg-white"
         } shadow-lg`}
       >
         {/* Project Title and Status */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-4 sm:mb-6 gap-4">
-          <div className="flex items-center space-x-4">
-            <div>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-4 sm:mb-6 gap-4 min-w-0">
+          <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
+            <div className="min-w-0 flex-1">
               <h1
-                className={`text-xl sm:text-2xl font-bold ${
-                  theme === "dark" ? "text-white" : "text-gray-900"
-                }`}
+                className="text-2xl sm:text-4xl font-bold tracking-tight text-foreground truncate max-w-[200px] xs:max-w-[300px] sm:max-w-none"
+                title={projectName}
               >
                 {projectName}
               </h1>
-              <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 mt-2">
+              <div className="flex flex-col sm:flex-row sm:items-center space-y-1.5 sm:space-y-0 sm:space-x-3 mt-1.5 sm:mt-2">
                 <span
-                  className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                  className={`inline-flex items-center space-x-1 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-medium ${getStatusColor(
                     projectStatus
                   )}`}
                 >
@@ -132,54 +155,55 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={onNewTicket}
-              className={`px-4 py-2 rounded-lg flex items-center justify-center space-x-2 ${
-                theme === "dark"
-                  ? "bg-blue-600 hover:bg-blue-700 text-white"
-                  : "bg-blue-500 hover:bg-blue-600 text-white"
-              } shadow-lg transition-all font-medium`}
+          <div className="flex flex-row flex-wrap items-center gap-2 sm:gap-3">
+            <Button
+              asChild
+              variant="default"
+              className="flex-1 sm:flex-none px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg"
             >
-              <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />
-              <span>New Ticket</span>
-            </motion.button>
-
-            <Link href={navigationUrl}>
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className={`px-4 py-2 rounded-lg flex items-center justify-center space-x-2 ${
-                  isBacklog
-                    ? "bg-purple-600 text-white shadow-lg shadow-purple-500/20"
-                    : theme === "dark"
-                    ? "bg-gray-700 hover:bg-gray-600 text-white"
-                    : "bg-gray-100 hover:bg-gray-200 text-gray-900"
-                } transition-all font-medium cursor-pointer`}
-              >
-                {isBacklog ? <LayoutGrid size={16} /> : <LayoutList size={16} />}
-                <span>{isBacklog ? "Kanban Board" : "Backlog"}</span>
-              </motion.div>
-            </Link>
-
-
-            <div className="relative">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => setShowProjectActions(!showProjectActions)}
-                className={`px-4 py-2 rounded-lg flex items-center justify-center space-x-2 ${
-                  theme === "dark"
-                    ? "bg-gray-700 hover:bg-gray-600 text-white"
-                    : "bg-gray-100 hover:bg-gray-200 text-gray-900"
-                } transition-all font-medium`}
+                onClick={onNewTicket}
               >
-                <Settings size={16} className="sm:w-[18px] sm:h-[18px]" />
-                <span>Actions</span>
-                <MoreHorizontal size={14} className="sm:w-4 sm:h-4" />
+                <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />
+                <span>New Ticket</span>
               </motion.button>
+            </Button>
+
+            <Button
+              asChild
+              variant={isBacklog ? "secondary" : "ghost"}
+              className="flex-1 sm:flex-none px-3 py-1.5 sm:px-4 sm:py-2"
+            >
+              <Link href={navigationUrl}>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex items-center justify-center space-x-2"
+                >
+                  {isBacklog ? <LayoutGrid size={16} /> : <LayoutList size={16} />}
+                  <span>{isBacklog ? "Board" : "Backlog"}</span>
+                </motion.div>
+              </Link>
+            </Button>
+
+            <div className="relative">
+              <Button
+                asChild
+                variant="outline"
+                className="px-3 py-1.5 sm:px-4 sm:py-2"
+              >
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setShowProjectActions(!showProjectActions)}
+                >
+                  <Settings size={16} className="sm:w-[18px] sm:h-[18px]" />
+                  <span className="hidden xs:inline">Actions</span>
+                  <MoreHorizontal size={14} className="sm:w-4 sm:h-4" />
+                </motion.button>
+              </Button>
 
               <AnimatePresence>
                 {showProjectActions && (
@@ -361,57 +385,39 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
         </div>
 
         {/* Search and Filters */}
-        <div className="flex flex-col sm:flex-row items-center gap-4 mt-6 pt-6 border-t border-gray-100 dark:border-gray-700/50">
-          <div className="relative flex-1 w-full">
+        <div className="flex flex-col md:flex-row items-center gap-3 sm:gap-4 mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-100 dark:border-gray-700/50 min-w-0">
+          <div className="relative flex-1 w-full min-w-0">
             <Search
-              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === "dark" ? "text-gray-500" : "text-gray-400"
-                }`}
-              size={18}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400"
+              size={16}
             />
-            <input
-              type="text"
-              placeholder="Search tickets..."
+            <CustomInput
+              id="search-tickets"
               value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className={`w-full pl-10 pr-4 py-2 rounded-lg border ${theme === "dark"
-                ? "bg-gray-900 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500"
-                : "bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-400"
-                } focus:outline-none transition-colors`}
+              onChange={onSearchChange}
+              placeholder="Search tickets..."
+              className="w-full pl-10 pr-4"
             />
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <select
+          <div className="flex items-center gap-2 w-full sm:w-auto min-w-0">
+            <CustomSelect
+              id="priority-filter"
               value={priorityFilter}
-              onChange={(e) => onPriorityChange(e.target.value)}
-              className={`flex-1 sm:w-32 px-3 py-2 rounded-lg border text-sm font-medium ${theme === "dark"
-                ? "bg-gray-900 border-gray-700 text-white focus:border-blue-500"
-                : "bg-gray-50 border-gray-200 text-gray-900 focus:border-blue-400"
-                } focus:outline-none transition-colors`}
-            >
-              <option value="all">All Priorities</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
-
-            <select
+              onChange={onPriorityChange}
+              placeholder="Filter by Priority"
+              options={priorityOptions}
+            />
+            <CustomSelect
+              id="type-filter"
               value={typeFilter}
-              onChange={(e) => onTypeChange(e.target.value)}
-              className={`flex-1 sm:w-32 px-3 py-2 rounded-lg border text-sm font-medium ${theme === "dark"
-                ? "bg-gray-900 border-gray-700 text-white focus:border-blue-500"
-                : "bg-gray-50 border-gray-200 text-gray-900 focus:border-blue-400"
-                } focus:outline-none transition-colors`}
-            >
-              <option value="all">All Types</option>
-              <option value="feature">Feature</option>
-              <option value="bug">Bug</option>
-              <option value="task">Task</option>
-            </select>
+              onChange={onTypeChange}
+              placeholder="Filter by Type"
+              options={typeOptions}
+            />
           </div>
         </div>
       </div>
     </div>
   );
 };
-

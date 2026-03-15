@@ -1,4 +1,4 @@
-import { KeyboardEvent } from "react";
+import { KeyboardEvent, MouseEvent } from "react";
 import { Folder, Settings } from "lucide-react";
 
 import { motion } from "motion/react";
@@ -7,6 +7,7 @@ import Link from "next/link";
 
 import { useRouter } from "next/navigation";
 
+import { Button } from "@/components/ui/button";
 import { ProjectStatus } from "@personalization/shared";
 import { KeyboardKey } from "@/constants/keyboard";
 
@@ -55,7 +56,7 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
       variants={itemVariants}
       initial="hidden"
       animate="visible"
-      className="rounded-xl p-6 bg-white hover:bg-gray-50 dark:bg-gray-800/50 dark:hover:bg-gray-800/80 transition-colors group"
+      className="rounded-xl p-6 border bg-card/50 hover:bg-card/80 transition-colors group"
       onClick={onClick}
       onKeyDown={onKeyDown}
     >
@@ -71,29 +72,33 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
             </div>
           </div>
 
-          <h3 className="text-xl font-semibold mt-4 text-gray-900 dark:text-white">
+          <h3 className="text-xl font-semibold mt-4 text-foreground">
             {project.title}
           </h3>
 
-          <p className="mt-2 text-gray-600 dark:text-gray-400 ">
+          <p className="mt-2 text-muted-foreground">
             {project.description}
           </p>
 
           <div className="mt-auto flex items-center space-x-3">
             <StatusTag status={project.status} />
-            <span className="text-sm text-gray-400 dark:text-gray-500">
+            <span className="text-sm text-muted-foreground">
               {getTypeLabel(project.type)}
             </span>
           </div>
         </div>
 
-        <Link
-          href={`/${MODULE_ROUTES.project.prefix}/${project.id}`}
-          onClick={(e) => e.stopPropagation()}
-          className="p-2 rounded-lg opacity-0 group-hover:opacity-100 focus:opacity-100  transition-opacity hover:bg-gray-100 focus:bg-gray-100 text-gray-600 hover:text-gray-900 focus:text-gray-900 dark:hover:bg-gray-700 dark:text-gray-400 dark:hover:text-white"
+        <Button
+          variant="ghost"
+          size="icon"
+          asChild
+          className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+          onClick={(e: MouseEvent) => e.stopPropagation()}
         >
-          <Settings size={20} />
-        </Link>
+          <Link href={`/${MODULE_ROUTES.project.prefix}/${project.id}`}>
+            <Settings size={20} />
+          </Link>
+        </Button>
       </div>
     </motion.div>
   );

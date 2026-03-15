@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { KanbanBoardHead } from "./components/kanban-board-head";
+import { Button } from "@/components/ui/button";
 import KanbanBoard from "./components/KanbanBoard";
 import { BacklogView } from "./components/BacklogView";
 import { TicketModal } from "./components/TicketModal";
@@ -182,26 +183,28 @@ export const KanbanView = ({ project, initialTickets, defaultIsBacklog = false }
       ) : (
         <div className="p-4 sm:p-6 pb-0">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold dark:text-white">Backlog: {project.title}</h1>
+            <h1 className="text-4xl font-bold tracking-tight text-foreground">Backlog: {project.title}</h1>
             <div className="flex items-center space-x-3">
-              <Link
-                href={`/projects/${project.id}/board`}
-                className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white transition-all font-medium flex items-center space-x-2"
+              <Button
+                variant="ghost"
+                asChild
               >
-                <span>Back to Board</span>
-              </Link>
-              <button
+                <Link href={`/projects/${project.id}/board`}>
+                  Back to Board
+                </Link>
+              </Button>
+              <Button
                 onClick={handleNewTicket}
-                className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white shadow-lg transition-all font-medium"
+                variant="default"
               >
                 New Ticket
-              </button>
+              </Button>
             </div>
           </div>
         </div>
       )}
 
-      <div className="flex-1 overflow-auto p-4 sm:p-6 pt-0">
+      <div className="flex-1 overflow-auto p-3 sm:p-6 pt-0">
         {defaultIsBacklog ? (
           <BacklogView
             tickets={backlogTickets}

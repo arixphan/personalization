@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import { useDebouncedValue } from "@tanstack/react-pacer";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
+import { Button } from "@/components/ui/button";
 import { CustomInput } from "@/components/ui/input";
 import {
   CustomSelect,
@@ -162,12 +163,12 @@ export const ProjectList = ({
         <p className="text-red-500 mb-4">
           Failed to load projects: {error?.message || "Unknown error"}
         </p>
-        <button
+        <Button
           onClick={() => refetch()}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          variant="default"
         >
           Retry
-        </button>
+        </Button>
       </div>
     );
   }
@@ -186,7 +187,7 @@ export const ProjectList = ({
             value={searchTerm}
             onChange={(value) => setSearchTerm(value)}
             placeholder="Search projects..."
-            className="w-full pl-10 pr-4 rounded-lg border bg-white border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+            className="w-full pl-10 pr-4"
           />
         </div>
         <CustomSelect
