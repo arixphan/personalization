@@ -10,13 +10,15 @@ interface SortableBacklogItemProps {
   theme: string;
   onTicketClick: (ticketId: number) => void;
   onMoveToBoard: (ticketId: number) => void;
+  isOverlay?: boolean;
 }
 
-export const SortableBacklogItem: React.FC<SortableBacklogItemProps> = ({
+export const SortableBacklogItem = React.memo<SortableBacklogItemProps>(({
   ticket,
   theme,
   onTicketClick,
   onMoveToBoard,
+  isOverlay = false,
 }) => {
   const {
     attributes,
@@ -28,30 +30,27 @@ export const SortableBacklogItem: React.FC<SortableBacklogItemProps> = ({
   } = useSortable({ id: ticket.id });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: isOverlay ? undefined : CSS.Transform.toString(transform),
     transition,
-    zIndex: isDragging ? 50 : 'auto',
+    zIndex: isDragging || isOverlay ? 50 : 'auto',
+    opacity: isDragging && !isOverlay ? 0.3 : 1,
   };
 
   return (
-    <motion.div
+    <div
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
-      layout
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      onClick={() => onTicketClick(ticket.id)}
+      onClick={() => !isOverlay && onTicketClick(ticket.id)}
       className={`group p-4 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
-        isDragging ? 'opacity-50' : 'opacity-100'
-      } ${
+        isOverlay ? 'shadow-2xl ring-2 ring-blue-500 bg-white dark:bg-gray-800 scale-105' : 
         theme === 'dark'
           ? 'bg-gray-800/50 border-gray-700 hover:bg-gray-800'
           : 'bg-white border-gray-200 hover:shadow-md'
       }`}
     >
+
       <div className="flex items-center space-x-4 flex-1">
         <div className={`w-2 h-2 rounded-full ${
           ticket.priority === 'highest' ? 'bg-red-500' :
@@ -88,6 +87,7 @@ export const SortableBacklogItem: React.FC<SortableBacklogItemProps> = ({
           <ArrowRight size={14} />
         </button>
       </div>
-    </motion.div>
+    </div>
   );
-};
+});
+

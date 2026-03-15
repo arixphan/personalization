@@ -24,44 +24,19 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   theme,
   onTicketClick,
 }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef: setSortableRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
-
-  const { setNodeRef: setDroppableRef } = useDroppable({
+  const { setNodeRef } = useDroppable({
     id,
   });
 
-  const style = {
-    transform: CSS.Translate.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
-  // Combine refs: droppable for tickets, sortable for column itself
-  const setRefs = (node: HTMLDivElement | null) => {
-    setSortableRef(node);
-    setDroppableRef(node);
-  };
-
   return (
     <div
-      ref={setRefs}
-      style={style}
+      ref={setNodeRef}
       className={`flex-1 min-w-[280px] sm:min-w-[300px] lg:min-w-[320px] h-full flex flex-col ${
         theme === 'dark' ? 'bg-gray-800/30' : 'bg-gray-50'
       } rounded-lg select-none`}
     >
       <div className="flex items-center justify-between p-3 sm:p-4 pb-2">
         <div className="flex items-center gap-2">
-          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors">
-            <GripVertical size={16} className={theme === 'dark' ? 'text-gray-500' : 'text-gray-400'} />
-          </div>
           <h3
             className={`text-base sm:text-lg font-semibold ${
               theme === 'dark' ? 'text-white' : 'text-gray-900'

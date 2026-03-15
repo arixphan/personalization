@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import Link from "next/link";
 
 import { ProjectStatus } from "@personalization/shared";
 
@@ -14,11 +15,13 @@ import {
   Settings,
   LayoutGrid,
   LayoutList,
+  Search,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { AnimatePresence, motion } from "motion/react";
 
 interface KanbanBoardProps {
+  projectId: number;
   projectName: string;
   projectStatus: ProjectStatus;
   onStatusChange: (status: ProjectStatus) => void;
@@ -26,12 +29,18 @@ interface KanbanBoardProps {
   onShowSettings: () => void;
   onNewTicket: () => void;
   isBacklog: boolean;
-  onToggleBacklog: (isBacklog: boolean) => void;
   ticketCount: number;
   completedCount: number;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
+  priorityFilter?: string;
+  onPriorityChange?: (priority: string) => void;
+  typeFilter?: string;
+  onTypeChange?: (type: string) => void;
 }
 
 export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
+  projectId,
   projectName,
   projectStatus,
   onStatusChange,
@@ -39,9 +48,14 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
   onShowSettings,
   onNewTicket,
   isBacklog,
-  onToggleBacklog,
   ticketCount,
   completedCount,
+  searchQuery = "",
+  onSearchChange = () => { },
+  priorityFilter = "all",
+  onPriorityChange = () => { },
+  typeFilter = "all",
+  onTypeChange = () => { },
 }) => {
   const { theme } = useTheme();
   const [showProjectActions, setShowProjectActions] = useState(false);
@@ -71,6 +85,10 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
         return <AlertCircle size={16} />;
     }
   };
+
+  const navigationUrl = isBacklog 
+    ? `/projects/${projectId}/board` 
+    : `/projects/${projectId}/backlog`;
 
   return (
     <div className="h-full flex flex-col">
@@ -129,21 +147,23 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
               <span>New Ticket</span>
             </motion.button>
 
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => onToggleBacklog(!isBacklog)}
-              className={`px-4 py-2 rounded-lg flex items-center justify-center space-x-2 ${
-                isBacklog
-                  ? "bg-purple-600 text-white shadow-lg shadow-purple-500/20"
-                  : theme === "dark"
-                  ? "bg-gray-700 hover:bg-gray-600 text-white"
-                  : "bg-gray-100 hover:bg-gray-200 text-gray-900"
-              } transition-all font-medium`}
-            >
-              {isBacklog ? <LayoutGrid size={16} /> : <LayoutList size={16} />}
-              <span>{isBacklog ? "Kanban Board" : "Backlog"}</span>
-            </motion.button>
+            <Link href={navigationUrl}>
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`px-4 py-2 rounded-lg flex items-center justify-center space-x-2 ${
+                  isBacklog
+                    ? "bg-purple-600 text-white shadow-lg shadow-purple-500/20"
+                    : theme === "dark"
+                    ? "bg-gray-700 hover:bg-gray-600 text-white"
+                    : "bg-gray-100 hover:bg-gray-200 text-gray-900"
+                } transition-all font-medium cursor-pointer`}
+              >
+                {isBacklog ? <LayoutGrid size={16} /> : <LayoutList size={16} />}
+                <span>{isBacklog ? "Kanban Board" : "Backlog"}</span>
+              </motion.div>
+            </Link>
+
 
             <div className="relative">
               <motion.button
@@ -337,6 +357,57 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
                 )}
               </AnimatePresence>
             </div>
+          </div>
+        </div>
+
+        {/* Search and Filters */}
+        <div className="flex flex-col sm:flex-row items-center gap-4 mt-6 pt-6 border-t border-gray-100 dark:border-gray-700/50">
+          <div className="relative flex-1 w-full">
+            <Search
+              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === "dark" ? "text-gray-500" : "text-gray-400"
+                }`}
+              size={18}
+            />
+            <input
+              type="text"
+              placeholder="Search tickets..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className={`w-full pl-10 pr-4 py-2 rounded-lg border ${theme === "dark"
+                ? "bg-gray-900 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500"
+                : "bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-400"
+                } focus:outline-none transition-colors`}
+            />
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <select
+              value={priorityFilter}
+              onChange={(e) => onPriorityChange(e.target.value)}
+              className={`flex-1 sm:w-32 px-3 py-2 rounded-lg border text-sm font-medium ${theme === "dark"
+                ? "bg-gray-900 border-gray-700 text-white focus:border-blue-500"
+                : "bg-gray-50 border-gray-200 text-gray-900 focus:border-blue-400"
+                } focus:outline-none transition-colors`}
+            >
+              <option value="all">All Priorities</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+
+            <select
+              value={typeFilter}
+              onChange={(e) => onTypeChange(e.target.value)}
+              className={`flex-1 sm:w-32 px-3 py-2 rounded-lg border text-sm font-medium ${theme === "dark"
+                ? "bg-gray-900 border-gray-700 text-white focus:border-blue-500"
+                : "bg-gray-50 border-gray-200 text-gray-900 focus:border-blue-400"
+                } focus:outline-none transition-colors`}
+            >
+              <option value="all">All Types</option>
+              <option value="feature">Feature</option>
+              <option value="bug">Bug</option>
+              <option value="task">Task</option>
+            </select>
           </div>
         </div>
       </div>

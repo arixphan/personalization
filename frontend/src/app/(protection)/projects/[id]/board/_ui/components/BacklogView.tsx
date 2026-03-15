@@ -1,16 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { motion } from 'motion/react';
 import { Ticket } from '../KanbanCard';
 import { ArrowRight, Search, Filter, MoreVertical, LayoutGrid, LayoutList } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import {
   DndContext,
-  closestCorners,
+  closestCenter,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
   DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -38,10 +40,15 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
 }) => {
   const { theme } = useTheme();
   const [tickets, setTickets] = useState<Ticket[]>(initialTickets);
+  const [activeId, setActiveId] = useState<number | null>(null);
 
   useEffect(() => {
     setTickets(initialTickets);
   }, [initialTickets]);
+
+  const sortedTickets = useMemo(() => {
+    return [...tickets].sort((a, b) => (a.position || 0) - (b.position || 0));
+  }, [tickets]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -54,16 +61,23 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
     })
   );
 
-  const handleDragEnd = async (event: DragEndEvent) => {
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveId(event.active.id as number);
+  }, []);
+
+  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
     const { active, over } = event;
+    setActiveId(null);
+
     if (!over || active.id === over.id) return;
 
     const activeId = active.id as number;
-    const sortedTickets = [...tickets].sort((a, b) => (a.position || 0) - (b.position || 0));
     
     const oldIndex = sortedTickets.findIndex(t => t.id === activeId);
     const newIndex = sortedTickets.findIndex(t => t.id === over.id);
     
+    if (oldIndex === -1 || newIndex === -1) return;
+
     const prevTicket = newIndex > oldIndex ? sortedTickets[newIndex] : sortedTickets[newIndex - 1];
     const nextTicket = newIndex > oldIndex ? sortedTickets[newIndex + 1] : sortedTickets[newIndex];
 
@@ -81,14 +95,21 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
     onTicketsChange?.(updatedTickets);
 
     try {
-      const projectId = updatedTickets.find(t => t.id === activeId)?.projectId || (updatedTickets[0]?.projectId);
-      const result = await updateTicket(activeId, { position: newPosition }, projectId);
-      if (result.error) throw new Error(result.error);
+      const activeTicket = updatedTickets.find(t => t.id === activeId);
+      const projectId = activeTicket?.projectId || (updatedTickets[0]?.projectId);
+      if (projectId) {
+        const result = await updateTicket(activeId, { position: newPosition }, projectId);
+        if (result.error) throw new Error(result.error);
+      }
     } catch (error) {
       setTickets(initialTickets);
       toast.error('Failed to update backlog order');
     }
-  };
+  }, [tickets, sortedTickets, onTicketsChange, initialTickets]);
+
+  const activeTicket = useMemo(() => 
+    activeId ? tickets.find(t => t.id === activeId) : null
+  , [activeId, tickets]);
 
   if (tickets.length === 0) {
     return (
@@ -101,8 +122,6 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
       </div>
     );
   }
-
-  const sortedTickets = [...tickets].sort((a, b) => (a.position || 0) - (b.position || 0));
 
   return (
     <div className="space-y-4">
@@ -117,28 +136,41 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
 
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCorners}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
         <div className="grid grid-cols-1 gap-2">
           <SortableContext
-            items={sortedTickets.map(t => t.id)}
+            items={sortedTickets.map((t: Ticket) => t.id)}
             strategy={verticalListSortingStrategy}
           >
-            <AnimatePresence mode="popLayout">
-              {sortedTickets.map((ticket) => (
-                <SortableBacklogItem
-                  key={ticket.id}
-                  ticket={ticket}
-                  theme={theme || 'light'}
-                  onTicketClick={onTicketClick}
-                  onMoveToBoard={onMoveToBoard}
-                />
-              ))}
-            </AnimatePresence>
+            {sortedTickets.map((ticket: Ticket) => (
+              <SortableBacklogItem
+                key={ticket.id}
+                ticket={ticket}
+                theme={theme || 'light'}
+                onTicketClick={onTicketClick}
+                onMoveToBoard={onMoveToBoard}
+              />
+            ))}
           </SortableContext>
         </div>
+
+        <DragOverlay adjustScale={false}>
+          {activeTicket ? (
+            <SortableBacklogItem
+              ticket={activeTicket}
+              theme={theme || 'light'}
+              onTicketClick={() => {}}
+              onMoveToBoard={() => {}}
+              isOverlay
+            />
+          ) : null}
+        </DragOverlay>
       </DndContext>
     </div>
   );
 };
+
+

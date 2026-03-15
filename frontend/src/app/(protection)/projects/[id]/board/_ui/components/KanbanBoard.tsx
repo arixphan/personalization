@@ -55,6 +55,10 @@ interface KanbanBoardProps {
   columns: string[];
   onColumnsChange?: (columns: string[]) => void;
   onTicketsChange?: (tickets: Ticket[]) => void;
+  searchQuery: string;
+  priorityFilter: string;
+  assigneeFilter?: string;
+  typeFilter: string;
 }
 
 const KanbanBoard: React.FC<KanbanBoardProps> = ({
@@ -69,12 +73,12 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
   columns: initialColumns,
   onColumnsChange,
   onTicketsChange,
+  searchQuery,
+  priorityFilter,
+  assigneeFilter = "all",
+  typeFilter,
 }) => {
   const { theme } = useTheme();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [priorityFilter, setPriorityFilter] = useState<string>("all");
-  const [assigneeFilter, setAssigneeFilter] = useState<string>("all");
-  const [typeFilter, setTypeFilter] = useState<string>("all");
 
   const [tickets, setTickets] = React.useState<Ticket[]>(initialTickets);
   const [columns, setColumns] = React.useState<string[]>(initialColumns);
@@ -159,31 +163,6 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
     if (!over) return;
 
-    const activeId = active.id;
-    const overId = over.id;
-
-    // Reordering Columns
-    if (typeof activeId === 'string' && typeof overId === 'string') {
-      if (activeId !== overId) {
-        const oldIndex = columns.indexOf(activeId);
-        const newIndex = columns.indexOf(overId);
-        const newColumns = arrayMove(columns, oldIndex, newIndex);
-        
-        setColumns(newColumns);
-        onColumnsChange?.(newColumns);
-        
-        try {
-          const result = await updateProject(parseInt(projectId), { columns: newColumns });
-          if (result.error) throw new Error(result.error);
-          toast.success('Column order updated');
-        } catch (error) {
-          setColumns(initialColumns);
-          toast.error('Failed to update column order');
-        }
-      }
-      return;
-    }
-
     // Settling Ticket Movement
     if (typeof activeId === 'number') {
       const ticketId = activeId;
@@ -254,68 +233,6 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
   return (
     <div className="h-full flex flex-col">
-      {/* Search & Filter Bar */}
-      <div
-        className={`mb-4 p-4 rounded-xl ${
-          theme === "dark" ? "bg-gray-800" : "bg-white"
-        } shadow-sm`}
-      >
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex-1 relative">
-            <Search
-              size={16}
-              className={`absolute left-3 top-1/2 -translate-y-1/2 ${
-                theme === "dark" ? "text-gray-400" : "text-gray-500"
-              }`}
-            />
-            <input
-              type="text"
-              placeholder="Search tickets..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={`w-full pl-9 pr-4 py-2 rounded-lg border text-sm ${
-                theme === "dark"
-                  ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                  : "bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400"
-              } outline-none focus:ring-2 focus:ring-blue-500 transition-all`}
-            />
-          </div>
-
-          <select
-            value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}
-            className={`px-3 py-2 rounded-lg border text-sm ${
-              theme === "dark"
-                ? "bg-gray-700 border-gray-600 text-white"
-                : "bg-gray-50 border-gray-200 text-gray-900"
-            } outline-none focus:ring-2 focus:ring-blue-500`}
-          >
-            <option value="all">All Priorities</option>
-            <option value="highest">Highest</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-            <option value="lowest">Lowest</option>
-          </select>
-
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className={`px-3 py-2 rounded-lg border text-sm ${
-              theme === "dark"
-                ? "bg-gray-700 border-gray-600 text-white"
-                : "bg-gray-50 border-gray-200 text-gray-900"
-            } outline-none focus:ring-2 focus:ring-blue-500`}
-          >
-            <option value="all">All Types</option>
-            <option value="task">Task</option>
-            <option value="story">Story</option>
-            <option value="bug">Bug</option>
-            <option value="epic">Epic</option>
-          </select>
-        </div>
-      </div>
-
       <div className="flex-1 min-h-0">
         <DndContext
           sensors={sensors}
@@ -325,21 +242,16 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
           onDragEnd={handleDragEnd}
         >
           <div className="flex flex-row h-full overflow-x-auto pb-4 gap-4">
-            <SortableContext
-              items={columns}
-              strategy={horizontalListSortingStrategy}
-            >
-              {displayColumns.map((column) => (
-                <KanbanColumn
-                  key={column.id}
-                  id={column.id}
-                  title={column.title}
-                  tickets={filteredTickets.filter((t) => t.status === column.id)}
-                  theme={theme || "light"}
-                  onTicketClick={onTicketClick}
-                />
-              ))}
-            </SortableContext>
+            {displayColumns.map((column) => (
+              <KanbanColumn
+                key={column.id}
+                id={column.id}
+                title={column.title}
+                tickets={filteredTickets.filter((t) => t.status === column.id)}
+                theme={theme || "light"}
+                onTicketClick={onTicketClick}
+              />
+            ))}
           </div>
 
           <DragOverlay>

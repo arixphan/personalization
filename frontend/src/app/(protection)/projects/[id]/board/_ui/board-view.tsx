@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useCallback } from "react";
+import Link from "next/link";
 import { KanbanBoardHead } from "./components/kanban-board-head";
 import KanbanBoard from "./components/KanbanBoard";
 import { BacklogView } from "./components/BacklogView";
@@ -12,16 +13,21 @@ import { toast } from "sonner";
 interface KanbanViewProps {
   project: any;
   initialTickets: Ticket[];
+  defaultIsBacklog?: boolean;
 }
 
-export const KanbanView = ({ project, initialTickets }: KanbanViewProps) => {
+export const KanbanView = ({ project, initialTickets, defaultIsBacklog = false }: KanbanViewProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | undefined>();
   const [tickets, setTickets] = useState<Ticket[]>(
     (initialTickets || []).filter(Boolean)
   );
   const [columns, setColumns] = useState<string[]>(project.columns || []);
-  const [isBacklog, setIsBacklog] = useState(false);
+
+  // Filter state lifted from KanbanBoard
+  const [searchQuery, setSearchQuery] = useState("");
+  const [priorityFilter, setPriorityFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
 
   // Sync columns if project prop changes
   React.useEffect(() => {
@@ -31,19 +37,21 @@ export const KanbanView = ({ project, initialTickets }: KanbanViewProps) => {
   // The repository now includes the active phase in project.phases
   const activePhaseId = project.phases?.[0]?.id;
 
+  const lastColumnStatus = columns[columns.length - 1];
+
   const boardTickets = useMemo(() =>
-    tickets.filter(t => t && t.phaseId === activePhaseId && t.status !== 'DONE'),
+    tickets.filter(t => t && t.phaseId === activePhaseId),
     [tickets, activePhaseId]
   );
 
   const backlogTickets = useMemo(() =>
-    tickets.filter(t => t && !t.phaseId && t.status !== 'DONE'),
+    tickets.filter(t => t && !t.phaseId),
     [tickets]
   );
 
   const completedTickets = useMemo(() =>
-    tickets.filter(t => t && t.status === 'DONE'),
-    [tickets]
+    tickets.filter(t => t && t.status === lastColumnStatus),
+    [tickets, lastColumnStatus]
   );
 
   /** Re-syncs local ticket state from the database */
@@ -67,6 +75,34 @@ export const KanbanView = ({ project, initialTickets }: KanbanViewProps) => {
     }
   };
 
+  const handleTicketsChange = useCallback((updatedSubset: Ticket[]) => {
+    setTickets(prev => {
+      const updatedMap = new Map(updatedSubset.map(t => [t.id, t]));
+      let hasChanges = false;
+
+      const nextTickets = prev.map(t => {
+        if (updatedMap.has(t.id)) {
+          const updated = updatedMap.get(t.id)!;
+          if (updated !== t) {
+            hasChanges = true;
+            return updated;
+          }
+        }
+        return t;
+      });
+
+      // If there are somehow any completely new tickets in the subset, append them
+      const prevIds = new Set(prev.map(t => t.id));
+      const newTickets = updatedSubset.filter(t => !prevIds.has(t.id));
+
+      if (newTickets.length > 0) {
+        return [...nextTickets, ...newTickets];
+      }
+
+      return hasChanges ? nextTickets : prev;
+    });
+  }, []);
+
   const handleSaveTicket = async (data: Partial<Ticket>) => {
     try {
       if (selectedTicket) {
@@ -79,7 +115,7 @@ export const KanbanView = ({ project, initialTickets }: KanbanViewProps) => {
         const result = await createTicket({
           ...data,
           projectId: project.id,
-          phaseId: isBacklog ? null : activePhaseId,
+          phaseId: defaultIsBacklog ? null : activePhaseId,
         });
         if (result.error) throw new Error(result.error);
         toast.success("Ticket created successfully");
@@ -124,40 +160,71 @@ export const KanbanView = ({ project, initialTickets }: KanbanViewProps) => {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <KanbanBoardHead
-        projectName={project.title}
-        projectStatus={project.status}
-        onStatusChange={() => {}}
-        onEndPhase={() => {}}
-        onShowSettings={() => {}}
-        onNewTicket={handleNewTicket}
-        isBacklog={isBacklog}
-        onToggleBacklog={setIsBacklog}
-        ticketCount={tickets.length}
-        completedCount={completedTickets.length}
-      />
+      {!defaultIsBacklog ? (
+        <KanbanBoardHead
+          projectId={project.id}
+          projectName={project.title}
+          projectStatus={project.status}
+          onStatusChange={() => { }}
+          onEndPhase={() => { }}
+          onShowSettings={() => { }}
+          onNewTicket={handleNewTicket}
+          isBacklog={defaultIsBacklog}
+          ticketCount={tickets.length}
+          completedCount={completedTickets.length}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          priorityFilter={priorityFilter}
+          onPriorityChange={setPriorityFilter}
+          typeFilter={typeFilter}
+          onTypeChange={setTypeFilter}
+        />
+      ) : (
+        <div className="p-4 sm:p-6 pb-0">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-2xl font-bold dark:text-white">Backlog: {project.title}</h1>
+            <div className="flex items-center space-x-3">
+              <Link
+                href={`/projects/${project.id}/board`}
+                className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white transition-all font-medium flex items-center space-x-2"
+              >
+                <span>Back to Board</span>
+              </Link>
+              <button
+                onClick={handleNewTicket}
+                className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white shadow-lg transition-all font-medium"
+              >
+                New Ticket
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <div className="flex-1 overflow-auto p-4 sm:p-6">
-        {isBacklog ? (
+      <div className="flex-1 overflow-auto p-4 sm:p-6 pt-0">
+        {defaultIsBacklog ? (
           <BacklogView
             tickets={backlogTickets}
             onMoveToBoard={handleMoveToBoard}
             onTicketClick={handleTicketClick}
-            onTicketsChange={setTickets}
+            onTicketsChange={handleTicketsChange}
           />
         ) : (
           <KanbanBoard
             projectId={project.id.toString()}
             projectName={project.title}
             projectStatus={project.status.toLowerCase() as any}
-            onStatusChange={() => {}}
-            onEndPhase={() => {}}
-            onShowSettings={() => {}}
+            onStatusChange={() => { }}
+            onEndPhase={() => { }}
+            onShowSettings={() => { }}
             onTicketClick={handleTicketClick}
             initialTickets={boardTickets}
             columns={columns}
             onColumnsChange={setColumns}
-            onTicketsChange={setTickets}
+            onTicketsChange={handleTicketsChange}
+            searchQuery={searchQuery}
+            priorityFilter={priorityFilter}
+            typeFilter={typeFilter}
           />
         )}
       </div>
@@ -174,5 +241,6 @@ export const KanbanView = ({ project, initialTickets }: KanbanViewProps) => {
     </div>
   );
 };
+
 
 
