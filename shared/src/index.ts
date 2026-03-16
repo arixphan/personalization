@@ -8,6 +8,7 @@ export { CreateTicketDto, CreateTicketSchema } from "./dtos/tickets/create-ticke
 export { UpdateTicketDto, UpdateTicketSchema } from "./dtos/tickets/update-ticket.dto";
 
 // Constants
+export { AUTH_CONFIG } from "./constants/auth";
 export { TICKET_TYPES } from "./constants/ticket";
 export type { TicketType } from "./constants/ticket";
 

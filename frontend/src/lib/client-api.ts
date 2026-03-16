@@ -1,10 +1,11 @@
+import { AUTH_CONFIG } from "@personalization/shared";
 import { BaseApi } from "./base-api";
 
 // client-api.ts
 export class ClientApi extends BaseApi {
   private tokenKey: string;
 
-  constructor(baseUrl: string, tokenKey: string = "access_token") {
+  constructor(baseUrl: string, tokenKey: string = AUTH_CONFIG.COOKIE_NAMES.ACCESS_TOKEN) {
     super(baseUrl);
     this.tokenKey = tokenKey;
   }

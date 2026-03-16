@@ -9,6 +9,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { AUTH_CONFIG } from '@personalization/shared';
 
 import { Public } from '../../decorators/public.decorator';
 import { AuthService } from './auth.service';
@@ -32,11 +33,11 @@ export class AuthController {
       req.user,
     );
 
-    res.cookie('refresh_token', refresh_token, {
+    res.cookie(AUTH_CONFIG.COOKIE_NAMES.REFRESH_TOKEN, refresh_token, {
       httpOnly: true, // Ensures the cookie is not accessible via JavaScript
       secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
       sameSite: 'strict', // Helps prevent CSRF attacks
-      path: 'api/auth/refresh',
+      path: AUTH_CONFIG.PATHS.REFRESH_TOKEN,
       maxAge: this.configService.get<number>('CACHE_TTL'),
     });
 
@@ -50,8 +51,8 @@ export class AuthController {
   ) {
     await this.authService.logout(req.user.sub);
 
-    res.clearCookie('refresh_token', {
-      path: 'api/auth/refresh',
+    res.clearCookie(AUTH_CONFIG.COOKIE_NAMES.REFRESH_TOKEN, {
+      path: AUTH_CONFIG.PATHS.REFRESH_TOKEN,
       httpOnly: true,
       sameSite: 'strict',
       secure: process.env.NODE_ENV === 'production',
@@ -63,10 +64,13 @@ export class AuthController {
   @Public()
   @Post('/refresh')
   async refresh(
-    @Request() req: JwtTokenRequest & { cookies: { refresh_token?: string } },
+    @Request()
+    req: JwtTokenRequest & {
+      cookies: { [key: string]: string | undefined };
+    },
     @Res({ passthrough: true }) res: Response,
   ) {
-    const refreshToken = req.cookies['refresh_token'];
+    const refreshToken = req.cookies[AUTH_CONFIG.COOKIE_NAMES.REFRESH_TOKEN];
 
     if (!refreshToken) {
       return res

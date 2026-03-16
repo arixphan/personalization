@@ -4,6 +4,7 @@ import { jwtVerify } from "jose";
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { AUTH_CONFIG } from "@personalization/shared";
 
 const secretKey = process.env.JWT_SECRET;
 const encodedKey = new TextEncoder().encode(secretKey);
@@ -25,7 +26,7 @@ export async function decrypt(session: string | undefined = "") {
 
 export const verifyToken = cache(async () => {
   try {
-    const accessToken = (await cookies()).get("access_token")?.value;
+    const accessToken = (await cookies()).get(AUTH_CONFIG.COOKIE_NAMES.ACCESS_TOKEN)?.value;
     if (!accessToken) {
       return { isAuth: false, userId: null };
     }

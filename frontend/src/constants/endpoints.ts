@@ -1,10 +1,12 @@
+import { AUTH_CONFIG } from "@personalization/shared";
+
 export enum AuthEndpoint {
   signIn = "auth/login",
   signUp = "user/register",
   logout = "auth/logout",
   refreshToken = "auth/refresh",
 }
-export const REFRESH_TOKEN_ENDPOINT = "/api/auth/refresh";
+export const REFRESH_TOKEN_ENDPOINT = AUTH_CONFIG.PATHS.REFRESH_TOKEN;
 
 export class EndpointFactory {
   baseUrl: string;

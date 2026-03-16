@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import setCookieParser from "set-cookie-parser";
 import { z } from "zod";
+import { AUTH_CONFIG } from "@personalization/shared";
 
 import { AuthEndpoint, REFRESH_TOKEN_ENDPOINT } from "@/constants/endpoints";
 import { ServerApiHandler } from "@/lib/server-api";
@@ -55,9 +56,6 @@ export async function signInAction(
       }
     );
 
-    console.log(data);
-
-
     if (data) {
       // Get cookies from NestJS response and forward them
       const setCookieHeader = responseHeaders?.get("set-cookie");
@@ -71,7 +69,7 @@ export async function signInAction(
         });
 
         const refreshTokenCookie = cookiesToSet.find(
-          (cookie) => cookie.name === "refresh_token"
+          (cookie) => cookie.name === AUTH_CONFIG.COOKIE_NAMES.REFRESH_TOKEN
         );
 
         if (refreshTokenCookie) {
@@ -90,11 +88,11 @@ export async function signInAction(
       }
 
       if (data.access_token) {
-        cookieStore.set("access_token", data.access_token, {
+        cookieStore.set(AUTH_CONFIG.COOKIE_NAMES.ACCESS_TOKEN, data.access_token, {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
           sameSite: "strict",
-          maxAge: 60 * 30,
+          maxAge: AUTH_CONFIG.EXPIRATION.ACCESS_TOKEN_COOKIE_MAX_AGE,
           path: "/",
         });
       }

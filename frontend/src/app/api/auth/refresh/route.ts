@@ -1,12 +1,13 @@
 // app/api/refresh/route.ts
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { AUTH_CONFIG } from "@personalization/shared";
 
 import { AuthEndpoint } from "@/constants/endpoints";
 
 export async function POST() {
   const cookieStore = await cookies();
-  const refreshToken = cookieStore.get("refresh_token");
+  const refreshToken = cookieStore.get(AUTH_CONFIG.COOKIE_NAMES.REFRESH_TOKEN);
   if (!refreshToken) {
     return NextResponse.json({ error: "No refresh token" }, { status: 401 });
   }
@@ -16,7 +17,7 @@ export async function POST() {
     const response = await fetch(`${baseUrl}/${AuthEndpoint.refreshToken}`, {
       method: "POST",
       headers: {
-        Cookie: `refresh_token=${refreshToken.value}`,
+        Cookie: `${AUTH_CONFIG.COOKIE_NAMES.REFRESH_TOKEN}=${refreshToken.value}`,
       },
     });
 
@@ -34,11 +35,11 @@ export async function POST() {
       access_token: data.access_token,
     });
 
-    responseWithCookie.cookies.set("access_token", data.access_token, {
+    responseWithCookie.cookies.set(AUTH_CONFIG.COOKIE_NAMES.ACCESS_TOKEN, data.access_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 60 * 30, // 30 minutes
+      maxAge: AUTH_CONFIG.EXPIRATION.ACCESS_TOKEN_COOKIE_MAX_AGE,
       path: "/",
     });
 

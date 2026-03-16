@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { AUTH_CONFIG } from "@personalization/shared";
 
 import "server-only";
 
@@ -7,7 +8,7 @@ import { ApiRequestOptions, BaseApi } from "./base-api";
 export class ServerApi extends BaseApi {
   private tokenCookieName: string;
 
-  constructor(baseUrl: string, tokenCookieName: string = "access_token") {
+  constructor(baseUrl: string, tokenCookieName: string = AUTH_CONFIG.COOKIE_NAMES.ACCESS_TOKEN) {
     super(baseUrl);
     this.tokenCookieName = tokenCookieName;
   }
