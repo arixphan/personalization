@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { type ExperienceDto } from "@personalization/shared";
 import { toast } from "sonner";
 import { updateExperience } from "../../../_actions/profile";
+import { DatePicker } from "@/components/ui/date-picker";
 import { CustomInput } from "@/components/ui/input/custom-text";
 
 export function ExperienceList({ initialData }: { initialData?: ExperienceDto[] }) {
@@ -43,7 +44,10 @@ export function ExperienceList({ initialData }: { initialData?: ExperienceDto[] 
   };
 
   const handleAdd = () => {
-    if (!newExp.company || !newExp.position || !newExp.startDate) return;
+    if (!newExp.company || !newExp.position || !newExp.startDate) {
+      toast.error("Please fill in company, position, and start date");
+      return;
+    }
     
     let updated: ExperienceDto[];
     if (editingId) {
@@ -108,17 +112,15 @@ export function ExperienceList({ initialData }: { initialData?: ExperienceDto[] 
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <CustomInput
+            <DatePicker
               id="startDate"
               label="Start Date"
-              type="month"
               value={newExp.startDate}
               onChange={(v) => setNewExp({ ...newExp, startDate: v })}
             />
-            <CustomInput
+            <DatePicker
               id="endDate"
               label="End Date"
-              type="month"
               value={newExp.endDate}
               onChange={(v) => setNewExp({ ...newExp, endDate: v })}
             />

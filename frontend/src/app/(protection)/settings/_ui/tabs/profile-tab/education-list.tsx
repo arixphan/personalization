@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { type EducationDto } from "@personalization/shared";
 import { toast } from "sonner";
 import { updateEducation } from "../../../_actions/profile";
+import { DatePicker } from "@/components/ui/date-picker";
 import { CustomInput } from "@/components/ui/input/custom-text";
 
 export function EducationList({ initialData }: { initialData?: EducationDto[] }) {
@@ -43,7 +44,10 @@ export function EducationList({ initialData }: { initialData?: EducationDto[] })
   };
 
   const handleAdd = () => {
-    if (!newEdu.institution || !newEdu.degree || !newEdu.field || !newEdu.startDate) return;
+    if (!newEdu.institution || !newEdu.degree || !newEdu.field || !newEdu.startDate) {
+      toast.error("Please fill in institution, degree, field, and start date");
+      return;
+    }
     
     let updated: EducationDto[];
     if (editingId) {
@@ -115,17 +119,15 @@ export function EducationList({ initialData }: { initialData?: EducationDto[] })
               onChange={(v) => setNewEdu({ ...newEdu, field: v })}
               placeholder="e.g. Computer Science"
             />
-            <CustomInput
+            <DatePicker
               id="eduStartDate"
               label="Start Date"
-              type="month"
               value={newEdu.startDate}
               onChange={(v) => setNewEdu({ ...newEdu, startDate: v })}
             />
-            <CustomInput
+            <DatePicker
               id="eduEndDate"
               label="End Date"
-              type="month"
               value={newEdu.endDate}
               onChange={(v) => setNewEdu({ ...newEdu, endDate: v })}
             />

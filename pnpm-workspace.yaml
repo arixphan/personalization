@@ -21,7 +21,7 @@ catalog:
   '@nestjs/throttler': ^6.4.0
   '@prisma/client': ^6.8.2
   '@radix-ui/react-select': ^2.2.5
-  '@radix-ui/react-slot': ^1.2.3
+  '@radix-ui/react-slot': 1.2.4
   '@swc/cli': ^0.6.0
   '@swc/core': ^1.10.7
   '@tailwindcss/postcss': ^4.1.11
