@@ -3,6 +3,7 @@ import { Input } from "./input";
 interface CustomInputProps {
   id: string;
   label?: string; // Now optional
+  type?: string;
   value?: string;
   onChange: (value: string) => void;
   placeholder?: string;
@@ -14,6 +15,7 @@ interface CustomInputProps {
 export const CustomInput: React.FC<CustomInputProps> = ({
   id,
   label,
+  type = "text",
   value,
   onChange,
   placeholder,
@@ -31,7 +33,7 @@ export const CustomInput: React.FC<CustomInputProps> = ({
         </label>
       )}
       <Input
-        type="text"
+        type={type}
         id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}

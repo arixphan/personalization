@@ -61,6 +61,14 @@ export class UserService {
     }
   }
 
+  async getProfile(userId: number) {
+    return this.userRepository.getProfile(userId);
+  }
+
+  async updateProfile(userId: number, data: any) {
+    return this.userRepository.updateProfile(userId, data);
+  }
+
   findByUsername(username: string) {
     return this.userRepository.findByUsername(username);
   }

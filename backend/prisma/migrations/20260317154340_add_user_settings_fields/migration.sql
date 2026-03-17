@@ -1,0 +1,7 @@
+-- AlterTable
+ALTER TABLE "UserProfile" ADD COLUMN     "language" TEXT NOT NULL DEFAULT 'en',
+ADD COLUMN     "theme" TEXT NOT NULL DEFAULT 'system',
+ADD COLUMN     "timezone" TEXT NOT NULL DEFAULT 'UTC',
+ALTER COLUMN "skills" SET DATA TYPE TEXT,
+ALTER COLUMN "education" SET DATA TYPE TEXT,
+ALTER COLUMN "experience" SET DATA TYPE TEXT;

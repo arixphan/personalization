@@ -60,6 +60,21 @@ export class UserRepository {
     });
   }
 
+  async getProfile(userId: number) {
+    return this.prisma.userProfile.findUnique({
+      where: { userId },
+      include: { user: { select: { id: true, username: true, roleId: true } } },
+    });
+  }
+
+  async updateProfile(userId: number, data: Partial<any>) {
+    return this.prisma.userProfile.upsert({
+      where: { userId },
+      update: data,
+      create: { userId, ...data },
+    });
+  }
+
   async create(data: any) {
     return this.prisma.user.create({
       data,

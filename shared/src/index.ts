@@ -6,6 +6,7 @@ export { UpdateProjectDto, UpdateProjectSchema } from "./dtos/projects/update-pr
 export { UpdateProjectStatusDto, UpdateProjectStatusSchema } from "./dtos/projects/update-project-status.dto";
 export { CreateTicketDto, CreateTicketSchema } from "./dtos/tickets/create-ticket.dto";
 export { UpdateTicketDto, UpdateTicketSchema } from "./dtos/tickets/update-ticket.dto";
+export * from "./dtos/user/user-profile.dto";
 
 // Constants
 export { AUTH_CONFIG } from "./constants/auth";

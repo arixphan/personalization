@@ -42,3 +42,26 @@ export class TicketEndpointFactory extends EndpointFactory {
 }
 
 export const TicketEndpoint = new TicketEndpointFactory();
+
+export class UserEndpointFactory extends EndpointFactory {
+  constructor() {
+    super("user");
+  }
+  public profile(): string {
+    return `${this.baseUrl}/profile`;
+  }
+  public settings(): string {
+    return `${this.baseUrl}/settings`;
+  }
+  public experience(): string {
+    return `${this.baseUrl}/profile/experience`;
+  }
+  public education(): string {
+    return `${this.baseUrl}/profile/education`;
+  }
+  public skills(): string {
+    return `${this.baseUrl}/profile/skills`;
+  }
+}
+
+export const UserEndpoint = new UserEndpointFactory();

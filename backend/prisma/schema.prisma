@@ -40,9 +40,12 @@ model UserProfile {
   website        String?   @db.VarChar(100)
   socialLinks    String?   @db.VarChar(255)
   interests      String?   @db.VarChar(255)
-  skills         String?   @db.VarChar(255)
-  education      String?   @db.VarChar(255)
-  experience     String?   @db.VarChar(255)
+  theme          String    @default("system")
+  language       String    @default("en")
+  timezone       String    @default("UTC")
+  skills         String?   @db.Text
+  education      String?   @db.Text
+  experience     String?   @db.Text
   achievements   String?   @db.VarChar(255)
   certifications String?   @db.VarChar(255)
   hobbies        String?   @db.VarChar(255)
