@@ -23,7 +23,6 @@ interface SignInState {
     _form?: string[];
   };
   success?: boolean;
-  token?: string;
 }
 
 export async function signInAction(
@@ -99,7 +98,6 @@ export async function signInAction(
 
       return {
         success: true,
-        token: data.access_token,
       };
     }
 

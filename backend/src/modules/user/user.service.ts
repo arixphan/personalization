@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { RegisterUserDto } from '@personalization/shared';
 import { USER_ROLE } from '@personalization/shared';
 import { PasswordService } from 'src/modules/shared/password.service';
-import { UserRepository } from './user.repository';
+import { CreateOAuthUserData, UserRepository } from './user.repository';
 
 @Injectable()
 export class UserService {
@@ -63,6 +63,18 @@ export class UserService {
 
   findByUsername(username: string) {
     return this.userRepository.findByUsername(username);
+  }
+
+  findByGoogleId(googleId: string) {
+    return this.userRepository.findByGoogleId(googleId);
+  }
+
+  findByEmail(email: string) {
+    return this.userRepository.findByEmail(email);
+  }
+
+  createOAuthUser(data: CreateOAuthUserData) {
+    return this.userRepository.createOAuthUser(data);
   }
 
   findAll() {

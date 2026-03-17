@@ -3,36 +3,22 @@ import { BaseApi } from "./base-api";
 
 // client-api.ts
 export class ClientApi extends BaseApi {
-  private tokenKey: string;
-
-  constructor(baseUrl: string, tokenKey: string = AUTH_CONFIG.COOKIE_NAMES.ACCESS_TOKEN) {
+  constructor(baseUrl: string) {
     super(baseUrl);
-    this.tokenKey = tokenKey;
   }
 
   protected getAccessToken(): string | null {
-    if (typeof window === "undefined") {
-      return null; // Server-side rendering
-    }
-
-    try {
-      return localStorage.getItem(this.tokenKey);
-    } catch (error) {
-      console.warn("Failed to get token from localStorage:", error);
-      return null;
-    }
+    // We now rely solely on HttpOnly cookies.
+    // BaseApi will send no Authorization header, and the backend will read from cookies.
+    return null;
   }
 
-  public setAccessToken(token: string): void {
-    if (typeof window !== "undefined") {
-      localStorage.setItem(this.tokenKey, token);
-    }
+  public setAccessToken(_token: string): void {
+    // No-op: tokens are managed via HttpOnly cookies by the backend
   }
 
   public clearAccessToken(): void {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem(this.tokenKey);
-    }
+    // No-op: cookies should be cleared via a logout endpoint
   }
 }
 

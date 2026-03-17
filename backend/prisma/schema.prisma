@@ -12,7 +12,9 @@ model User {
   id          Int          @id @default(autoincrement())
   username    String       @unique
   name        String?      @db.VarChar(100)
-  password    String       @db.VarChar(255)
+  password    String?      @db.VarChar(255)
+  googleId    String?      @unique @db.VarChar(255)
+  githubId    String?      @unique @db.VarChar(255)
   isActive    Boolean      @default(true)
   roleId      Int
   updatedAt   DateTime     @updatedAt

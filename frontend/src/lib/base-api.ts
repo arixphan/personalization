@@ -91,6 +91,7 @@ export abstract class BaseApi {
         headers,
         body: body ? JSON.stringify(body) : undefined,
         signal: options?.signal,
+        credentials: "include",
       });
 
 

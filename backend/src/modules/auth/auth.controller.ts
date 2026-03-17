@@ -4,16 +4,20 @@ import {
   Controller,
   Request,
   Post,
+  Get,
+  Body,
   UseGuards,
   Res,
   HttpStatus,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { AuthGuard } from '@nestjs/passport';
 import { AUTH_CONFIG } from '@personalization/shared';
 
 import { Public } from '../../decorators/public.decorator';
 import { AuthService } from './auth.service';
 import { JwtTokenRequest, LoginRequest } from './auth.types';
+import { GoogleProfile } from './strategies/google.strategy';
 
 @Controller('auth')
 export class AuthController {
@@ -87,5 +91,78 @@ export class AuthController {
     }
 
     return res.status(HttpStatus.OK).json({ access_token: newAccessToken });
+  }
+
+  // ---- Google OAuth ----
+
+  @Public()
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth() {
+    // Passport redirects to Google automatically — no body needed.
+  }
+
+  @Public()
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleCallback(
+    @Request() req: { user: GoogleProfile },
+    @Res() res: Response,
+  ) {
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+    try {
+      const tokens = await this.authService.loginWithGoogle(req.user);
+      const code = await this.authService.generateExchangeCode(
+        tokens.access_token,
+        tokens.refresh_token,
+      );
+      return res.redirect(`${frontendUrl}/auth-callback?code=${code}`);
+    } catch (error) {
+      const message =
+        error instanceof Error ? encodeURIComponent(error.message) : 'error';
+      return res.redirect(
+        `${frontendUrl}/auth-callback?error=${message}`,
+      );
+    }
+  }
+
+  @Public()
+  @Post('exchange')
+  async exchangeCode(
+    @Body() body: { code: string },
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    if (!body?.code) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ message: 'Missing exchange code' });
+    }
+
+    const tokens = await this.authService.consumeExchangeCode(body.code);
+
+    if (!tokens) {
+      return res
+        .status(HttpStatus.UNAUTHORIZED)
+        .json({ message: 'Invalid or expired exchange code' });
+    }
+
+    // Set both tokens as HttpOnly cookies — no tokens in the response body
+    res.cookie(AUTH_CONFIG.COOKIE_NAMES.ACCESS_TOKEN, tokens.access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: AUTH_CONFIG.EXPIRATION.ACCESS_TOKEN_COOKIE_MAX_AGE * 1000,
+    });
+
+    res.cookie(AUTH_CONFIG.COOKIE_NAMES.REFRESH_TOKEN, tokens.refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: AUTH_CONFIG.PATHS.REFRESH_TOKEN,
+      maxAge: this.configService.get<number>('CACHE_TTL'),
+    });
+
+    return res.status(HttpStatus.OK).json({ success: true });
   }
 }

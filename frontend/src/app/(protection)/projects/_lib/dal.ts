@@ -38,7 +38,7 @@ export async function fetchProjects(
   const url = ProjectEndpoint.list() + `?${params.toString()}`;
   const { data, error } = await ClientApiHandler.get(url, { signal });
   if (error) {
-    throw new Error("Failed to create project");
+    throw new Error(error || "Failed to fetch project");
   }
   return data;
 }
@@ -60,7 +60,7 @@ export async function updateProject(id: string, project: BaseProjectDto) {
     project
   );
   if (error) {
-    throw new Error("Failed to create project");
+    throw new Error("Failed to update project");
   }
   return data;
 }

@@ -15,7 +15,6 @@ interface SignInState {
     _form?: string[];
   };
   success?: boolean;
-  token?: string;
 }
 
 export const SignInForm = () => {
@@ -32,7 +31,12 @@ export const SignInForm = () => {
   );
 
   const handleSocialAuth = (provider: "google" | "facebook") => {
-    console.log(`Login with ${provider}`);
+    if (provider === "google") {
+      const backendUrl =
+        process.env.NEXT_PUBLIC_SERVER_BASE_URL?.replace("/api", "") ??
+        "http://localhost:3000";
+      window.location.href = `${backendUrl}/api/auth/google`;
+    }
   };
 
   const inputVariants = {
@@ -47,12 +51,9 @@ export const SignInForm = () => {
 
   useEffect(() => {
     if (state.success) {
-      if (state.token) {
-        localStorage.setItem("access_token", state.token);
-      }
       router.push("/");
     }
-  }, [router, state.success, state.token]);
+  }, [router, state.success]);
 
   return (
     <form action={formAction} className="space-y-6">

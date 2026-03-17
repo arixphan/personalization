@@ -12,12 +12,11 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
   app.useGlobalFilters(new JwtExpiredExceptionFilter());
-  app.enableCors();
+  app.enableCors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:3001',
+    credentials: true,
+  });
   app.use(cookieParser());
-  // app.enableCors({
-  //   origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-  //   credentials: true, // Allow cookies to be sent
-  // });
 
   const config = new DocumentBuilder()
     .setTitle('Personalization API')
