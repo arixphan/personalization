@@ -120,9 +120,7 @@ export class AuthController {
     } catch (error) {
       const message =
         error instanceof Error ? encodeURIComponent(error.message) : 'error';
-      return res.redirect(
-        `${frontendUrl}/auth-callback?error=${message}`,
-      );
+      return res.redirect(`${frontendUrl}/auth-callback?error=${message}`);
     }
   }
 

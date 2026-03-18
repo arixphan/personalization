@@ -6,7 +6,11 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { CreateProjectDto, UpdateProjectDto, DEFAULT_PROJECT_STATUSES } from '@personalization/shared';
+import {
+  CreateProjectDto,
+  UpdateProjectDto,
+  DEFAULT_PROJECT_STATUSES,
+} from '@personalization/shared';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { paginator } from 'src/lib/paginator';
 import { Prisma } from '@prisma/client';
@@ -40,7 +44,10 @@ export class ProjectsService {
     this.requireOwnerId(userId);
 
     try {
-      const project = await this.projectsRepository.create(createProjectDto, userId);
+      const project = await this.projectsRepository.create(
+        createProjectDto,
+        userId,
+      );
       return project;
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
@@ -83,7 +90,7 @@ export class ProjectsService {
           where,
           skip,
           take,
-          this.buildFindAllOrderBy(sortBy, sortOrder)
+          this.buildFindAllOrderBy(sortBy, sortOrder),
         );
       },
       {
@@ -124,7 +131,10 @@ export class ProjectsService {
   async findOne(id: number, userId: number) {
     this.requireOwnerId(userId);
     try {
-      const project = await this.projectsRepository.findByIdAndOwnerOrThrow(id, userId);
+      const project = await this.projectsRepository.findByIdAndOwnerOrThrow(
+        id,
+        userId,
+      );
       return project;
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
@@ -169,7 +179,10 @@ export class ProjectsService {
   async updateStatus(id: number, status: string, userId: number) {
     this.requireOwnerId(userId);
     try {
-      const project = await this.projectsRepository.findByIdAndOwner(id, userId);
+      const project = await this.projectsRepository.findByIdAndOwner(
+        id,
+        userId,
+      );
 
       if (!project) {
         throw new NotFoundException(
@@ -177,7 +190,11 @@ export class ProjectsService {
         );
       }
 
-      const updatedProject = await this.projectsRepository.updateStatus(id, status, userId);
+      const updatedProject = await this.projectsRepository.updateStatus(
+        id,
+        status,
+        userId,
+      );
       return updatedProject;
     } catch (error) {
       if (error instanceof NotFoundException) {

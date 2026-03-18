@@ -1,0 +1,7 @@
+{
+  "HELLO": "Xin chào",
+  "VALIDATION": {
+    "REQUIRED": "{field} không được để trống",
+    "INVALID": "{field} không hợp lệ"
+  }
+}

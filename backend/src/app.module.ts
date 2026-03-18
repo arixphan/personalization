@@ -4,6 +4,8 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { AcceptLanguageResolver, I18nModule } from 'nestjs-i18n';
+import * as path from 'path';
 
 import { AppController } from './app.controller';
 
@@ -17,6 +19,7 @@ import {
   ShareModule,
   UserModule,
   TicketsModule,
+  UploadModule,
 } from './modules';
 
 @Module({
@@ -43,6 +46,15 @@ import {
     PermissionModule,
     ProjectsModule,
     TicketsModule,
+    UploadModule,
+    I18nModule.forRoot({
+      fallbackLanguage: 'en',
+      loaderOptions: {
+        path: path.join(process.cwd(), 'src/i18n/'),
+        watch: true,
+      },
+      resolvers: [AcceptLanguageResolver],
+    }),
   ],
   controllers: [AppController],
   providers: [

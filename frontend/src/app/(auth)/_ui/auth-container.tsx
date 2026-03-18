@@ -1,4 +1,7 @@
+"use client";
+
 import * as motion from "motion/react-client";
+import { useTranslations } from "next-intl";
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -11,6 +14,8 @@ export const AuthContainer: React.FC<AuthLayoutProps> = ({
   title,
   subtitle,
 }) => {
+  const t = useTranslations("Auth");
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -59,7 +64,7 @@ export const AuthContainer: React.FC<AuthLayoutProps> = ({
         transition={{ delay: 0.6 }}
         className="text-center mt-6 text-sm text-gray-500 dark:text-gray-400"
       >
-        © 2024 Personal Dashboard. All rights reserved.
+        {t("footer")}
       </motion.div>
     </motion.div>
   );

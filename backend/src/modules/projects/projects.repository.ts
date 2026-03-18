@@ -9,8 +9,9 @@ export class ProjectsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createProjectDto: CreateProjectDto, ownerId: number) {
-    const { title, type, description, columns, tags, version } = createProjectDto;
-    
+    const { title, type, description, columns, tags, version } =
+      createProjectDto;
+
     return this.prisma.$transaction(async (tx) => {
       const project = await tx.project.create({
         data: {
@@ -42,7 +43,12 @@ export class ProjectsRepository {
     return this.prisma.project.count({ where });
   }
 
-  async findMany(where: Prisma.ProjectWhereInput, skip: number, take: number, orderBy: any) {
+  async findMany(
+    where: Prisma.ProjectWhereInput,
+    skip: number,
+    take: number,
+    orderBy: any,
+  ) {
     return this.prisma.project.findMany({
       skip,
       take,
@@ -64,7 +70,7 @@ export class ProjectsRepository {
       where: { id, ownerId },
     });
   }
-  
+
   async findByIdAndOwnerOrThrow(id: number, ownerId: number) {
     return this.prisma.project.findUniqueOrThrow({
       where: { id, ownerId },

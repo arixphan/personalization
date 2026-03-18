@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { CustomInput } from "@/components/ui/input/custom-text";
 import { toast } from "sonner";
 import { updateProfile } from "../../_actions/profile";
+import { useTranslations } from "next-intl";
 
 export function AccountTab({ initialData }: { initialData?: any }) {
+  const t = useTranslations("Account");
   const [displayName, setDisplayName] = useState(initialData?.name || "");
   const [phoneNumber, setPhoneNumber] = useState(initialData?.phone || "");
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
@@ -27,7 +29,7 @@ export function AccountTab({ initialData }: { initialData?: any }) {
         toast.error(result.error);
         console.error("Save failed:", result.error);
       } else {
-        toast.success("Account settings saved successfully");
+        toast.success(t("success"));
       }
     });
   };
@@ -36,7 +38,7 @@ export function AccountTab({ initialData }: { initialData?: any }) {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Profile Information */}
       <div className="p-6 rounded-xl bg-card border shadow-sm">
-        <h3 className="text-lg font-semibold mb-6 text-card-foreground">Profile Information</h3>
+        <h3 className="text-lg font-semibold mb-6 text-card-foreground">{t("profileInfo")}</h3>
         
         <div className="space-y-6">
           <div className="flex items-center space-x-6">
@@ -55,8 +57,8 @@ export function AccountTab({ initialData }: { initialData?: any }) {
             <div className="flex-1 space-y-4">
               <CustomInput
                 id="display-name"
-                label="Display Name"
-                placeholder="Enter your display name"
+                label={t("displayName")}
+                placeholder={t("displayNamePlaceholder")}
                 value={displayName}
                 onChange={setDisplayName}
               />
@@ -65,9 +67,9 @@ export function AccountTab({ initialData }: { initialData?: any }) {
 
           <CustomInput
             id="phone-number"
-            label="Phone Number"
+            label={t("phoneNumber")}
             type="tel"
-            placeholder="Enter your phone number"
+            placeholder={t("phoneNumberPlaceholder")}
             value={phoneNumber}
             onChange={(v) => {
               // Strip out non-numeric and basic phone chars
@@ -80,7 +82,7 @@ export function AccountTab({ initialData }: { initialData?: any }) {
 
       {/* Security */}
       <div className="p-6 rounded-xl bg-card border shadow-sm">
-        <h3 className="text-lg font-semibold mb-4 text-card-foreground">Security</h3>
+        <h3 className="text-lg font-semibold mb-4 text-card-foreground">{t("security")}</h3>
         
         <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border/50">
           <div className="flex items-center space-x-4">
@@ -88,8 +90,8 @@ export function AccountTab({ initialData }: { initialData?: any }) {
               <Shield size={20} />
             </div>
             <div>
-              <p className="text-sm font-medium text-foreground">Two-Factor Authentication</p>
-              <p className="text-xs text-muted-foreground">Add an extra layer of security to your account</p>
+              <p className="text-sm font-medium text-foreground">{t("twoFactor")}</p>
+              <p className="text-xs text-muted-foreground">{t("twoFactorDescription")}</p>
             </div>
           </div>
           <button
@@ -111,7 +113,7 @@ export function AccountTab({ initialData }: { initialData?: any }) {
       <div className="flex justify-end mt-8">
         <Button onClick={handleSave} disabled={isPending} variant="default" className="gap-2">
           {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          {isPending ? "Saving..." : "Save Account"}
+          {isPending ? t("saving") : t("save")}
         </Button>
       </div>
     </div>

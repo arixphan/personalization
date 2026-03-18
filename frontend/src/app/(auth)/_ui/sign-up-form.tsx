@@ -11,6 +11,7 @@ import {
   RegisterInput,
   RegisterState,
 } from "../actions/register";
+import { useTranslations } from "next-intl";
 
 const inputVariants = {
   focus: { scale: 1.02, transition: { duration: 0.2 } },
@@ -22,6 +23,7 @@ const initialState: RegisterState = {
 };
 
 export function SignUpForm() {
+  const t = useTranslations("Auth");
   const [formData, setFormData] = useState<RegisterInput>({
     confirmPassword: "",
     password: "",
@@ -75,7 +77,7 @@ export function SignUpForm() {
       {/* Username */}
       <motion.div variants={inputVariants}>
         <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-200">
-          Username
+          {t("signUp.username")}
         </label>
         <div className="relative">
           <User
@@ -94,7 +96,7 @@ export function SignUpForm() {
                 ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
                 : "bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 dark:bg-gray-700/50 dark:border-gray-600 dark:text-white dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
             }`}
-            placeholder="Enter your username"
+            placeholder={t("signUp.usernamePlaceholder")}
             required
             aria-required="true"
             aria-describedby={
@@ -118,7 +120,7 @@ export function SignUpForm() {
       {/* Password */}
       <motion.div variants={inputVariants}>
         <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-200">
-          Password
+          {t("signUp.password")}
         </label>
         <div className="relative">
           <Lock
@@ -137,7 +139,7 @@ export function SignUpForm() {
                 ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
                 : "bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 dark:bg-gray-700/50 dark:border-gray-600 dark:text-white dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
             }`}
-            placeholder="Enter your password"
+            placeholder={t("signUp.passwordPlaceholder")}
             required
             aria-required="true"
             aria-describedby={
@@ -150,7 +152,7 @@ export function SignUpForm() {
             onClick={() => setShowPassword(!showPassword)}
             disabled={isPending}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-label={showPassword ? t("signUp.hidePassword") : t("signUp.showPassword")}
           >
             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
@@ -170,7 +172,7 @@ export function SignUpForm() {
       {/* Confirm Password */}
       <motion.div variants={inputVariants}>
         <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-200">
-          Confirm Password
+          {t("signUp.confirmPassword")}
         </label>
         <div className="relative">
           <Lock
@@ -189,7 +191,7 @@ export function SignUpForm() {
                 ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
                 : "bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 dark:bg-gray-700/50 dark:border-gray-600 dark:text-white dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
             }`}
-            placeholder="Confirm your password"
+            placeholder={t("signUp.confirmPasswordPlaceholder")}
             required
             aria-required="true"
             aria-describedby={
@@ -204,7 +206,7 @@ export function SignUpForm() {
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             disabled={isPending}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+            aria-label={showConfirmPassword ? t("signUp.hidePassword") : t("signUp.showPassword")}
           >
             {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
@@ -236,10 +238,10 @@ export function SignUpForm() {
         {isPending ? (
           <div className="flex items-center justify-center space-x-2">
             <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-            <span>Creating Account...</span>
+            <span>{t("signUp.creatingAccount")}</span>
           </div>
         ) : (
-          "Create Account"
+          t("signUp.submit")
         )}
       </motion.button>
 
@@ -250,7 +252,7 @@ export function SignUpForm() {
         </div>
         <div className="relative flex justify-center text-sm">
           <span className="px-4 bg-white text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-            Or continue with
+            {t("social.orContinueWith")}
           </span>
         </div>
       </div>
@@ -262,7 +264,7 @@ export function SignUpForm() {
           onClick={() => handleSocialAuth("google")}
         >
           <Chrome size={20} />
-          <span className="font-medium">Continue with Google</span>
+          <span className="font-medium">{t("social.continueGoogle")}</span>
         </SocialButton>
         <SocialButton
           provider="facebook"
@@ -271,18 +273,18 @@ export function SignUpForm() {
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
             <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
           </svg>
-          <span className="font-medium">Continue with Facebook</span>
+          <span className="font-medium">{t("social.continueFacebook")}</span>
         </SocialButton>
       </div>
 
       {/* Sign In Link */}
       <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-        Already have an account?{" "}
+        {t("hasAccount")}{" "}
         <Link
           href="/signin"
           className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
         >
-          Sign in
+          {t("signInLink")}
         </Link>
       </div>
     </form>

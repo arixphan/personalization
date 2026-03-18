@@ -1,0 +1,7 @@
+{
+  "HELLO": "Hello",
+  "VALIDATION": {
+    "REQUIRED": "The {field} is required",
+    "INVALID": "The {field} is invalid"
+  }
+}

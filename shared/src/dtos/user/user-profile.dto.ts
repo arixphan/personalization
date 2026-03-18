@@ -7,6 +7,14 @@ export const UserSettingsSchema = z.object({
 });
 export type UserSettingsDto = z.infer<typeof UserSettingsSchema>;
 
+export const ProjectExperienceSchema = z.object({
+  id: z.string(),
+  project: z.string(),
+  position: z.string(),
+  detail: z.string().optional(),
+});
+export type ProjectExperienceDto = z.infer<typeof ProjectExperienceSchema>;
+
 export const ExperienceSchema = z.object({
   id: z.string(),
   company: z.string(),
@@ -15,6 +23,7 @@ export const ExperienceSchema = z.object({
   endDate: z.string().optional(),
   description: z.string().optional(),
   current: z.boolean().default(false),
+  projects: z.array(ProjectExperienceSchema).optional(),
 });
 export type ExperienceDto = z.infer<typeof ExperienceSchema>;
 

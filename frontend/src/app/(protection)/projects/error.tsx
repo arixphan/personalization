@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { ErrorMessage } from "@/components/ui/error-message";
+import { useTranslations } from "next-intl";
 
 export default function Error({
   error,
@@ -10,6 +11,8 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations("Projects");
+
   useEffect(() => {
     // Log the error to an error reporting service
     console.error("Projects page error:", error);
@@ -22,7 +25,7 @@ export default function Error({
   return (
     <ErrorMessage
       message={
-        error.message || "An unexpected error occurred while loading projects."
+        error.message || t("error.defaultMessage")
       }
       onRetry={reset}
       showHomeButton={true}

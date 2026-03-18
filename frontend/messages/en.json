@@ -1,0 +1,202 @@
+{
+  "Auth": {
+    "signIn": {
+      "title": "Welcome Back",
+      "subtitle": "Sign in to your account to continue",
+      "username": "Username",
+      "usernamePlaceholder": "Enter your username",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "forgotPassword": "Forgot password?",
+      "submit": "Sign In",
+      "signingIn": "Signing In...",
+      "success": "Sign in successful! Redirecting...",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password"
+    },
+    "signUp": {
+      "title": "Create Account",
+      "subtitle": "Join us and start managing your productivity",
+      "username": "Username",
+      "usernamePlaceholder": "Enter your username",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "confirmPassword": "Confirm Password",
+      "confirmPasswordPlaceholder": "Confirm your password",
+      "submit": "Create Account",
+      "creatingAccount": "Creating Account...",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password"
+    },
+    "social": {
+      "orContinueWith": "Or continue with",
+      "continueGoogle": "Continue with Google",
+      "continueFacebook": "Continue with Facebook"
+    },
+    "noAccount": "Don't have an account?",
+    "signUpLink": "Sign up",
+    "hasAccount": "Already have an account?",
+    "signInLink": "Sign in",
+    "footer": "© 2024 Personal Dashboard. All rights reserved."
+  },
+  "Settings": {
+    "title": "Settings",
+    "subtitle": "Manage your preferences and profile",
+    "tabs": {
+      "settings": "Settings",
+      "account": "Account",
+      "profile": "Profile"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "theme": "Theme",
+      "description": "Select your interface theme"
+    },
+    "localization": {
+      "title": "Localization",
+      "language": "Language",
+      "description": "Choose your preferred language",
+      "timezone": "Timezone",
+      "timezonePlaceholder": "Select a timezone"
+    },
+    "actions": {
+      "save": "Save Settings",
+      "saving": "Saving...",
+      "success": "Settings saved successfully"
+    }
+  },
+  "Account": {
+    "profileInfo": "Profile Information",
+    "displayName": "Display Name",
+    "displayNamePlaceholder": "Enter your display name",
+    "phoneNumber": "Phone Number",
+    "phoneNumberPlaceholder": "Enter your phone number",
+    "security": "Security",
+    "twoFactor": "Two-Factor Authentication",
+    "twoFactorDescription": "Add an extra layer of security to your account",
+    "save": "Save Account",
+    "saving": "Saving...",
+    "success": "Account settings saved successfully"
+  },
+  "Profile": {
+    "aboutMe": "About Me",
+    "aboutMePlaceholder": "Tell us about yourself...",
+    "location": "Location",
+    "websiteUrl": "Website URL",
+    "save": "Save Profile",
+    "saving": "Saving...",
+    "success": "Profile saved successfully",
+    "avatarUpdated": "Avatar updated successfully",
+    "avatarSaveFailed": "Avatar uploaded but failed to save profile",
+    "uploadFailed": "Failed to upload avatar"
+  },
+  "Education": {
+    "title": "Education",
+    "add": "Add",
+    "institution": "Institution",
+    "institutionPlaceholder": "e.g. University of Tokyo",
+    "degree": "Degree",
+    "degreePlaceholder": "e.g. Bachelor",
+    "fieldOfStudy": "Field of Study",
+    "fieldPlaceholder": "e.g. Computer Science",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "present": "Present",
+    "in": "in",
+    "cancel": "Cancel",
+    "update": "Update",
+    "save": "Save",
+    "noEducation": "No education added yet.",
+    "removed": "Education removed",
+    "orderSaved": "Education order saved",
+    "added": "Education added",
+    "updated": "Education updated",
+    "fillRequired": "Please fill in institution, degree, field, and start date"
+  },
+  "Experience": {
+    "title": "Experience",
+    "add": "Add",
+    "company": "Company",
+    "companyPlaceholder": "e.g. Google",
+    "position": "Position",
+    "positionPlaceholder": "e.g. Senior Developer",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "description": "Description",
+    "descriptionPlaceholder": "Description...",
+    "present": "Present",
+    "cancel": "Cancel",
+    "update": "Update",
+    "save": "Save",
+    "projects": "Projects",
+    "keyProjects": "Key Projects / Sub-sessions",
+    "addProject": "Add Project",
+    "projectName": "Project Name",
+    "projectNamePlaceholder": "e.g. Migration to Cloud",
+    "rolePosition": "Role / Position",
+    "rolePlaceholder": "e.g. Lead Engineer",
+    "projectDetails": "Project details and achievements...",
+    "noProjects": "No projects added yet.",
+    "noExperience": "No experience added yet.",
+    "removed": "Experience removed",
+    "orderSaved": "Experience order saved",
+    "added": "Experience added",
+    "updated": "Experience updated",
+    "fillRequired": "Please fill in company, position, and start date"
+  },
+  "Skills": {
+    "title": "Skills",
+    "add": "Add",
+    "skillName": "Skill Name",
+    "skillNamePlaceholder": "e.g. React",
+    "level": "Level",
+    "cancel": "Cancel",
+    "saveSkill": "Save Skill",
+    "removed": "Skill removed",
+    "added": "Skill added",
+    "beginner": "Beginner",
+    "intermediate": "Intermediate",
+    "advanced": "Advanced",
+    "expert": "Expert"
+  },
+  "Projects": {
+    "title": "Projects",
+    "subtitle": "Manage and track all your projects in one place",
+    "newProject": "New Project",
+    "searchPlaceholder": "Search projects...",
+    "filterByStatus": "Filter by Status",
+    "filterByType": "Filter by type",
+    "all": "All",
+    "total": "Total:",
+    "loading": "Loading projects...",
+    "loadingMore": "Loading more projects...",
+    "endReached": "🎉 You've reached the end! No more projects to load.",
+    "noResults": "No projects found matching your criteria.",
+    "retry": "Retry",
+    "failedToLoad": "Failed to load projects:",
+    "notFound": {
+      "title": "Projects Not Found",
+      "description": "We couldn't find the projects you're looking for.",
+      "backToProjects": "Back to Projects",
+      "goHome": "Go Home"
+    },
+    "error": {
+      "defaultMessage": "An unexpected error occurred while loading projects."
+    }
+  },
+  "Nav": {
+    "home": "Home",
+    "settings": "Settings",
+    "projectManagement": "Project Management"
+  },
+  "Home": {
+    "greeting": "Hello, Next.js!"
+  },
+  "Common": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "english": "English",
+    "vietnamese": "Vietnamese"
+  }
+}

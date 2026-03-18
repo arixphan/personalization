@@ -1,0 +1,202 @@
+{
+  "Auth": {
+    "signIn": {
+      "title": "Chào Mừng Trở Lại",
+      "subtitle": "Đăng nhập vào tài khoản của bạn để tiếp tục",
+      "username": "Tên đăng nhập",
+      "usernamePlaceholder": "Nhập tên đăng nhập",
+      "password": "Mật khẩu",
+      "passwordPlaceholder": "Nhập mật khẩu",
+      "forgotPassword": "Quên mật khẩu?",
+      "submit": "Đăng Nhập",
+      "signingIn": "Đang đăng nhập...",
+      "success": "Đăng nhập thành công! Đang chuyển hướng...",
+      "showPassword": "Hiện mật khẩu",
+      "hidePassword": "Ẩn mật khẩu"
+    },
+    "signUp": {
+      "title": "Tạo Tài Khoản",
+      "subtitle": "Tham gia và bắt đầu quản lý hiệu suất của bạn",
+      "username": "Tên đăng nhập",
+      "usernamePlaceholder": "Nhập tên đăng nhập",
+      "password": "Mật khẩu",
+      "passwordPlaceholder": "Nhập mật khẩu",
+      "confirmPassword": "Xác nhận mật khẩu",
+      "confirmPasswordPlaceholder": "Xác nhận mật khẩu của bạn",
+      "submit": "Tạo Tài Khoản",
+      "creatingAccount": "Đang tạo tài khoản...",
+      "showPassword": "Hiện mật khẩu",
+      "hidePassword": "Ẩn mật khẩu"
+    },
+    "social": {
+      "orContinueWith": "Hoặc tiếp tục với",
+      "continueGoogle": "Tiếp tục với Google",
+      "continueFacebook": "Tiếp tục với Facebook"
+    },
+    "noAccount": "Chưa có tài khoản?",
+    "signUpLink": "Đăng ký",
+    "hasAccount": "Đã có tài khoản?",
+    "signInLink": "Đăng nhập",
+    "footer": "© 2024 Personal Dashboard. Bản quyền được bảo lưu."
+  },
+  "Settings": {
+    "title": "Cài đặt",
+    "subtitle": "Quản lý tùy chọn và hồ sơ của bạn",
+    "tabs": {
+      "settings": "Cài đặt",
+      "account": "Tài khoản",
+      "profile": "Hồ sơ"
+    },
+    "appearance": {
+      "title": "Giao diện",
+      "theme": "Chủ đề",
+      "description": "Chọn chủ đề giao diện của bạn"
+    },
+    "localization": {
+      "title": "Ngôn ngữ & Khu vực",
+      "language": "Ngôn ngữ",
+      "description": "Chọn ngôn ngữ ưu tiên của bạn",
+      "timezone": "Múi giờ",
+      "timezonePlaceholder": "Chọn một múi giờ"
+    },
+    "actions": {
+      "save": "Lưu cài đặt",
+      "saving": "Đang lưu...",
+      "success": "Cập nhật cài đặt thành công"
+    }
+  },
+  "Account": {
+    "profileInfo": "Thông tin hồ sơ",
+    "displayName": "Tên hiển thị",
+    "displayNamePlaceholder": "Nhập tên hiển thị",
+    "phoneNumber": "Số điện thoại",
+    "phoneNumberPlaceholder": "Nhập số điện thoại",
+    "security": "Bảo mật",
+    "twoFactor": "Xác thực hai yếu tố",
+    "twoFactorDescription": "Thêm lớp bảo mật cho tài khoản của bạn",
+    "save": "Lưu tài khoản",
+    "saving": "Đang lưu...",
+    "success": "Lưu cài đặt tài khoản thành công"
+  },
+  "Profile": {
+    "aboutMe": "Giới thiệu",
+    "aboutMePlaceholder": "Hãy kể về bản thân bạn...",
+    "location": "Vị trí",
+    "websiteUrl": "Địa chỉ Website",
+    "save": "Lưu hồ sơ",
+    "saving": "Đang lưu...",
+    "success": "Lưu hồ sơ thành công",
+    "avatarUpdated": "Cập nhật ảnh đại diện thành công",
+    "avatarSaveFailed": "Tải ảnh đại diện thành công nhưng không lưu được hồ sơ",
+    "uploadFailed": "Tải ảnh đại diện thất bại"
+  },
+  "Education": {
+    "title": "Học vấn",
+    "add": "Thêm",
+    "institution": "Trường / Tổ chức",
+    "institutionPlaceholder": "VD: Đại học Bách Khoa",
+    "degree": "Bằng cấp",
+    "degreePlaceholder": "VD: Cử nhân",
+    "fieldOfStudy": "Ngành học",
+    "fieldPlaceholder": "VD: Khoa học Máy tính",
+    "startDate": "Ngày bắt đầu",
+    "endDate": "Ngày kết thúc",
+    "present": "Hiện tại",
+    "in": "ngành",
+    "cancel": "Hủy",
+    "update": "Cập nhật",
+    "save": "Lưu",
+    "noEducation": "Chưa có thông tin học vấn.",
+    "removed": "Đã xóa học vấn",
+    "orderSaved": "Đã lưu thứ tự học vấn",
+    "added": "Đã thêm học vấn",
+    "updated": "Đã cập nhật học vấn",
+    "fillRequired": "Vui lòng điền trường, bằng cấp, ngành học và ngày bắt đầu"
+  },
+  "Experience": {
+    "title": "Kinh nghiệm",
+    "add": "Thêm",
+    "company": "Công ty",
+    "companyPlaceholder": "VD: Google",
+    "position": "Vị trí",
+    "positionPlaceholder": "VD: Lập trình viên cao cấp",
+    "startDate": "Ngày bắt đầu",
+    "endDate": "Ngày kết thúc",
+    "description": "Mô tả",
+    "descriptionPlaceholder": "Mô tả...",
+    "present": "Hiện tại",
+    "cancel": "Hủy",
+    "update": "Cập nhật",
+    "save": "Lưu",
+    "projects": "Dự án",
+    "keyProjects": "Dự án chính / Phiên làm việc",
+    "addProject": "Thêm dự án",
+    "projectName": "Tên dự án",
+    "projectNamePlaceholder": "VD: Di chuyển lên Cloud",
+    "rolePosition": "Vai trò / Vị trí",
+    "rolePlaceholder": "VD: Kỹ sư trưởng",
+    "projectDetails": "Chi tiết dự án và thành tựu...",
+    "noProjects": "Chưa có dự án nào.",
+    "noExperience": "Chưa có kinh nghiệm nào.",
+    "removed": "Đã xóa kinh nghiệm",
+    "orderSaved": "Đã lưu thứ tự kinh nghiệm",
+    "added": "Đã thêm kinh nghiệm",
+    "updated": "Đã cập nhật kinh nghiệm",
+    "fillRequired": "Vui lòng điền công ty, vị trí và ngày bắt đầu"
+  },
+  "Skills": {
+    "title": "Kỹ năng",
+    "add": "Thêm",
+    "skillName": "Tên kỹ năng",
+    "skillNamePlaceholder": "VD: React",
+    "level": "Trình độ",
+    "cancel": "Hủy",
+    "saveSkill": "Lưu kỹ năng",
+    "removed": "Đã xóa kỹ năng",
+    "added": "Đã thêm kỹ năng",
+    "beginner": "Mới bắt đầu",
+    "intermediate": "Trung cấp",
+    "advanced": "Nâng cao",
+    "expert": "Chuyên gia"
+  },
+  "Projects": {
+    "title": "Dự án",
+    "subtitle": "Quản lý và theo dõi tất cả dự án của bạn",
+    "newProject": "Dự án mới",
+    "searchPlaceholder": "Tìm kiếm dự án...",
+    "filterByStatus": "Lọc theo trạng thái",
+    "filterByType": "Lọc theo loại",
+    "all": "Tất cả",
+    "total": "Tổng:",
+    "loading": "Đang tải dự án...",
+    "loadingMore": "Đang tải thêm dự án...",
+    "endReached": "🎉 Bạn đã xem hết! Không còn dự án nào nữa.",
+    "noResults": "Không tìm thấy dự án phù hợp.",
+    "retry": "Thử lại",
+    "failedToLoad": "Tải dự án thất bại:",
+    "notFound": {
+      "title": "Không tìm thấy dự án",
+      "description": "Chúng tôi không thể tìm thấy dự án bạn đang tìm kiếm.",
+      "backToProjects": "Quay lại dự án",
+      "goHome": "Về trang chủ"
+    },
+    "error": {
+      "defaultMessage": "Đã xảy ra lỗi không mong muốn khi tải dự án."
+    }
+  },
+  "Nav": {
+    "home": "Trang chủ",
+    "settings": "Cài đặt",
+    "projectManagement": "Quản lý dự án"
+  },
+  "Home": {
+    "greeting": "Xin chào, Next.js!"
+  },
+  "Common": {
+    "light": "Sáng",
+    "dark": "Tối",
+    "system": "Hệ thống",
+    "english": "Tiếng Anh",
+    "vietnamese": "Tiếng Việt"
+  }
+}

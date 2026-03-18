@@ -4,25 +4,28 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProjectListWrapper } from "./_ui/project-list-wrapper";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getTranslations } from "next-intl/server";
 
-export default function ProjectsPage() {
+export default async function ProjectsPage() {
+  const t = await getTranslations("Projects");
+
   return (
     <div>
       <header className="mb-8">
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-4xl font-bold tracking-tight text-foreground">
-              Projects
+              {t("title")}
             </h1>
             <p className="mt-2 text-muted-foreground">
-              Manage and track all your projects in one place
+              {t("subtitle")}
             </p>
           </div>
 
           <Link href="/projects/new">
             <Button variant="default" size="lg" className="gap-2">
               <Plus size={18} />
-              New Project
+              {t("newProject")}
             </Button>
           </Link>
         </div>

@@ -162,7 +162,10 @@ export class AuthService {
       const permissions = await this.permissionService.getPermissionsByRoleId(
         existingByGoogleId.roleId,
       );
-      return this.login({ ...existingByGoogleId, permissions: permissions || [] });
+      return this.login({
+        ...existingByGoogleId,
+        permissions: permissions || [],
+      });
     }
 
     // Step 2: Existing local account with the same email — block silent linking

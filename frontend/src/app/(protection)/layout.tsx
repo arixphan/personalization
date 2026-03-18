@@ -25,20 +25,28 @@ export const metadata: Metadata = {
     "A personal management system to manage your tasks, projects, and notes.",
 };
 
-export default function RootLayout({
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages, getLocale } from "next-intl/server";
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Providers>
-          <Toaster position="top-center" duration={3000} />
-          <AppLayout>{children}</AppLayout>
-        </Providers>
+        <NextIntlClientProvider messages={messages} locale={locale}>
+          <Providers>
+            <Toaster position="top-center" duration={3000} />
+            <AppLayout>{children}</AppLayout>
+          </Providers>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

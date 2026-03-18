@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { Search } from "lucide-react";
 import { motion } from "motion/react";
 import { useDebouncedValue } from "@tanstack/react-pacer";
@@ -15,6 +15,7 @@ import {
 import { PaginatedMeta } from "@/lib/base-api";
 import { capitalizeWords, enumToSelectOptions } from "@/lib/utils";
 import { ProjectStatus, PROJECT_TYPE_LABELS } from "@personalization/shared";
+import { useTranslations } from "next-intl";
 
 import { fetchProjects, ProjectFilter } from "../_lib/dal";
 import { Project } from "../_types/project";
@@ -28,21 +29,6 @@ const containerVariants = {
   },
 };
 
-const allOption: SelectOption = {
-  value: "all",
-  label: "All",
-};
-const statusOptions: SelectOption[] = [
-  allOption,
-  ...enumToSelectOptions(ProjectStatus)
-    .filter((op) => op.value !== ProjectStatus.archived)
-    .map((op) => ({ ...op, label: capitalizeWords(op.label.toLowerCase()) })),
-];
-const typeOptions: SelectOption[] = [
-  allOption,
-  ...enumToSelectOptions(PROJECT_TYPE_LABELS),
-];
-
 interface ProjectListProps {
   initialProjects?: Project[];
   initialMeta?: PaginatedMeta;
@@ -52,6 +38,26 @@ export const ProjectList = ({
   initialProjects = [],
   initialMeta,
 }: ProjectListProps) => {
+  const t = useTranslations("Projects");
+
+  const statusOptions: SelectOption[] = useMemo(() => {
+    const allOption: SelectOption = { value: "all", label: t("all") };
+    return [
+      allOption,
+      ...enumToSelectOptions(ProjectStatus)
+        .filter((op) => op.value !== ProjectStatus.archived)
+        .map((op) => ({ ...op, label: capitalizeWords(op.label.toLowerCase()) })),
+    ];
+  }, [t]);
+
+  const typeOptions: SelectOption[] = useMemo(() => {
+    const allOption: SelectOption = { value: "all", label: t("all") };
+    return [
+      allOption,
+      ...enumToSelectOptions(PROJECT_TYPE_LABELS),
+    ];
+  }, [t]);
+
   const [filter, setFilter] = useState<Omit<ProjectFilter, "searchTerm">>({
     status: undefined,
     type: undefined,
@@ -161,13 +167,13 @@ export const ProjectList = ({
     return (
       <div className="text-center py-12">
         <p className="text-red-500 mb-4">
-          Failed to load projects: {error?.message || "Unknown error"}
+          {t("failedToLoad")} {error?.message || "Unknown error"}
         </p>
         <Button
           onClick={() => refetch()}
           variant="default"
         >
-          Retry
+          {t("retry")}
         </Button>
       </div>
     );
@@ -186,7 +192,7 @@ export const ProjectList = ({
             id="search-projects"
             value={searchTerm}
             onChange={(value) => setSearchTerm(value)}
-            placeholder="Search projects..."
+            placeholder={t("searchPlaceholder")}
             className="w-full pl-10 pr-4"
           />
         </div>
@@ -194,20 +200,20 @@ export const ProjectList = ({
           id="status"
           value={filter.status || undefined}
           onChange={(value) => handleFilterChange("status", value)}
-          placeholder="Filter by Status"
+          placeholder={t("filterByStatus")}
           options={statusOptions}
         />
         <CustomSelect
           id="type"
           value={filter.type || undefined}
           onChange={(value) => handleFilterChange("type", value)}
-          placeholder="Filter by type"
+          placeholder={t("filterByType")}
           options={typeOptions}
         />
       </div>
       {/* Total Projects Count */}
       <div className="mb-4 text-gray-600 dark:text-gray-400">
-        <span className="font-semibold">Total:</span> {totalCount}
+        <span className="font-semibold">{t("total")}</span> {totalCount}
       </div>
 
       {/* Projects Grid */}
@@ -226,7 +232,7 @@ export const ProjectList = ({
           <div className="col-span-full flex justify-center items-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             <span className="ml-3 text-gray-600 dark:text-gray-400">
-              Loading projects...
+              {t("loading")}
             </span>
           </div>
         )}
@@ -236,7 +242,7 @@ export const ProjectList = ({
           <div className="col-span-full flex justify-center items-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             <span className="ml-3 text-gray-600 dark:text-gray-400">
-              Loading more projects...
+              {t("loadingMore")}
             </span>
           </div>
         )}
@@ -245,7 +251,7 @@ export const ProjectList = ({
         {!hasNextPage && allProjects.length > 0 && (
           <div className="col-span-full text-center py-8">
             <p className="text-gray-500 dark:text-gray-400 text-lg">
-              🎉 You've reached the end! No more projects to load.
+              {t("endReached")}
             </p>
           </div>
         )}
@@ -254,7 +260,7 @@ export const ProjectList = ({
         {allProjects.length === 0 && !isLoading && (
           <div className="col-span-full text-center py-12">
             <p className="text-gray-500 dark:text-gray-400 text-lg">
-              No projects found matching your criteria.
+              {t("noResults")}
             </p>
           </div>
         )}

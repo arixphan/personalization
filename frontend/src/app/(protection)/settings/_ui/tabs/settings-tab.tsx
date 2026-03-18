@@ -9,7 +9,11 @@ import { cn } from "@/lib/utils";
 import { CustomSelect } from "@/components/ui/input/custom-select";
 import { updateSettings } from "../../_actions/profile";
 
+import { useTranslations } from "next-intl";
+
 export function SettingsTab({ initialData }: { initialData?: any }) {
+  const t = useTranslations("Settings");
+  const tc = useTranslations("Common");
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   
@@ -19,8 +23,6 @@ export function SettingsTab({ initialData }: { initialData?: any }) {
   // Sync theme on mount
   useEffect(() => {
     setMounted(true);
-    // Remove the forced sync that was reverting user choices
-    // If we wanted to sync DB to LocalStorage, we'd do it once via a ref or before mount
   }, []);
   
   const timezones = [
@@ -33,6 +35,12 @@ export function SettingsTab({ initialData }: { initialData?: any }) {
 
   const [isPending, startTransition] = useTransition();
 
+  const handleLanguageChange = (newLang: "en" | "vn") => {
+    setLanguage(newLang);
+    // Set cookie for next-intl middleware
+    document.cookie = `NEXT_LOCALE=${newLang}; path=/; max-age=31536000`;
+  };
+
   const handleSave = () => {
     startTransition(async () => {
       const result = await updateSettings({
@@ -44,7 +52,10 @@ export function SettingsTab({ initialData }: { initialData?: any }) {
         toast.error(result.error);
         console.error("Save failed:", result.error);
       } else {
-        toast.success("Settings saved successfully");
+        toast.success(t("actions.success"));
+        // Force a refresh to apply language changes if needed, 
+        // though next-intl should react to the cookie if we re-render or redirect
+        window.location.reload();
       }
     });
   };
@@ -55,30 +66,30 @@ export function SettingsTab({ initialData }: { initialData?: any }) {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Theme Settings */}
       <div className="p-6 rounded-xl bg-card border shadow-sm">
-        <h3 className="text-lg font-semibold mb-4 text-card-foreground">Appearance</h3>
+        <h3 className="text-lg font-semibold mb-4 text-card-foreground">{t("appearance.title")}</h3>
         
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <label className="text-sm font-medium text-foreground">Theme</label>
-              <p className="text-xs text-muted-foreground">Select your interface theme</p>
+              <label className="text-sm font-medium text-foreground">{t("appearance.theme")}</label>
+              <p className="text-xs text-muted-foreground">{t("appearance.description")}</p>
             </div>
             <div className="flex rounded-lg overflow-hidden bg-muted/50 p-1 border">
-              {(["light", "dark", "system"] as const).map((t) => (
+              {(["light", "dark", "system"] as const).map((tName) => (
                 <button
-                  key={t}
-                  onClick={() => setTheme(t)}
+                  key={tName}
+                  onClick={() => setTheme(tName)}
                   className={cn(
                     "px-3 py-2 text-sm transition-all rounded-md flex items-center capitalize",
-                    theme === t
+                    theme === tName
                       ? "bg-background text-foreground shadow-sm ring-1 ring-border"
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  {t === "light" && <Sun size={16} className="mr-1.5" />}
-                  {t === "dark" && <Moon size={16} className="mr-1.5" />}
-                  {t === "system" && <Globe size={16} className="mr-1.5" />}
-                  {t}
+                  {tName === "light" && <Sun size={16} className="mr-1.5" />}
+                  {tName === "dark" && <Moon size={16} className="mr-1.5" />}
+                  {tName === "system" && <Globe size={16} className="mr-1.5" />}
+                  {tc(tName)}
                 </button>
               ))}
             </div>
@@ -88,17 +99,17 @@ export function SettingsTab({ initialData }: { initialData?: any }) {
 
       {/* Localization Settings */}
       <div className="p-6 rounded-xl bg-card border shadow-sm">
-        <h3 className="text-lg font-semibold mb-4 text-card-foreground">Localization</h3>
+        <h3 className="text-lg font-semibold mb-4 text-card-foreground">{t("localization.title")}</h3>
         
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <label className="text-sm font-medium text-foreground">Language</label>
-              <p className="text-xs text-muted-foreground">Choose your preferred language</p>
+              <label className="text-sm font-medium text-foreground">{t("localization.language")}</label>
+              <p className="text-xs text-muted-foreground">{t("localization.description")}</p>
             </div>
             <div className="flex rounded-lg overflow-hidden bg-muted/50 p-1 border">
               <button
-                onClick={() => setLanguage("en")}
+                onClick={() => handleLanguageChange("en")}
                 className={cn(
                   "px-4 py-2 text-sm transition-all rounded-md",
                   language === "en"
@@ -106,10 +117,10 @@ export function SettingsTab({ initialData }: { initialData?: any }) {
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                🇺🇸 English
+                🇺🇸 {tc("english")}
               </button>
               <button
-                onClick={() => setLanguage("vn")}
+                onClick={() => handleLanguageChange("vn")}
                 className={cn(
                   "px-4 py-2 text-sm transition-all rounded-md",
                   language === "vn"
@@ -117,7 +128,7 @@ export function SettingsTab({ initialData }: { initialData?: any }) {
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                🇻🇳 Tiếng Việt
+                🇻🇳 {tc("vietnamese")}
               </button>
             </div>
           </div>
@@ -125,8 +136,8 @@ export function SettingsTab({ initialData }: { initialData?: any }) {
           <div>
             <CustomSelect
               id="timezone"
-              label="Timezone"
-              placeholder="Select a timezone"
+              label={t("localization.timezone")}
+              placeholder={t("localization.timezonePlaceholder")}
               options={timezones}
               value={timezone}
               onChange={setTimezone}
@@ -139,7 +150,7 @@ export function SettingsTab({ initialData }: { initialData?: any }) {
       <div className="flex justify-end mt-8">
         <Button onClick={handleSave} disabled={isPending} variant="default" className="gap-2">
           {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          {isPending ? "Saving..." : "Save Settings"}
+          {isPending ? t("actions.saving") : t("actions.save")}
         </Button>
       </div>
     </div>

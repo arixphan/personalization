@@ -7,6 +7,7 @@ import SocialButton from "./social-button";
 import Link from "next/link";
 import { signInAction, SignInInput } from "../actions/login";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 interface SignInState {
   errors?: {
@@ -18,6 +19,7 @@ interface SignInState {
 }
 
 export const SignInForm = () => {
+  const t = useTranslations("Auth");
   const [formData, setFormData] = useState<SignInInput>({
     password: "",
     username: "",
@@ -63,7 +65,7 @@ export const SignInForm = () => {
           className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-200"
           htmlFor="username"
         >
-          Username
+          {t("signIn.username")}
         </label>
         <div className="relative">
           <User
@@ -83,7 +85,7 @@ export const SignInForm = () => {
                 ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
                 : "bg-white dark:bg-gray-700/50 border-gray-300 dark:border-gray-600 text-black dark:text-white focus:border-blue-500 focus:ring-blue-500/20"
             }`}
-            placeholder="Enter your username"
+            placeholder={t("signIn.usernamePlaceholder")}
             required
             aria-required="true"
             aria-describedby={
@@ -111,7 +113,7 @@ export const SignInForm = () => {
           className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-200"
           htmlFor="password"
         >
-          Password
+          {t("signIn.password")}
         </label>
         <div className="relative">
           <Lock
@@ -131,7 +133,7 @@ export const SignInForm = () => {
                 ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
                 : "bg-white dark:bg-gray-700/50 border-gray-300 dark:border-gray-600 text-black dark:text-white focus:border-blue-500 focus:ring-blue-500/20"
             }`}
-            placeholder="Enter your password"
+            placeholder={t("signIn.passwordPlaceholder")}
             aria-required="true"
             aria-describedby={
               state.errors?.password ? "password-error" : undefined
@@ -142,7 +144,7 @@ export const SignInForm = () => {
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-            aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-label={showPassword ? t("signIn.hidePassword") : t("signIn.showPassword")}
           >
             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
@@ -162,24 +164,11 @@ export const SignInForm = () => {
 
       {/* Remember Me & Forgot Password */}
       <div className="flex items-center justify-end">
-        {/* <label className="flex items-center space-x-2 cursor-pointer">
-          <input
-            type="checkbox"
-            name="rememberMe"
-            checked={rememberMe}
-            onChange={(e) => setRememberMe(e.target.checked)}
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-          />
-          <span className="text-sm text-gray-700 dark:text-gray-300">
-            Remember me
-          </span>
-        </label> */}
-
         <button
           type="button"
           className="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
         >
-          Forgot password?
+          {t("signIn.forgotPassword")}
         </button>
       </div>
 
@@ -204,7 +193,7 @@ export const SignInForm = () => {
           className="bg-green-50 border border-green-200 rounded-lg p-3"
         >
           <p className="text-green-600 text-sm" role="alert">
-            Sign in successful! Redirecting...
+            {t("signIn.success")}
           </p>
         </motion.div>
       )}
@@ -226,10 +215,10 @@ export const SignInForm = () => {
         {isPending ? (
           <div className="flex items-center justify-center space-x-2">
             <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-            <span id="loading-message">Signing In...</span>
+            <span id="loading-message">{t("signIn.signingIn")}</span>
           </div>
         ) : (
-          "Sign In"
+          t("signIn.submit")
         )}
       </motion.button>
 
@@ -240,7 +229,7 @@ export const SignInForm = () => {
         </div>
         <div className="relative flex justify-center text-sm">
           <span className="px-4 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-            Or continue with
+            {t("social.orContinueWith")}
           </span>
         </div>
       </div>
@@ -252,7 +241,7 @@ export const SignInForm = () => {
           onClick={() => handleSocialAuth("google")}
         >
           <Chrome size={20} />
-          <span className="font-medium">Continue with Google</span>
+          <span className="font-medium">{t("social.continueGoogle")}</span>
         </SocialButton>
 
         <SocialButton
@@ -262,18 +251,18 @@ export const SignInForm = () => {
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
             <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
           </svg>
-          <span className="font-medium">Continue with Facebook</span>
+          <span className="font-medium">{t("social.continueFacebook")}</span>
         </SocialButton>
       </div>
 
       {/* Register Link */}
       <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-        Don't have an account?{" "}
+        {t("noAccount")}{" "}
         <Link
           href={"/signup"}
           className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
         >
-          Sign up
+          {t("signUpLink")}
         </Link>
       </div>
     </form>

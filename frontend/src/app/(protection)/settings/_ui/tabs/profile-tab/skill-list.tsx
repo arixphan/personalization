@@ -9,8 +9,10 @@ import { updateSkills } from "../../../_actions/profile";
 import { cn } from "@/lib/utils";
 import { CustomInput } from "@/components/ui/input/custom-text";
 import { CustomSelect } from "@/components/ui/input/custom-select";
+import { useTranslations } from "next-intl";
 
 export function SkillList({ initialData }: { initialData?: SkillDto[] }) {
+  const t = useTranslations("Skills");
   const [skills, setSkills] = useState<SkillDto[]>(initialData || []);
 
   const [isPending, startTransition] = useTransition();
@@ -26,7 +28,7 @@ export function SkillList({ initialData }: { initialData?: SkillDto[] }) {
       const result = await updateSkills(updated);
       if (!result.error) {
         setSkills(updated);
-        toast.success("Skill removed");
+        toast.success(t("removed"));
       } else {
         toast.error(result.error);
       }
@@ -49,7 +51,7 @@ export function SkillList({ initialData }: { initialData?: SkillDto[] }) {
         setSkills(updated);
         setShowAdd(false);
         setNewSkill({ name: "", level: "Intermediate" });
-        toast.success("Skill added");
+        toast.success(t("added"));
       } else {
         toast.error(result.error);
       }
@@ -65,14 +67,21 @@ export function SkillList({ initialData }: { initialData?: SkillDto[] }) {
     }
   };
 
+  const levelKeyMap: Record<string, string> = {
+    "Beginner": "beginner",
+    "Intermediate": "intermediate",
+    "Advanced": "advanced",
+    "Expert": "expert"
+  };
+
   return (
     <div className="p-6 rounded-xl bg-card border shadow-sm">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-semibold text-card-foreground">Skills</h3>
+        <h3 className="text-lg font-semibold text-card-foreground">{t("title")}</h3>
         {!showAdd && (
           <Button onClick={() => setShowAdd(true)} size="sm" variant="secondary" className="space-x-1">
             <Plus size={16} />
-            <span>Add</span>
+            <span>{t("add")}</span>
           </Button>
         )}
       </div>
@@ -82,19 +91,19 @@ export function SkillList({ initialData }: { initialData?: SkillDto[] }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <CustomInput
               id="skillName"
-              label="Skill Name"
+              label={t("skillName")}
               value={newSkill.name}
               onChange={(v) => setNewSkill({ ...newSkill, name: v })}
-              placeholder="e.g. React"
+              placeholder={t("skillNamePlaceholder")}
             />
             <CustomSelect
               id="skillLevel"
-              label="Level"
+              label={t("level")}
               options={[
-                { value: "Beginner", label: "Beginner" },
-                { value: "Intermediate", label: "Intermediate" },
-                { value: "Advanced", label: "Advanced" },
-                { value: "Expert", label: "Expert" }
+                { value: "Beginner", label: t("beginner") },
+                { value: "Intermediate", label: t("intermediate") },
+                { value: "Advanced", label: t("advanced") },
+                { value: "Expert", label: t("expert") }
               ]}
               value={newSkill.level}
               onChange={(v) => setNewSkill({ ...newSkill, level: v as SkillDto["level"] })}
@@ -102,11 +111,11 @@ export function SkillList({ initialData }: { initialData?: SkillDto[] }) {
           </div>
           <div className="flex justify-end space-x-2">
             <Button variant="ghost" size="sm" onClick={() => setShowAdd(false)}>
-              Cancel
+              {t("cancel")}
             </Button>
             <Button size="sm" onClick={handleAdd} disabled={isPending}>
               {isPending ? <Loader2 size={16} className="animate-spin mr-1" /> : <Check size={16} className="mr-1" />}
-              Save Skill
+              {t("saveSkill")}
             </Button>
           </div>
         </div>
@@ -120,7 +129,7 @@ export function SkillList({ initialData }: { initialData?: SkillDto[] }) {
               "text-xs px-2.5 py-0.5 rounded-full border whitespace-nowrap",
               getLevelColor(skill.level)
             )}>
-              {skill.level}
+              {levelKeyMap[skill.level] ? t(levelKeyMap[skill.level]) : skill.level}
             </span>
             
             {/* Hover Actions */}
