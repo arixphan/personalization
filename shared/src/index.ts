@@ -7,6 +7,13 @@ export { UpdateProjectStatusDto, UpdateProjectStatusSchema } from "./dtos/projec
 export { CreateTicketDto, CreateTicketSchema } from "./dtos/tickets/create-ticket.dto";
 export { UpdateTicketDto, UpdateTicketSchema } from "./dtos/tickets/update-ticket.dto";
 export * from "./dtos/user/user-profile.dto";
+export { CreateTradingLogDto, CreateTradingLogSchema, TradingLogSentiment } from "./dtos/trading/create-trading-log.dto";
+export { UpdateTradingLogDto, UpdateTradingLogSchema } from "./dtos/trading/update-trading-log.dto";
+export { CreateStrategyDto, CreateStrategySchema } from "./dtos/trading/create-strategy.dto";
+export { UpdateStrategyDto, UpdateStrategySchema } from "./dtos/trading/update-strategy.dto";
+export { ReorderStrategiesDto, ReorderStrategiesSchema } from "./dtos/trading/reorder-strategies.dto";
+export { ConnectBinanceDto, ConnectBinanceSchema } from "./dtos/trading/connect-binance.dto";
+
 
 // Constants
 export { AUTH_CONFIG } from "./constants/auth";

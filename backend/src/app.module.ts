@@ -21,6 +21,7 @@ import {
   TicketsModule,
   UploadModule,
 } from './modules';
+import { TradingModule } from './modules/trading/trading.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import {
     ProjectsModule,
     TicketsModule,
     UploadModule,
+    TradingModule,
     I18nModule.forRoot({
       fallbackLanguage: 'en',
       loaderOptions: {

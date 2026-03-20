@@ -187,7 +187,8 @@
   "Nav": {
     "home": "Trang chủ",
     "settings": "Cài đặt",
-    "projectManagement": "Quản lý dự án"
+    "projectManagement": "Quản lý dự án",
+    "trading": "Giao dịch"
   },
   "Home": {
     "greeting": "Xin chào, Next.js!"

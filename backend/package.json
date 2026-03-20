@@ -34,6 +34,7 @@
     "@prisma/client": "catalog:",
     "@types/passport-google-oauth20": "^2.0.17",
     "bcrypt": "catalog:",
+    "binance-api-node": "^0.13.8",
     "cache-manager": "catalog:",
     "class-transformer": "catalog:",
     "class-validator": "catalog:",
@@ -45,6 +46,7 @@
     "passport-jwt": "catalog:",
     "passport-local": "catalog:",
     "reflect-metadata": "catalog:",
+    "rss-parser": "^3.13.0",
     "rxjs": "catalog:",
     "zod": "catalog:"
   },

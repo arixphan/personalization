@@ -1,5 +1,5 @@
 import { ForwardRefExoticComponent, RefAttributes } from "react";
-import { ClipboardList, LucideProps } from "lucide-react";
+import { ClipboardList, LucideProps, TrendingUp } from "lucide-react";
 
 export interface AppModule {
   id: string;
@@ -20,6 +20,13 @@ export const APP_MODULES: AppModule[] = [
     url: "/projects",
     isActive: true,
   },
+  {
+    id: "trading",
+    name: "Trading",
+    icon: TrendingUp,
+    url: "/trading",
+    isActive: true,
+  },
 ];
 
 export const MODULE_ROUTES: Record<
@@ -33,6 +40,15 @@ export const MODULE_ROUTES: Record<
       new: "/new",
       update: "/[id]",
       board: "/[id]/board",
+    },
+  },
+  trading: {
+    prefix: "trading",
+    routes: {
+      main: "/",
+      strategies: "/strategies",
+      binance: "/binance",
+      news: "/news",
     },
   },
 };

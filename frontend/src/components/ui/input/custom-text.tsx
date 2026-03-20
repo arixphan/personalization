@@ -1,50 +1,53 @@
 import { Input } from "./input";
+import { cn } from "@/lib/utils";
 
-interface CustomInputProps {
+interface CustomInputProps extends Omit<React.ComponentProps<"input">, "onChange"> {
   id: string;
   label?: string; // Now optional
-  type?: string;
-  value?: string;
   onChange: (value: string) => void;
-  placeholder?: string;
-  required?: boolean;
+  icon?: React.ReactNode;
   error?: string;
-  className?: string; // Optional className for additional styling
 }
 
 export const CustomInput: React.FC<CustomInputProps> = ({
   id,
   label,
-  type = "text",
   value,
   onChange,
-  placeholder,
-  required = false,
-  error,
   className = "",
+  icon,
+  error,
+  required,
+  ...props
 }) => {
   const errorId = `${id}-error`;
 
   return (
-    <div>
+    <div className="w-full">
       {label && (
-        <label htmlFor={id} className="block text-sm font-medium mb-2">
+        <label htmlFor={id} className="block text-sm font-medium mb-2 dark:text-gray-300">
           {label} {required && "*"}
         </label>
       )}
-      <Input
-        type={type}
-        id={id}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        required={required}
-        aria-invalid={!!error}
-        aria-describedby={error ? errorId : undefined}
-        className={className}
-      />
+      <div className="relative">
+        {icon && (
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">
+            {icon}
+          </div>
+        )}
+        <Input
+          id={id}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          required={required}
+          aria-invalid={!!error}
+          aria-describedby={error ? errorId : undefined}
+          className={cn(icon ? "pl-10" : "", className)}
+          {...props}
+        />
+      </div>
       {error && (
-        <p id={errorId} className="mt-1 text-sm text-red-500">
+        <p id={errorId} className="mt-1 text-sm text-red-500 font-medium">
           {error}
         </p>
       )}

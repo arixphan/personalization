@@ -187,7 +187,8 @@
   "Nav": {
     "home": "Home",
     "settings": "Settings",
-    "projectManagement": "Project Management"
+    "projectManagement": "Project Management",
+    "trading": "Trading"
   },
   "Home": {
     "greeting": "Hello, Next.js!"
