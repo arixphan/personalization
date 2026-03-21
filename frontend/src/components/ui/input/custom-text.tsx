@@ -7,6 +7,7 @@ interface CustomInputProps extends Omit<React.ComponentProps<"input">, "onChange
   onChange: (value: string) => void;
   icon?: React.ReactNode;
   error?: string;
+  isCurrency?: boolean;
 }
 
 export const CustomInput: React.FC<CustomInputProps> = ({
@@ -18,6 +19,7 @@ export const CustomInput: React.FC<CustomInputProps> = ({
   icon,
   error,
   required,
+  isCurrency,
   ...props
 }) => {
   const errorId = `${id}-error`;
@@ -37,8 +39,16 @@ export const CustomInput: React.FC<CustomInputProps> = ({
         )}
         <Input
           id={id}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
+          value={isCurrency && value ? Number(value.toString().replace(/[^0-9-]/g, '')).toLocaleString('en-US') : value}
+          onChange={(e) => {
+             if (isCurrency) {
+                const raw = e.target.value.replace(/[^0-9-]/g, '');
+                onChange(raw);
+             } else {
+                onChange(e.target.value);
+             }
+          }}
+          type={isCurrency ? "text" : props.type}
           required={required}
           aria-invalid={!!error}
           aria-describedby={error ? errorId : undefined}

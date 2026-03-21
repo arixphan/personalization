@@ -188,7 +188,133 @@
     "home": "Home",
     "settings": "Settings",
     "projectManagement": "Project Management",
-    "trading": "Trading"
+    "trading": "Trading",
+    "finance": "Finance"
+  },
+  "Finance": {
+    "title": "Finance Operations",
+    "subtitle": "Precision wealth & cash flow management.",
+    "netWorth": "Total Net Worth",
+    "liquidCash": "Liquid Cash",
+    "totalAssets": "Total Assets",
+    "totalDebt": "Total Debt",
+    "wallets": "Wallets",
+    "manageWallets": "Manage Wallets",
+    "cashFlow": {
+      "title": "Cash Flow",
+      "income": "Income",
+      "expense": "Expense"
+    },
+    "recentLogs": "Recent Logs",
+    "viewAll": "View all",
+    "quickEntry": "Quick Entry",
+    "noWallets": "No wallets found.",
+    "noMovement": "No recorded movement.",
+    "tabs": {
+      "dashboard": "Dashboard",
+      "assets": "Assets",
+      "loans": "Loans",
+      "budget": "Allocations",
+      "history": "History"
+    },
+    "loans": {
+      "title": "Loans & Debts",
+      "newLoan": "New Loan",
+      "noLoans": "No loans recorded yet.",
+      "totalLoan": "Total Loan",
+      "remaining": "Remaining",
+      "dueDate": "Due Date",
+      "noDueDate": "No due date",
+      "type": {
+        "payable": "Payable (You owe)",
+        "receivable": "Receivable (Owed to you)"
+      },
+      "form": {
+        "addLoan": "Add New Loan",
+        "editLoan": "Edit Loan",
+        "counterparty": "Counterparty",
+        "principal": "Principal Amount",
+        "remaining": "Remaining Amount",
+        "dueDate": "Due Date",
+        "note": "Note",
+        "save": "Save Loan"
+      }
+    },
+    "budget": {
+      "title": "Allocation Manager",
+      "allocation": "Allocations for {monthYear}",
+      "budget": "Limit",
+      "lastRun": "Last Run",
+      "noRun": "Never run",
+      "configDay": "Schedule",
+      "configDayValue": "Day {day}",
+      "addBucket": "Add Allocation Category",
+      "form": {
+        "amount": "Amount",
+        "categoryName": "Category Name",
+        "automationSettings": "Automation Settings",
+        "automationType": "Transaction Type",
+        "deductAmount": "Deduct",
+        "addAmount": "Add",
+        "automationDay": "Day of Month",
+        "targetWallet": "Target Wallet",
+        "save": "Save Category",
+        "addBucket": "Add Category",
+        "editBucket": "Edit Category"
+      }
+    },
+    "history": {
+      "title": "Full Transaction History",
+      "date": "Date",
+      "wallet": "Wallet",
+      "category": "Category",
+      "note": "Note",
+      "amount": "Amount",
+      "actions": "Actions"
+    },
+    "transactionForm": {
+      "title": "Quick Entry",
+      "addTransaction": "Add Transaction",
+      "amount": "Amount",
+      "amountPlaceholder": "0.00",
+      "wallet": "Source Wallet",
+      "selectWallet": "Select a wallet",
+      "type": "Transaction Type",
+      "income": "Income",
+      "expense": "Expense",
+      "category": "Category",
+      "selectCategory": "Select a category",
+      "date": "Date",
+      "note": "Note (Optional)",
+      "notePlaceholder": "What was this for?",
+      "cancel": "Cancel",
+      "save": "Record Transaction",
+      "saving": "Recording...",
+      "transfer": "Transfer",
+      "targetWallet": "Target Wallet"
+    },
+    "assets": {
+      "title": "Asset Management",
+      "subtitle": "Track your properties, vehicles, and investments",
+      "addAsset": "Add Asset",
+      "editAsset": "Edit Asset",
+      "noAssets": "No assets recorded yet.",
+      "form": {
+        "name": "Asset Name",
+        "type": "Type",
+        "value": "Current Value",
+        "description": "Description",
+        "save": "Save Asset"
+      }
+    },
+    "walletManager": {
+      "title": "Wallet Management",
+      "subtitle": "Create and edit your financial containers",
+      "save": "Save Changes",
+      "cancel": "Cancel",
+      "addWallet": "Create Wallet",
+      "addNew": "Add New Wallet"
+    }
   },
   "Home": {
     "greeting": "Hello, Next.js!"

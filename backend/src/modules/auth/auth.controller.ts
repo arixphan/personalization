@@ -45,7 +45,8 @@ export class AuthController {
       maxAge: this.configService.get<number>('CACHE_TTL'),
     });
 
-    return res.status(HttpStatus.OK).json({ access_token });
+    res.status(HttpStatus.OK);
+    return { access_token };
   }
 
   @Post('logout')
@@ -62,7 +63,8 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
     });
 
-    return res.status(HttpStatus.OK).json({ message: 'Logout successfully' });
+    res.status(HttpStatus.OK);
+    return { message: 'Logout successfully' };
   }
 
   @Public()
@@ -77,20 +79,19 @@ export class AuthController {
     const refreshToken = req.cookies[AUTH_CONFIG.COOKIE_NAMES.REFRESH_TOKEN];
 
     if (!refreshToken) {
-      return res
-        .status(HttpStatus.UNAUTHORIZED)
-        .json({ message: 'No refresh token provided' });
+      res.status(HttpStatus.UNAUTHORIZED);
+      return { message: 'No refresh token provided' };
     }
 
     const newAccessToken = await this.authService.refreshToken(refreshToken);
 
     if (!newAccessToken) {
-      return res
-        .status(HttpStatus.UNAUTHORIZED)
-        .json({ message: 'Invalid refresh token' });
+      res.status(HttpStatus.UNAUTHORIZED);
+      return { message: 'Invalid refresh token' };
     }
 
-    return res.status(HttpStatus.OK).json({ access_token: newAccessToken });
+    res.status(HttpStatus.OK);
+    return { access_token: newAccessToken };
   }
 
   // ---- Google OAuth ----
@@ -131,17 +132,15 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     if (!body?.code) {
-      return res
-        .status(HttpStatus.BAD_REQUEST)
-        .json({ message: 'Missing exchange code' });
+      res.status(HttpStatus.BAD_REQUEST);
+      return { message: 'Missing exchange code' };
     }
 
     const tokens = await this.authService.consumeExchangeCode(body.code);
 
     if (!tokens) {
-      return res
-        .status(HttpStatus.UNAUTHORIZED)
-        .json({ message: 'Invalid or expired exchange code' });
+      res.status(HttpStatus.UNAUTHORIZED);
+      return { message: 'Invalid or expired exchange code' };
     }
 
     // Set both tokens as HttpOnly cookies — no tokens in the response body
@@ -161,6 +160,7 @@ export class AuthController {
       maxAge: this.configService.get<number>('CACHE_TTL'),
     });
 
-    return res.status(HttpStatus.OK).json({ success: true });
+    res.status(HttpStatus.OK);
+    return { success: true };
   }
 }

@@ -13,6 +13,7 @@ export { CreateStrategyDto, CreateStrategySchema } from "./dtos/trading/create-s
 export { UpdateStrategyDto, UpdateStrategySchema } from "./dtos/trading/update-strategy.dto";
 export { ReorderStrategiesDto, ReorderStrategiesSchema } from "./dtos/trading/reorder-strategies.dto";
 export { ConnectBinanceDto, ConnectBinanceSchema } from "./dtos/trading/connect-binance.dto";
+export * from "./dtos/finance";
 
 
 // Constants

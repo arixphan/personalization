@@ -188,7 +188,133 @@
     "home": "Trang chủ",
     "settings": "Cài đặt",
     "projectManagement": "Quản lý dự án",
-    "trading": "Giao dịch"
+    "trading": "Giao dịch",
+    "finance": "Tài chính"
+  },
+  "Finance": {
+    "title": "Quản lý Tài chính",
+    "subtitle": "Quản lý tài sản và dòng tiền chính xác.",
+    "netWorth": "Tổng Tài sản ròng",
+    "liquidCash": "Tiền mặt",
+    "totalAssets": "Tổng Tài sản",
+    "totalDebt": "Tổng Nợ",
+    "wallets": "Ví",
+    "manageWallets": "Quản lý Ví",
+    "cashFlow": {
+      "title": "Dòng tiền",
+      "income": "Thu nhập",
+      "expense": "Chi tiêu"
+    },
+    "recentLogs": "Hoạt động gần đây",
+    "viewAll": "Xem tất cả",
+    "quickEntry": "Ghi chép nhanh",
+    "noWallets": "Chưa có ví nào.",
+    "noMovement": "Chưa có biến động nào được ghi lại.",
+    "tabs": {
+      "dashboard": "Tổng quan",
+      "assets": "Tài sản",
+      "loans": "Khoản vay",
+      "budget": "Phân bổ",
+      "history": "Lịch sử"
+    },
+    "loans": {
+      "title": "Vay & Nợ",
+      "newLoan": "Khoản vay mới",
+      "noLoans": "Chưa có khoản vay nào.",
+      "totalLoan": "Tổng khoản vay",
+      "remaining": "Còn lại",
+      "dueDate": "Hạn thanh toán",
+      "noDueDate": "Không có hạn",
+      "type": {
+        "payable": "Khoản phải trả",
+        "receivable": "Khoản thu hồi"
+      },
+      "form": {
+        "addLoan": "Thêm khoản vay mới",
+        "editLoan": "Sửa khoản vay",
+        "counterparty": "Đối tác",
+        "principal": "Số tiền gốc",
+        "remaining": "Số tiền còn lại",
+        "dueDate": "Hạn thanh toán",
+        "note": "Ghi chú",
+        "save": "Lưu Khoản vay"
+      }
+    },
+    "budget": {
+      "title": "Quản lý Phân bổ",
+      "allocation": "Phân bổ cho {monthYear}",
+      "budget": "Hạn mức",
+      "lastRun": "Chạy gần nhất",
+      "noRun": "Chưa chạy",
+      "configDay": "Lịch cài đặt",
+      "configDayValue": "Ngày {day}",
+      "addBucket": "Thêm danh mục Phân bổ",
+      "form": {
+        "amount": "Số tiền",
+        "categoryName": "Tên danh mục",
+        "automationSettings": "Cài đặt Tự động",
+        "automationType": "Loại giao dịch",
+        "deductAmount": "Trừ tiền",
+        "addAmount": "Cộng tiền",
+        "automationDay": "Ngày trong tháng",
+        "targetWallet": "Ví mục tiêu",
+        "save": "Lưu danh mục",
+        "addBucket": "Thêm danh mục",
+        "editBucket": "Sửa danh mục"
+      }
+    },
+    "history": {
+      "title": "Lịch sử Giao dịch",
+      "date": "Ngày",
+      "wallet": "Ví",
+      "category": "Danh mục",
+      "note": "Ghi chú",
+      "amount": "Số tiền",
+      "actions": "Thao tác"
+    },
+    "transactionForm": {
+      "title": "Ghi chép nhanh",
+      "addTransaction": "Thêm giao dịch",
+      "amount": "Số tiền",
+      "amountPlaceholder": "0",
+      "wallet": "Ví nguồn",
+      "selectWallet": "Chọn ví",
+      "type": "Loại giao dịch",
+      "income": "Thu nhập",
+      "expense": "Chi tiêu",
+      "category": "Danh mục",
+      "selectCategory": "Chọn danh mục",
+      "date": "Ngày",
+      "note": "Ghi chú (Tùy chọn)",
+      "notePlaceholder": "Nội dung ghi chép...",
+      "cancel": "Hủy",
+      "save": "Lưu Giao dịch",
+      "saving": "Đang lưu...",
+      "transfer": "Chuyển tiền",
+      "targetWallet": "Ví nhận"
+    },
+    "assets": {
+      "title": "Quản lý Tài sản",
+      "subtitle": "Theo dõi bất động sản, phương tiện và các khoản đầu tư của bạn",
+      "addAsset": "Thêm Tài sản",
+      "editAsset": "Sửa Tài sản",
+      "noAssets": "Chưa có tài sản nào được ghi lại.",
+      "form": {
+        "name": "Tên Tài sản",
+        "type": "Loại",
+        "value": "Giá trị hiện tại",
+        "description": "Mô tả",
+        "save": "Lưu Tài sản"
+      }
+    },
+    "walletManager": {
+      "title": "Quản lý Ví",
+      "subtitle": "Tạo và chỉnh sửa các tài khoản tài chính của bạn",
+      "save": "Lưu thay đổi",
+      "cancel": "Hủy",
+      "addWallet": "Tạo Ví",
+      "addNew": "Thêm Ví Mới"
+    }
   },
   "Home": {
     "greeting": "Xin chào, Next.js!"

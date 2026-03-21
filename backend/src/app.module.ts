@@ -7,6 +7,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { AcceptLanguageResolver, I18nModule } from 'nestjs-i18n';
 import * as path from 'path';
 
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -20,11 +21,13 @@ import {
   UserModule,
   TicketsModule,
   UploadModule,
+  FinanceModule,
 } from './modules';
 import { TradingModule } from './modules/trading/trading.module';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     CacheModule.register({
       isGlobal: true, // Makes cache available globally
     }),
@@ -49,6 +52,7 @@ import { TradingModule } from './modules/trading/trading.module';
     TicketsModule,
     UploadModule,
     TradingModule,
+    FinanceModule,
     I18nModule.forRoot({
       fallbackLanguage: 'en',
       loaderOptions: {

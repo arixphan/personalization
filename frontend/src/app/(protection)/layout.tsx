@@ -20,9 +20,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Personal Management System",
-  description:
-    "A personal management system to manage your tasks, projects, and notes.",
+  title: "Personalization",
+  description: "A premium personal management system for finance, trading, and productivity.",
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 
 import { NextIntlClientProvider } from "next-intl";

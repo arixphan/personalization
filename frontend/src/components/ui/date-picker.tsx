@@ -19,9 +19,10 @@ export interface DatePickerProps {
   value?: string
   onChange: (value: string) => void
   placeholder?: string
+  error?: string
 }
 
-export function DatePicker({ id, label, value, onChange, placeholder = "Pick a date" }: DatePickerProps) {
+export function DatePicker({ id, label, value, onChange, placeholder = "Pick a date", error }: DatePickerProps) {
   // We assume the incoming value is "yyyy-MM" or "yyyy-MM-dd" or empty
   // We'll append "-01" if it's just "YYYY-MM" so Date object parses correctly in local time
   const parseValue = (val?: string) => {
@@ -55,7 +56,8 @@ export function DatePicker({ id, label, value, onChange, placeholder = "Pick a d
             variant={"outline"}
             className={cn(
               "w-full justify-start text-left font-normal bg-background h-10 px-3",
-              !dateValue && "text-muted-foreground"
+              !dateValue && "text-muted-foreground",
+              error ? "border-destructive focus-visible:ring-destructive/20" : "border-gray-300 dark:border-gray-800"
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
@@ -78,6 +80,9 @@ export function DatePicker({ id, label, value, onChange, placeholder = "Pick a d
           />
         </PopoverContent>
       </Popover>
+      {error && (
+        <p className="text-sm font-medium text-red-500 mt-1">{error}</p>
+      )}
     </div>
   )
 }

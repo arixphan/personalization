@@ -32,16 +32,13 @@ interface NavBarProps {
   }>;
 }
 
+import { Logo } from "../logo/Logo";
+
 export const NavBar: React.FC<NavBarProps> = ({ items }) => {
   return (
     <nav className="w-16 min-h-screen transition-colors duration-300 flex flex-col items-center py-8 fixed bg-white text-gray-700 border-r border-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700">
       <div className="flex flex-col items-center space-y-6">
-        <NavLink
-          to="/"
-          label="Home"
-          icon={<Home size={24} />}
-          isActive={true}
-        />
+        <Logo size={32} />
         {items.map((item, index) => {
           const Icon = item.icon;
           return (

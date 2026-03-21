@@ -1,6 +1,7 @@
 
 import * as motion from "motion/react-client";
 import { useTranslations } from "next-intl";
+import { Logo } from "@/shared/ui/logo/Logo";
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -29,9 +30,9 @@ export const AuthContainer: React.FC<AuthLayoutProps> = ({
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600"
+            className="mb-4 flex justify-center"
           >
-            <span className="text-2xl font-bold text-white">P</span>
+            <Logo size={64} />
           </motion.div>
 
           <motion.h1

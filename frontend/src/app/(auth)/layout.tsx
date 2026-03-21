@@ -4,7 +4,17 @@ import { ThemeContext } from "@/shared/context/ThemeContext";
 import "../globals.css";
 
 import { NextIntlClientProvider } from "next-intl";
+import { Metadata } from "next";
 import { getMessages, getLocale } from "next-intl/server";
+
+export const metadata: Metadata = {
+  title: "Personalization",
+  description: "A premium personal management system for finance, trading, and productivity.",
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png",
+  },
+};
 
 export default async function AuthLayout({
   children,

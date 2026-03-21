@@ -26,6 +26,10 @@ model User {
   tradingLogs    TradingLog[]
   strategies     Strategy[]
   tradingAccount TradingAccount?
+  wallets        Wallet[]
+  assets         Asset[]
+  loans          Loan[]
+  monthlyBudgets MonthlyBudget[]
 }
 
 model UserProfile {
@@ -172,4 +176,118 @@ model TradingAccount {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id])
+}
+
+// Finance Module Enums
+enum AssetType {
+  PROPERTY
+  VEHICLE
+  INVESTMENT
+  OTHER
+}
+
+enum LoanType {
+  PAYABLE // Loans you owe to others
+  RECEIVABLE // Loans others owe you
+}
+
+enum LoanStatus {
+  ACTIVE
+  PAID_OFF
+  DEFAULTED
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+}
+
+// Finance Module Models
+model Wallet {
+  id           Int           @id @default(autoincrement())
+  userId       Int
+  name         String // e.g., "Cash", "Techcombank", "Credit Card"
+  balance      Float         @default(0)
+  currency     String        @default("VND")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  user         User          @relation(fields: [userId], references: [id])
+  transactions Transaction[] @relation("SourceWallet")
+  inTransactions Transaction[] @relation("TargetWallet")
+}
+
+model Asset {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  name        String // e.g., "Apartment", "Motorbike"
+  type        AssetType
+  value       Float // Current estimated value
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [userId], references: [id])
+}
+
+model Loan {
+  id           Int        @id @default(autoincrement())
+  userId       Int
+  type         LoanType
+  counterparty String // Bank name or person's name
+  principal    Float // Original loan amount
+  remaining    Float // Amount left to pay/receive
+  interestRate Float? // Annual interest rate (optional)
+  dueDate      DateTime? // Expected completion date
+  status       LoanStatus @default(ACTIVE)
+  note         String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  user         User       @relation(fields: [userId], references: [id])
+}
+
+model MonthlyBudget {
+  id              Int           @id @default(autoincrement())
+  userId          Int
+  month           Int // 1-12
+  year            Int // 2024, 2025...
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  user            User          @relation(fields: [userId], references: [id])
+  categories      BudgetCategory[]
+
+  @@unique([userId, month, year])
+}
+
+model BudgetCategory {
+  id              Int           @id @default(autoincrement())
+  monthlyBudgetId Int
+  name            String // "Food & Chill", "Learning", "Investment", "Saving"
+  limitAmount     Float // How much you plan to spend
+  spentAmount     Float         @default(0) // How much actually spent
+  affectsBalance  Boolean       @default(true) // Whether transactions in this category deduct from wallet balance
+  
+  // Automation settings
+  isAutomationEnabled Boolean @default(true)
+  type                TransactionType @default(EXPENSE)
+  automationDay       Int? // 1-31
+  targetWalletId      Int?
+  automationProcessed Boolean @default(false)
+  lastRunAt           DateTime?
+
+  monthlyBudget   MonthlyBudget @relation(fields: [monthlyBudgetId], references: [id], onDelete: Cascade)
+}
+
+model Transaction {
+  id         Int             @id @default(autoincrement())
+  walletId   Int
+  toWalletId Int?
+  amount     Float
+  type       TransactionType
+  category   String?
+  date       DateTime        @default(now())
+  note       String?
+  createdAt  DateTime        @default(now())
+  wallet     Wallet          @relation("SourceWallet", fields: [walletId], references: [id])
+  toWallet   Wallet?         @relation("TargetWallet", fields: [toWalletId], references: [id])
 }
