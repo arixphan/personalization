@@ -30,6 +30,7 @@ model User {
   assets         Asset[]
   loans          Loan[]
   monthlyBudgets MonthlyBudget[]
+  aiSettings     UserAiSettings?
 }
 
 model UserProfile {
@@ -290,4 +291,47 @@ model Transaction {
   createdAt  DateTime        @default(now())
   wallet     Wallet          @relation("SourceWallet", fields: [walletId], references: [id])
   toWallet   Wallet?         @relation("TargetWallet", fields: [toWalletId], references: [id])
+}
+
+model AiEmbedding {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  domain     String   // 'finance' | 'trading' | 'projects' | 'profile'
+  entityType String   // 'Transaction' | 'TradingLog' | 'Ticket' etc.
+  entityId   Int
+  content    String   @db.Text
+  embedding  Unsupported("vector(3072)")
+  isDirty    Boolean  @default(false)
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId, domain])
+  @@index([entityType, entityId])
+  @@unique([entityType, entityId])
+}
+
+
+
+model UserMemory {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  key       String
+  value     String   @db.Text
+  source    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, key])
+}
+
+model UserAiSettings {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  provider  String   @default("google") // "google" | "openai" | "anthropic"
+  apiKey    String?  @db.VarChar(512)
+  model     String?  @default("gemini-1.5-pro-002")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
 }

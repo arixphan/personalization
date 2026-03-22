@@ -41,11 +41,16 @@ export class BinanceAccountService {
         isActive: true,
       });
 
-      return { success: true, message: 'Binance account connected successfully' };
+      return {
+        success: true,
+        message: 'Binance account connected successfully',
+      };
     } catch (error: any) {
       this.logger.error('Failed to connect to Binance', error);
       if (error.code === -2014 || error.code === -2015) {
-        throw new BadRequestException('Invalid Binance API Key or Secret. Ensure IP restrictions are configured or relaxed for testing.');
+        throw new BadRequestException(
+          'Invalid Binance API Key or Secret. Ensure IP restrictions are configured or relaxed for testing.',
+        );
       }
       throw new BadRequestException('Failed to verify Binance credentials');
     }
@@ -66,7 +71,12 @@ export class BinanceAccountService {
 
   async getAccountBalance(userId: number) {
     const account = await this.accountRepository.findByUserId(userId);
-    if (!account || !account.isActive || !account.apiKey || !account.apiSecret) {
+    if (
+      !account ||
+      !account.isActive ||
+      !account.apiKey ||
+      !account.apiSecret
+    ) {
       throw new BadRequestException('Binance account not connected');
     }
 
@@ -105,7 +115,7 @@ export class BinanceAccountService {
       // Only return a few major pairs to keep payload small for demo purposes
       const selectedPairs = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT'];
       const filteredPrices = {};
-      selectedPairs.forEach(pair => {
+      selectedPairs.forEach((pair) => {
         if (prices[pair]) filteredPrices[pair] = prices[pair];
       });
       return filteredPrices;

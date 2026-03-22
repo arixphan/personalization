@@ -32,6 +32,11 @@ import { NewsService } from './news.service';
     TradingAccountRepository,
     NewsService,
   ],
-  exports: [TradingLogService, StrategyService, BinanceAccountService, NewsService],
+  exports: [
+    TradingLogService,
+    StrategyService,
+    BinanceAccountService,
+    NewsService,
+  ],
 })
 export class TradingModule {}

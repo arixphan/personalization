@@ -1,4 +1,8 @@
-import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import * as Parser from 'rss-parser';
 
 @Injectable()
@@ -10,7 +14,7 @@ export class NewsService {
     try {
       // Cointelegraph RSS feed
       const feed = await this.parser.parseURL('https://cointelegraph.com/rss');
-      
+
       let newsList = feed.items.map((item) => ({
         title: item.title,
         link: item.link,
@@ -21,10 +25,17 @@ export class NewsService {
 
       // Basic filtering if currencies are provided (e.g., "BTC,ETH")
       if (currencies) {
-        const keywords = currencies.split(',').map(c => c.trim().toLowerCase());
-        newsList = newsList.filter(news => {
-          const textToSearch = `${news.title} ${news.contentSnippet}`.toLowerCase();
-          return keywords.some(keyword => textToSearch.includes(keyword) || textToSearch.includes(this.getFullName(keyword)));
+        const keywords = currencies
+          .split(',')
+          .map((c) => c.trim().toLowerCase());
+        newsList = newsList.filter((news) => {
+          const textToSearch =
+            `${news.title} ${news.contentSnippet}`.toLowerCase();
+          return keywords.some(
+            (keyword) =>
+              textToSearch.includes(keyword) ||
+              textToSearch.includes(this.getFullName(keyword)),
+          );
         });
       }
 

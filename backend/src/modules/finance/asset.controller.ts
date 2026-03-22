@@ -17,10 +17,7 @@ export class AssetController {
   constructor(private readonly assetService: AssetService) {}
 
   @Post()
-  create(
-    @Body() dto: CreateAssetDto,
-    @CurrentUserId() userId: number,
-  ) {
+  create(@Body() dto: CreateAssetDto, @CurrentUserId() userId: number) {
     return this.assetService.create(dto, userId);
   }
 

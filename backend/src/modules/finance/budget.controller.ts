@@ -18,10 +18,7 @@ export class BudgetController {
   constructor(private readonly budgetService: BudgetService) {}
 
   @Post()
-  create(
-    @Body() dto: CreateBudgetDto,
-    @CurrentUserId() userId: number,
-  ) {
+  create(@Body() dto: CreateBudgetDto, @CurrentUserId() userId: number) {
     return this.budgetService.create(dto, userId);
   }
 
@@ -32,7 +29,11 @@ export class BudgetController {
     @Query('year') year?: string,
   ) {
     if (month && year) {
-      return this.budgetService.findByMonth(userId, parseInt(month), parseInt(year));
+      return this.budgetService.findByMonth(
+        userId,
+        parseInt(month),
+        parseInt(year),
+      );
     }
     return this.budgetService.findAll(userId);
   }

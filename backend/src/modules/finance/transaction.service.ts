@@ -1,19 +1,29 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTransactionDto, TransactionType } from '@personalization/shared';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { FINANCE_EVENT } from '../ai/events/finance.events';
 
 @Injectable()
 export class TransactionService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   async create(dto: CreateTransactionDto, userId: number) {
-    return this.prisma.$transaction(async (tx) => {
+    const transaction = await this.prisma.$transaction(async (tx) => {
       // 1. Create the transaction
       const transaction = await tx.transaction.create({
         data: {
           ...dto,
           date: dto.date ? new Date(dto.date) : new Date(),
         },
+        include: { wallet: true, toWallet: true },
       });
 
       // 2. Adjust wallet balance based on transaction type and budget category rules
@@ -50,18 +60,23 @@ export class TransactionService {
       }
 
       if (shouldAffectBalance) {
-        if (dto.type === TransactionType.EXPENSE || dto.type === TransactionType.TRANSFER) {
+        if (
+          dto.type === TransactionType.EXPENSE ||
+          dto.type === TransactionType.TRANSFER
+        ) {
           // 1. Fetch current wallet balance
           const wallet = await tx.wallet.findUnique({
             where: { id: dto.walletId },
-            select: { balance: true }
+            select: { balance: true },
           });
-          
+
           if (!wallet) throw new NotFoundException('Wallet not found');
 
           // 2. Check sufficient funds
           if (wallet.balance < dto.amount) {
-            throw new BadRequestException('Insufficient funds in source wallet');
+            throw new BadRequestException(
+              'Insufficient funds in source wallet',
+            );
           }
 
           // 3. Perform balance updates
@@ -92,6 +107,14 @@ export class TransactionService {
 
       return transaction;
     });
+
+    // Background AI Sync
+    this.eventEmitter.emit(FINANCE_EVENT.TRANSACTION_CREATED, {
+      userId,
+      transaction,
+    });
+
+    return transaction;
   }
 
   async findAll(userId: number, walletId?: number) {
@@ -114,7 +137,7 @@ export class TransactionService {
     }
 
     // Reverse the balance impact on deletion
-    return this.prisma.$transaction(async (tx) => {
+    const deletedTx = await this.prisma.$transaction(async (tx) => {
       if (transaction.type === TransactionType.EXPENSE) {
         await tx.wallet.update({
           where: { id: transaction.walletId },
@@ -150,7 +173,10 @@ export class TransactionService {
           where: { id: transaction.walletId },
           data: { balance: { decrement: transaction.amount } },
         });
-      } else if (transaction.type === TransactionType.TRANSFER && transaction.toWalletId) {
+      } else if (
+        transaction.type === TransactionType.TRANSFER &&
+        transaction.toWalletId
+      ) {
         // Reverse transfer: increment source, decrement target
         await tx.wallet.update({
           where: { id: transaction.walletId },
@@ -166,5 +192,10 @@ export class TransactionService {
         where: { id },
       });
     });
+
+    // Background AI Sync
+    this.eventEmitter.emit(FINANCE_EVENT.TRANSACTION_DELETED, { entityId: id });
+
+    return deletedTx;
   }
 }

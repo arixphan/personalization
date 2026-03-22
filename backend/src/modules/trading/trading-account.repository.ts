@@ -11,7 +11,15 @@ export class TradingAccountRepository {
     });
   }
 
-  async upsert(userId: number, data: { provider: string; apiKey?: string | null; apiSecret?: string | null; isActive: boolean }) {
+  async upsert(
+    userId: number,
+    data: {
+      provider: string;
+      apiKey?: string | null;
+      apiSecret?: string | null;
+      isActive: boolean;
+    },
+  ) {
     return (this.prisma as any).tradingAccount.upsert({
       where: { userId },
       update: data,

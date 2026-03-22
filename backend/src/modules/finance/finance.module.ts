@@ -13,7 +13,6 @@ import { DashboardController } from './dashboard.controller';
 import { DashboardService } from './dashboard.service';
 import { FinanceCronService } from './finance-cron.service';
 import { PrismaModule } from '../prisma/prisma.module';
-
 @Module({
   imports: [PrismaModule],
   controllers: [
@@ -43,4 +42,4 @@ import { PrismaModule } from '../prisma/prisma.module';
     FinanceCronService,
   ],
 })
-export class FinanceModule {}
+export class FinanceModule { }

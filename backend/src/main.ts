@@ -12,6 +12,8 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.setGlobalPrefix('api');
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
   app.useGlobalFilters(new JwtExpiredExceptionFilter());
   app.enableCors({

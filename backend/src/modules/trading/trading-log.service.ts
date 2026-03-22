@@ -6,7 +6,10 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { TradingLogRepository } from './trading-log.repository';
-import { CreateTradingLogDto, UpdateTradingLogDto } from '@personalization/shared';
+import {
+  CreateTradingLogDto,
+  UpdateTradingLogDto,
+} from '@personalization/shared';
 
 @Injectable()
 export class TradingLogService {

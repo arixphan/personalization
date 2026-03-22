@@ -8,6 +8,7 @@ import { AcceptLanguageResolver, I18nModule } from 'nestjs-i18n';
 import * as path from 'path';
 
 import { ScheduleModule } from '@nestjs/schedule';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AppController } from './app.controller';
 
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -22,12 +23,14 @@ import {
   TicketsModule,
   UploadModule,
   FinanceModule,
+  AiModule,
 } from './modules';
 import { TradingModule } from './modules/trading/trading.module';
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
+    EventEmitterModule.forRoot(),
     CacheModule.register({
       isGlobal: true, // Makes cache available globally
     }),
@@ -53,6 +56,7 @@ import { TradingModule } from './modules/trading/trading.module';
     UploadModule,
     TradingModule,
     FinanceModule,
+    AiModule,
     I18nModule.forRoot({
       fallbackLanguage: 'en',
       loaderOptions: {

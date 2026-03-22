@@ -17,10 +17,7 @@ export class LoanController {
   constructor(private readonly loanService: LoanService) {}
 
   @Post()
-  create(
-    @Body() dto: CreateLoanDto,
-    @CurrentUserId() userId: number,
-  ) {
+  create(@Body() dto: CreateLoanDto, @CurrentUserId() userId: number) {
     return this.loanService.create(dto, userId);
   }
 

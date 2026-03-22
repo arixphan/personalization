@@ -12,10 +12,7 @@ export class DashboardController {
   }
 
   @Get('cash-flow')
-  getCashFlow(
-    @CurrentUserId() userId: number,
-    @Query('year') year?: string,
-  ) {
+  getCashFlow(@CurrentUserId() userId: number, @Query('year') year?: string) {
     const queryYear = year ? parseInt(year) : new Date().getFullYear();
     return this.dashboardService.getCashFlow(userId, queryYear);
   }

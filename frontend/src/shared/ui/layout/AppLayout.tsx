@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import MainContent from "./MainContent";
 import { NavBar } from "../navbar/NavBar";
 import { APP_MODULES } from "@/manager/manager";
+import { AiAssistantPanel } from "../ai-assistant/ai-assistant-panel";
 
 export const AppLayout = ({ children }: { children: ReactNode }) => {
   return (
@@ -18,6 +19,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
         />
         <MainContent>{children}</MainContent>
       </div>
+      <AiAssistantPanel />
     </div>
   );
 };

@@ -22,10 +22,7 @@ export class TradingLogController {
   constructor(private readonly tradingLogService: TradingLogService) {}
 
   @Post()
-  create(
-    @Body() dto: CreateTradingLogDto,
-    @CurrentUserId() userId: number,
-  ) {
+  create(@Body() dto: CreateTradingLogDto, @CurrentUserId() userId: number) {
     return this.tradingLogService.create(dto, userId);
   }
 
@@ -46,7 +43,9 @@ export class TradingLogController {
     if (week) {
       // Expect format: YYYY-WNN
       if (!/^\d{4}-W\d{1,2}$/.test(week)) {
-        throw new BadRequestException('week must be in format YYYY-WNN (e.g. 2026-W12)');
+        throw new BadRequestException(
+          'week must be in format YYYY-WNN (e.g. 2026-W12)',
+        );
       }
       return this.tradingLogService.findByWeek(userId, week);
     }

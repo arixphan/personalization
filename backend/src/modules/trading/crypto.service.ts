@@ -8,7 +8,8 @@ export class CryptoService {
   private readonly logger = new Logger(CryptoService.name);
 
   constructor() {
-    const secret = process.env.ENCRYPTION_KEY || 'default_secret_key_needs_32_bytes!';
+    const secret =
+      process.env.ENCRYPTION_KEY || 'default_secret_key_needs_32_bytes!';
     // Ensure key is exactly 32 bytes for aes-256-cbc
     this.key = crypto.createHash('sha256').update(String(secret)).digest();
   }

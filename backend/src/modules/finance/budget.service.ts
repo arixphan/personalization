@@ -1,14 +1,19 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBudgetDto, UpdateBudgetDto } from '@personalization/shared';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { FINANCE_EVENT } from '../ai/events/finance.events';
 
 @Injectable()
 export class BudgetService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   async create(dto: CreateBudgetDto, userId: number) {
     const { categories, ...rest } = dto;
-    return this.prisma.monthlyBudget.create({
+    const budget = await this.prisma.monthlyBudget.create({
       data: {
         ...rest,
         userId,
@@ -20,6 +25,16 @@ export class BudgetService {
         categories: true,
       },
     });
+
+    budget.categories.forEach((cat) => {
+      this.eventEmitter.emit(FINANCE_EVENT.BUDGET_UPDATED, {
+        userId,
+        budget,
+        category: cat,
+      });
+    });
+
+    return budget;
   }
 
   async findByMonth(userId: number, month: number, year: number) {
@@ -57,10 +72,10 @@ export class BudgetService {
   }
 
   async update(id: number, dto: UpdateBudgetDto, userId: number) {
-    await this.findOne(id, userId);
+    const oldBudget = await this.findOne(id, userId);
     const { categories, ...rest } = dto;
 
-    return this.prisma.$transaction(async (tx) => {
+    const updated = await this.prisma.$transaction(async (tx) => {
       if (categories) {
         await tx.budgetCategory.deleteMany({
           where: { monthlyBudgetId: id },
@@ -73,7 +88,9 @@ export class BudgetService {
           ...rest,
           categories: categories
             ? {
-                create: categories.map(({ id, monthlyBudgetId, ...cat }: any) => cat),
+                create: categories.map(
+                  ({ id, monthlyBudgetId, ...cat }: any) => cat,
+                ),
               }
             : undefined,
         },
@@ -82,12 +99,37 @@ export class BudgetService {
         },
       });
     });
+
+    if (categories) {
+      oldBudget.categories.forEach((cat) =>
+        this.eventEmitter.emit(FINANCE_EVENT.TRANSACTION_DELETED, {
+          entityId: cat.id,
+        }),
+      );
+    }
+    updated.categories.forEach((cat) =>
+      this.eventEmitter.emit(FINANCE_EVENT.BUDGET_UPDATED, {
+        userId,
+        budget: updated,
+        category: cat,
+      }),
+    );
+
+    return updated;
   }
 
   async remove(id: number, userId: number) {
-    await this.findOne(id, userId);
-    return this.prisma.monthlyBudget.delete({
+    const budget = await this.findOne(id, userId);
+    const deleted = await this.prisma.monthlyBudget.delete({
       where: { id },
     });
+
+    budget.categories.forEach((cat) => {
+      this.eventEmitter.emit(FINANCE_EVENT.TRANSACTION_DELETED, {
+        entityId: cat.id,
+      });
+    });
+
+    return deleted;
   }
 }

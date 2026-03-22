@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Delete,
-  Body,
-} from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body } from '@nestjs/common';
 import { BinanceAccountService } from './binance-account.service';
 import { CurrentUserId } from 'src/decorators/current-user-id.decorator';
 import { ConnectBinanceDto } from '@personalization/shared';
@@ -14,10 +8,7 @@ export class BinanceController {
   constructor(private readonly binanceService: BinanceAccountService) {}
 
   @Post('connect')
-  connect(
-    @Body() dto: ConnectBinanceDto,
-    @CurrentUserId() userId: number,
-  ) {
+  connect(@Body() dto: ConnectBinanceDto, @CurrentUserId() userId: number) {
     return this.binanceService.connect(userId, dto);
   }
 

@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { TransactionService } from './transaction.service';
-import { TransactionType } from '@personalization/shared';
 
 @Injectable()
 export class FinanceCronService {
@@ -11,7 +10,7 @@ export class FinanceCronService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly transactionService: TransactionService,
-  ) {}
+  ) { }
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async handleAutomation() {
@@ -24,7 +23,11 @@ export class FinanceCronService {
     await this.processCategoryAutomation(day, month, year);
   }
 
-  private async processCategoryAutomation(day: number, month: number, year: number) {
+  private async processCategoryAutomation(
+    day: number,
+    month: number,
+    year: number,
+  ) {
     const categoriesToProcess = await this.prisma.budgetCategory.findMany({
       where: {
         isAutomationEnabled: true,
@@ -58,15 +61,19 @@ export class FinanceCronService {
 
         await this.prisma.budgetCategory.update({
           where: { id: category.id },
-          data: { 
+          data: {
             automationProcessed: true,
             lastRunAt: new Date(),
           },
         });
 
-        this.logger.log(`Processed automation for category ID: ${category.id} (${category.name})`);
+        this.logger.log(
+          `Processed automation for category ID: ${category.id} (${category.name})`,
+        );
       } catch (error) {
-        this.logger.error(`Failed to process automation for category ${category.id}: ${error.message}`);
+        this.logger.error(
+          `Failed to process automation for category ${category.id}: ${error.message}`,
+        );
       }
     }
   }

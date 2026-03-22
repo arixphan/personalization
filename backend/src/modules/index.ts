@@ -7,3 +7,4 @@ export { UserModule, UserService } from './user';
 export { TicketsModule, TicketsService } from './tickets';
 export { UploadModule } from './upload/upload.module';
 export { FinanceModule } from './finance/finance.module';
+export { AiModule } from './ai/ai.module';

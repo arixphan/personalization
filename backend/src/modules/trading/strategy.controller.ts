@@ -22,10 +22,7 @@ export class StrategyController {
   constructor(private readonly strategyService: StrategyService) {}
 
   @Post()
-  create(
-    @Body() dto: CreateStrategyDto,
-    @CurrentUserId() userId: number,
-  ) {
+  create(@Body() dto: CreateStrategyDto, @CurrentUserId() userId: number) {
     return this.strategyService.create(dto, userId);
   }
 
@@ -60,10 +57,7 @@ export class StrategyController {
   }
 
   @Patch('reorder')
-  reorder(
-    @Body() dto: ReorderStrategiesDto,
-    @CurrentUserId() userId: number,
-  ) {
+  reorder(@Body() dto: ReorderStrategiesDto, @CurrentUserId() userId: number) {
     return this.strategyService.reorder(dto, userId);
   }
 }

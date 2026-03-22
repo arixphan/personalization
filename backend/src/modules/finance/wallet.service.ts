@@ -1,18 +1,25 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateWalletDto, UpdateWalletDto } from '@personalization/shared';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { FINANCE_EVENT } from '../ai/events/finance.events';
 
 @Injectable()
 export class WalletService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   async create(dto: CreateWalletDto, userId: number) {
-    return this.prisma.wallet.create({
+    const wallet = await this.prisma.wallet.create({
       data: {
         ...dto,
         userId,
       },
     });
+    this.eventEmitter.emit(FINANCE_EVENT.WALLET_UPDATED, { userId, wallet });
+    return wallet;
   }
 
   async findAll(userId: number) {
@@ -34,16 +41,20 @@ export class WalletService {
 
   async update(id: number, dto: UpdateWalletDto, userId: number) {
     await this.findOne(id, userId);
-    return this.prisma.wallet.update({
+    const wallet = await this.prisma.wallet.update({
       where: { id },
       data: dto,
     });
+    this.eventEmitter.emit(FINANCE_EVENT.WALLET_UPDATED, { userId, wallet });
+    return wallet;
   }
 
   async remove(id: number, userId: number) {
     await this.findOne(id, userId);
-    return this.prisma.wallet.delete({
+    const wallet = await this.prisma.wallet.delete({
       where: { id },
     });
+    this.eventEmitter.emit(FINANCE_EVENT.TRANSACTION_DELETED, { entityId: id }); // Using generic delete listener
+    return wallet;
   }
 }
