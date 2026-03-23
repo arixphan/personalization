@@ -1,17 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
+import { AppConfigService } from '../../config/app-config.service';
 
 @Injectable()
 export class EncryptionService {
   private readonly algorithm = 'aes-256-cbc';
   private readonly key: Buffer;
 
-  constructor(private configService: ConfigService) {
-    const secret = this.configService.get<string>('ENCRYPTION_KEY');
-    if (!secret) {
-      throw new Error('ENCRYPTION_KEY is not defined in the environment variables');
-    }
+  constructor(private configService: AppConfigService) {
+    const secret = this.configService.auth.encryptionKey;
     this.key = crypto.scryptSync(secret, 'salt', 32);
   }
 

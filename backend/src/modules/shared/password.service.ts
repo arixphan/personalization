@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
+import { AppConfigService } from '../config';
 
 @Injectable()
 export class PasswordService {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: AppConfigService) {}
 
   async comparePasswords(
     plainPassword: string,
@@ -14,13 +14,8 @@ export class PasswordService {
   }
 
   async hashPassword(password: string): Promise<string> {
-    const saltRounds = this.configService.get<number>('BCRYPT_SALT_ROUNDS');
-    if (!saltRounds) {
-      throw new Error(
-        'BCRYPT_SALT_ROUNDS is not defined in the environment variables',
-      );
-    }
-    const salt = await bcrypt.genSalt(+saltRounds);
+    const saltRounds = this.configService.auth.bcryptSaltRounds;
+    const salt = await bcrypt.genSalt(saltRounds);
     return await bcrypt.hash(password, salt);
   }
 }

@@ -2,13 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma';
 import { google } from '@ai-sdk/google';
 import { embed, embedMany } from 'ai';
-import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class RagService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly configService: ConfigService,
   ) {}
 
   async embedText(text: string): Promise<number[]> {

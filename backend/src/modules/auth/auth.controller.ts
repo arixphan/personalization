@@ -10,9 +10,9 @@ import {
   Res,
   HttpStatus,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { AUTH_CONFIG } from '@personalization/shared';
+import { AppConfigService } from '../config';
 
 import { Public } from '../../decorators/public.decorator';
 import { AuthService } from './auth.service';
@@ -23,8 +23,8 @@ import { GoogleProfile } from './strategies/google.strategy';
 export class AuthController {
   constructor(
     private authService: AuthService,
-    private configService: ConfigService,
-  ) {}
+    private configService: AppConfigService,
+  ) { }
 
   @Public()
   @UseGuards(LocalAuthGuard)
@@ -41,8 +41,8 @@ export class AuthController {
       httpOnly: true, // Ensures the cookie is not accessible via JavaScript
       secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
       sameSite: 'strict', // Helps prevent CSRF attacks
-      path: AUTH_CONFIG.PATHS.REFRESH_TOKEN,
-      maxAge: this.configService.get<number>('CACHE_TTL'),
+      path: '/',
+      maxAge: this.authService.getRefreshExpiresInMs(),
     });
 
     res.status(HttpStatus.OK);
@@ -110,7 +110,7 @@ export class AuthController {
     @Request() req: { user: GoogleProfile },
     @Res() res: Response,
   ) {
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+    const frontendUrl = this.configService.app.frontendUrl;
     try {
       const tokens = await this.authService.loginWithGoogle(req.user);
       const code = await this.authService.generateExchangeCode(
@@ -149,7 +149,7 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       path: '/',
-      maxAge: AUTH_CONFIG.EXPIRATION.ACCESS_TOKEN_COOKIE_MAX_AGE * 1000,
+      maxAge: this.authService.getAccessExpiresInMs()
     });
 
     res.cookie(AUTH_CONFIG.COOKIE_NAMES.REFRESH_TOKEN, tokens.refresh_token, {
@@ -157,7 +157,7 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       path: AUTH_CONFIG.PATHS.REFRESH_TOKEN,
-      maxAge: this.configService.get<number>('CACHE_TTL'),
+      maxAge: this.authService.getRefreshExpiresInMs(),
     });
 
     res.status(HttpStatus.OK);

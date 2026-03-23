@@ -2,6 +2,10 @@ import { Module } from '@nestjs/common';
 import { CacheModule } from '@nestjs/cache-manager';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
+import authConfig from './config/auth.config';
+import appConfig from './config/app.config';
+import databaseConfig from './config/database.config';
+import { validate } from './config/env.validation';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AcceptLanguageResolver, I18nModule } from 'nestjs-i18n';
@@ -24,6 +28,7 @@ import {
   UploadModule,
   FinanceModule,
   AiModule,
+  AppConfigModule,
 } from './modules';
 import { TradingModule } from './modules/trading/trading.module';
 
@@ -35,8 +40,10 @@ import { TradingModule } from './modules/trading/trading.module';
       isGlobal: true, // Makes cache available globally
     }),
     ConfigModule.forRoot({
-      isGlobal: true, // makes config available globally
-      envFilePath: '.env', // default, can be omitted
+      isGlobal: true,
+      envFilePath: '.env',
+      load: [authConfig, appConfig, databaseConfig],
+      validate: validate,
     }),
     ThrottlerModule.forRoot({
       throttlers: [
@@ -57,6 +64,7 @@ import { TradingModule } from './modules/trading/trading.module';
     TradingModule,
     FinanceModule,
     AiModule,
+    AppConfigModule,
     I18nModule.forRoot({
       fallbackLanguage: 'en',
       loaderOptions: {

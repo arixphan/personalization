@@ -1,7 +1,7 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { AppConfigService } from '../../config/app-config.service';
 
 export interface GoogleProfile {
   googleId: string;
@@ -12,20 +12,11 @@ export interface GoogleProfile {
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
-  constructor(private configService: ConfigService) {
-    const clientID = configService.get<string>('GOOGLE_CLIENT_ID');
-    const clientSecret = configService.get<string>('GOOGLE_CLIENT_SECRET');
-
-    if (!clientID || !clientSecret) {
-      console.warn(
-        '⚠️  OAuth Warning: GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET is missing from .env. Google login will not work.',
-      );
-    }
-
+  constructor(private readonly configService: AppConfigService) {
     super({
-      clientID: clientID || 'MISSING_CLIENT_ID',
-      clientSecret: clientSecret || 'MISSING_CLIENT_SECRET',
-      callbackURL: `${configService.get<string>('BACKEND_URL') || 'http://localhost:3000'}/auth/google/callback`,
+      clientID: configService.auth.google.clientId || 'MISSING_CLIENT_ID',
+      clientSecret: configService.auth.google.clientSecret || 'MISSING_CLIENT_SECRET',
+      callbackURL: `${configService.app.backendUrl}/auth/google/callback`,
       scope: ['openid', 'email', 'profile'],
     });
   }

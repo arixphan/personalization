@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { streamText, ToolSet, stepCountIs, convertToModelMessages } from 'ai';
-import { ConfigService } from '@nestjs/config';
 import { RagService } from './rag.service';
 import { MemoryService } from './memory.service';
 import { AiSettingsService } from './ai-settings.service';
@@ -13,7 +12,6 @@ export class OrchestratorService {
     private readonly rag: RagService,
     private readonly toolRegistry: ToolRegistryService,
     private readonly memory: MemoryService,
-    private readonly configService: ConfigService,
     private readonly aiSettings: AiSettingsService,
     private readonly modelFactory: ModelFactoryService,
   ) {}

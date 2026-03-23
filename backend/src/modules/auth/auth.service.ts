@@ -12,9 +12,9 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
+import { AppConfigService } from '../config';
 
 import { GoogleProfile } from './strategies/google.strategy';
 import { JwtPayload } from './dto/jwt-payload';
@@ -26,21 +26,13 @@ export class AuthService {
     private readonly permissionService: PermissionService,
     private readonly passwordService: PasswordService,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
-  ) {}
+    private readonly configService: AppConfigService,
+  ) { }
 
   @Inject(CACHE_MANAGER) private cacheManager: Cache;
 
   getExpiresIn(): number {
-    const expiresIn = this.configService.get<number>(
-      'JWT_ACCESS_EXPIRATION_TIME',
-    );
-    if (!expiresIn) {
-      throw new Error(
-        'JWT_ACCESS_EXPIRATION_TIME is not defined in the environment variables',
-      );
-    }
-    return expiresIn;
+    return this.configService.auth.accessExpiration;
   }
 
   async validateUser(
@@ -93,15 +85,10 @@ export class AuthService {
       expiresIn,
     });
 
-    console.log(`[AuthService] Generated tokens for user ${user.id}:`, {
-      expiresIn,
-      payload,
-    });
-
     await this.cacheManager.set(
       user.id.toString(),
       refresh_token,
-      this.configService.get<number>('CACHE_TTL'),
+      this.getRefreshExpiresInMs(),
     );
 
     return {
@@ -109,6 +96,15 @@ export class AuthService {
       refresh_token,
     };
   }
+
+  getRefreshExpiresInMs(): number {
+    return this.configService.auth.refreshExpiration * 1000;
+  }
+
+  getAccessExpiresInMs(): number {
+    return this.configService.auth.accessExpiration * 1000;
+  }
+
 
   async logout(userId: number): Promise<void> {
     await this.cacheManager.del(userId.toString());
