@@ -28,6 +28,7 @@ import {
   UploadModule,
   FinanceModule,
   AiModule,
+  MindMapModule,
   AppConfigModule,
 } from './modules';
 import { TradingModule } from './modules/trading/trading.module';
@@ -64,6 +65,7 @@ import { TradingModule } from './modules/trading/trading.module';
     TradingModule,
     FinanceModule,
     AiModule,
+    MindMapModule,
     AppConfigModule,
     I18nModule.forRoot({
       fallbackLanguage: 'en',

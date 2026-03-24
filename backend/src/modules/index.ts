@@ -7,5 +7,6 @@ export { UserModule, UserService } from './user';
 export { TicketsModule, TicketsService } from './tickets';
 export { UploadModule } from './upload/upload.module';
 export { FinanceModule } from './finance/finance.module';
+export { MindMapModule } from './mind-maps/mind-maps.module';
 export { AiModule } from './ai/ai.module';
 export { AppConfigModule, AppConfigService } from './config/index';

@@ -31,6 +31,7 @@ model User {
   loans          Loan[]
   monthlyBudgets MonthlyBudget[]
   aiSettings     UserAiSettings?
+  mindMaps       MindMap[]
 }
 
 model UserProfile {
@@ -334,4 +335,44 @@ model UserAiSettings {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id])
+}
+
+// Mind Map Module Models
+model MindMap {
+  id          Int           @id @default(autoincrement())
+  userId      Int
+  name        String
+  description String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  user        User          @relation(fields: [userId], references: [id])
+  nodes       MindMapNode[]
+  edges       MindMapEdge[]
+}
+
+model MindMapNode {
+  id        String   @id // Using String for XYFlow IDs (e.g., "1", "2")
+  mindMapId Int
+  type      String?  @default("default")
+  positionX Float
+  positionY Float
+  data      Json     // For label, content, etc.
+  style     Json?
+  mindMap   MindMap  @relation(fields: [mindMapId], references: [id], onDelete: Cascade)
+
+  @@index([mindMapId])
+}
+
+model MindMapEdge {
+  id           String   @id // XYFlow Edge ID
+  mindMapId    Int
+  source       String   // Source Node ID
+  target       String   // Target Node ID
+  label        String?
+  type         String?  @default("default")
+  animated     Boolean  @default(false)
+  style        Json?
+  mindMap      MindMap  @relation(fields: [mindMapId], references: [id], onDelete: Cascade)
+
+  @@index([mindMapId])
 }

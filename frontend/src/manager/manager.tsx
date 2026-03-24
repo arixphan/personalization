@@ -1,5 +1,5 @@
 import { ForwardRefExoticComponent, RefAttributes } from "react";
-import { ClipboardList, LucideProps, TrendingUp, HandCoins, Bot } from "lucide-react";
+import { ClipboardList, LucideProps, TrendingUp, HandCoins, Bot, BrainCircuit } from "lucide-react";
 
 export interface AppModule {
   id: string;
@@ -32,6 +32,13 @@ export const APP_MODULES: AppModule[] = [
     name: "Finance",
     icon: HandCoins,
     url: "/finance",
+    isActive: true,
+  },
+  {
+    id: "mind-maps",
+    name: "Mind Maps",
+    icon: BrainCircuit,
+    url: "/mind-maps",
     isActive: true,
   },
   {
@@ -69,6 +76,14 @@ export const MODULE_ROUTES: Record<
     prefix: "finance",
     routes: {
       main: "/",
+    },
+  },
+  "mind-maps": {
+    prefix: "mind-maps",
+    routes: {
+      main: "/",
+      new: "/new",
+      detail: "/[id]",
     },
   },
   ai: {

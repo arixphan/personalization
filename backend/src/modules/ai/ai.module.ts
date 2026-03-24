@@ -29,6 +29,6 @@ import { FinanceEventListener } from './listeners/finance-event.listener';
     FinanceEventListener,
     ModelFactoryService,
   ],
-  exports: [OrchestratorService, RagService, IngestionService, ModelFactoryService],
+  exports: [OrchestratorService, RagService, IngestionService, ModelFactoryService, AiSettingsService],
 })
 export class AiModule {}
