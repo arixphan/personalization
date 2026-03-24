@@ -31,7 +31,7 @@ export default async function AuthLayout({
           <ThemeContext>
             <AnimatePresence mode="wait">
               <div
-                className={`h-min-screen relative flex items-center justify-center py-8 dark:bg-gray-800
+                className={`min-h-screen relative flex items-center justify-center py-8 dark:bg-gray-800
                     dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-900
                     bg-gradient-to-br from-blue-50 via-white to-purple-50`}
               >
