@@ -2,7 +2,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { AUTH_CONFIG } from "@personalization/shared";
-
+import { env } from "@/config/env.server";
 import { AuthEndpoint } from "@/constants/endpoints";
 
 export async function POST() {
@@ -13,7 +13,7 @@ export async function POST() {
   }
 
   try {
-    const baseUrl = process.env.SERVER_BASE_URL || "http://localhost:3000/api";
+    const baseUrl = env.serverBaseUrl;
     const response = await fetch(`${baseUrl}/${AuthEndpoint.refreshToken}`, {
       method: "POST",
       headers: {
@@ -37,9 +37,9 @@ export async function POST() {
 
     responseWithCookie.cookies.set(AUTH_CONFIG.COOKIE_NAMES.ACCESS_TOKEN, data.access_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: env.isProduction,
       sameSite: "strict",
-      maxAge: AUTH_CONFIG.EXPIRATION.ACCESS_TOKEN_COOKIE_MAX_AGE,
+      maxAge: env.jwtAccessExpirationTime,
       path: "/",
     });
 

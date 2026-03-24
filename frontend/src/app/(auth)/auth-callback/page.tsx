@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AUTH_CONFIG } from "@personalization/shared";
+import { env } from "@/config/env";
+import { AuthEndpoint } from "@/constants/endpoints";
 
 /**
  * Auth Callback Page
@@ -42,9 +44,9 @@ export default function AuthCallbackPage() {
 
     const exchangeCode = async () => {
       try {
-        const serverBaseUrl = process.env.NEXT_PUBLIC_SERVER_BASE_URL || "http://localhost:3000/api";
+        const baseUrl = env.serverBaseUrl;
         // Construct the exchange URL properly
-        const url = `${serverBaseUrl}/auth/exchange`;
+        const url = `${baseUrl}/auth/exchange`;
 
         console.log("Exchanging code at:", url);
 

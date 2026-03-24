@@ -64,7 +64,7 @@ export async function findProjects(
 
 export async function getProject(id: string) {
   const response = await ServerApiHandler.get<Project>(
-    ProjectEndpoint.detail(id)
+    ProjectEndpoint.detail({ id })
   );
 
   if (isSuccessApiResponse(response) && response.data) {
@@ -91,7 +91,7 @@ export async function getProject(id: string) {
 }
 export async function updateProject(id: number, data: any) {
   const response = await ServerApiHandler.patch<Project>(
-    ProjectEndpoint.update(id.toString()),
+    ProjectEndpoint.update({ id: id.toString() }),
     data
   );
 

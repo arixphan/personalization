@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { env } from "./config/env.server";
 import { verifyToken } from "./lib/token";
 
 const protectedRoutes = ["/"];
 
 export default async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
+  const baseUrl = env.serverBaseUrl;
   const isProtectedRoute = protectedRoutes.includes(path);
 
   try {

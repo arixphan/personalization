@@ -56,7 +56,7 @@ export async function createProject(project: BaseProjectDto) {
 
 export async function updateProject(id: string, project: BaseProjectDto) {
   const { data, error } = await ClientApiHandler.put(
-    ProjectEndpoint.update(id),
+    ProjectEndpoint.update({ id }),
     project
   );
   if (error) {

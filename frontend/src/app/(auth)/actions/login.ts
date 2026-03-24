@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import setCookieParser from "set-cookie-parser";
 import { z } from "zod";
 import { AUTH_CONFIG } from "@personalization/shared";
-
+import { env } from "@/config/env.server";
 import { AuthEndpoint, REFRESH_TOKEN_ENDPOINT } from "@/constants/endpoints";
 import { ServerApiHandler } from "@/lib/server-api";
 
@@ -62,36 +62,37 @@ export async function signInAction(
 
       // Store access token in httpOnly cookie
 
-      if (setCookieHeader) {
-        const cookiesToSet = setCookieParser.parse(setCookieHeader, {
-          map: false,
-        });
+      // TODO: get from env
+      // if (setCookieHeader) {
+      //   const cookiesToSet = setCookieParser.parse(setCookieHeader, {
+      //     map: false,
+      //   });
 
-        const refreshTokenCookie = cookiesToSet.find(
-          (cookie) => cookie.name === AUTH_CONFIG.COOKIE_NAMES.REFRESH_TOKEN
-        );
+      //   const refreshTokenCookie = cookiesToSet.find(
+      //     (cookie) => cookie.name === AUTH_CONFIG.COOKIE_NAMES.REFRESH_TOKEN
+      //   );
 
-        if (refreshTokenCookie) {
-          cookieStore.set(refreshTokenCookie.name, refreshTokenCookie.value, {
-            httpOnly: refreshTokenCookie.httpOnly,
-            secure: refreshTokenCookie.secure,
-            sameSite: refreshTokenCookie.sameSite?.toLowerCase() as
-              | "lax"
-              | "strict"
-              | "none",
-            maxAge: refreshTokenCookie.maxAge,
-            expires: refreshTokenCookie.expires,
-            path: REFRESH_TOKEN_ENDPOINT,
-          });
-        }
-      }
+      //   if (refreshTokenCookie) {
+      //     cookieStore.set(refreshTokenCookie.name, refreshTokenCookie.value, {
+      //       httpOnly: refreshTokenCookie.httpOnly,
+      //       secure: refreshTokenCookie.secure,
+      //       sameSite: refreshTokenCookie.sameSite?.toLowerCase() as
+      //         | "lax"
+      //         | "strict"
+      //         | "none",
+      //       maxAge: refreshTokenCookie.maxAge,
+      //       expires: refreshTokenCookie.expires,
+      //       path: REFRESH_TOKEN_ENDPOINT,
+      //     });
+      //   }
+      // }
 
       if (data.access_token) {
-        cookieStore.set(AUTH_CONFIG.COOKIE_NAMES.ACCESS_TOKEN, data.access_token, {
+        (await cookies()).set(AUTH_CONFIG.COOKIE_NAMES.ACCESS_TOKEN, data.access_token, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
+          secure: env.isProduction,
           sameSite: "strict",
-          maxAge: AUTH_CONFIG.EXPIRATION.ACCESS_TOKEN_COOKIE_MAX_AGE,
+          maxAge: env.jwtAccessExpirationTime,
           path: "/",
         });
       }

@@ -10,7 +10,7 @@ import { revalidatePath } from "next/cache";
 
 export async function getTicketsByProject(projectId: number) {
   const response = await ServerApiHandler.get<any[]>(
-    TicketEndpoint.listByProject(projectId)
+    TicketEndpoint.listByProject({ projectId: projectId.toString() })
   );
 
   if (isSuccessApiResponse(response)) {
@@ -42,7 +42,7 @@ export async function createTicket(data: any) {
 
 export async function updateTicket(id: number, data: any, projectId: number) {
   const response = await ServerApiHandler.patch<any>(
-    TicketEndpoint.update(id.toString()),
+    TicketEndpoint.update({ id: id.toString() }),
     data
   );
 
@@ -59,7 +59,7 @@ export async function updateTicket(id: number, data: any, projectId: number) {
 
 export async function deleteTicket(id: number, projectId: number) {
   const response = await ServerApiHandler.delete<any>(
-    TicketEndpoint.delete(id.toString())
+    TicketEndpoint.delete({ id: id.toString() })
   );
 
   if (isSuccessApiResponse(response)) {

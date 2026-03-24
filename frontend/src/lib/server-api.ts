@@ -4,6 +4,7 @@ import { AUTH_CONFIG } from "@personalization/shared";
 import "server-only";
 
 import { ApiRequestOptions, BaseApi } from "./base-api";
+import { env } from "@/config/env.server";
 
 export class ServerApi extends BaseApi {
   private tokenCookieName: string;
@@ -56,6 +57,4 @@ export class ServerApi extends BaseApi {
   }
 }
 
-export const ServerApiHandler = new ServerApi(
-  process.env.SERVER_BASE_URL || "http://localhost:3000/api"
-);
+export const ServerApiHandler = new ServerApi(env.serverBaseUrl);
