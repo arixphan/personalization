@@ -11,7 +11,7 @@ import { AssetType } from "@personalization/shared";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
-export function AssetManager() {
+export function AssetManager({ refreshKey }: { refreshKey?: number }) {
   const t = useTranslations("Finance.assets");
   const [assets, setAssets] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -39,7 +39,7 @@ export function AssetManager() {
 
   useEffect(() => {
     fetchAssets();
-  }, []);
+  }, [refreshKey]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

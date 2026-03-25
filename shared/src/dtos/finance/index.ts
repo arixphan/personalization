@@ -57,6 +57,7 @@ export const CreateLoanSchema = z.object({
   dueDate: z.string().datetime().optional().nullable(),
   status: z.nativeEnum(LoanStatus).default(LoanStatus.ACTIVE),
   note: z.string().optional(),
+  walletId: z.number().optional().nullable(),
 });
 export type CreateLoanDto = z.infer<typeof CreateLoanSchema>;
 
@@ -98,5 +99,6 @@ export const CreateTransactionSchema = z.object({
   category: z.string().optional(),
   date: z.string().datetime().optional(),
   note: z.string().optional(),
+  loanId: z.number().optional().nullable(),
 });
 export type CreateTransactionDto = z.infer<typeof CreateTransactionSchema>;

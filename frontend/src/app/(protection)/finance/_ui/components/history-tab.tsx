@@ -1,21 +1,48 @@
-import { Trash2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
+import { getTransactions } from "../../_actions/finance.actions";
 
 interface HistoryTabProps {
-  transactions: any[];
   onDeleteTransaction: (id: number) => void;
   formatCurrency: (amount: number) => string;
+  refreshKey?: number;
 }
 
 export function HistoryTab({
-  transactions,
   onDeleteTransaction,
   formatCurrency,
+  refreshKey
 }: HistoryTabProps) {
   const t = useTranslations("Finance");
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchTransactions = async () => {
+    try {
+      const data = await getTransactions();
+      setTransactions(data || []);
+    } catch (error) {
+      console.error("Failed to fetch history transactions", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTransactions();
+  }, [refreshKey]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20 bg-white dark:bg-gray-950 rounded-[2.5rem] border border-gray-200 dark:border-gray-800 shadow-xl">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
             <div className="bg-white dark:bg-gray-950 p-8 rounded-[2.5rem] border border-gray-200 dark:border-gray-800 shadow-xl">

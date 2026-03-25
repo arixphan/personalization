@@ -8,6 +8,7 @@ import {
   getWallets, 
   getTransactions,
   getBudget,
+  getLoans,
   createTransaction,
   deleteTransaction
 } from "./_actions/finance.actions";
@@ -39,47 +40,16 @@ import { HistoryTab } from "./_ui/components/history-tab";
 export default function FinancePage() {
   const t = useTranslations("Finance");
   const [activeTab, setActiveTab] = useState<FinanceTab>("dashboard");
-  const [netWorthData, setNetWorthData] = useState<any>(null);
-  const [cashFlowData, setCashFlowData] = useState<any[]>([]);
-  const [wallets, setWallets] = useState<any[]>([]);
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [budget, setBudget] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [isTxFormOpen, setIsTxFormOpen] = useState(false);
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [txToDelete, setTxToDelete] = useState<number | null>(null);
-
-  const fetchData = async () => {
-    try {
-      const now = new Date();
-      const [nw, cf, w, t_data, b] = await Promise.all([
-        getNetWorth(),
-        getCashFlow(),
-        getWallets(),
-        getTransactions(),
-        getBudget(now.getMonth() + 1, now.getFullYear())
-      ]);
-      setNetWorthData(nw);
-      setCashFlowData(cf);
-      setWallets(w);
-      setTransactions(t_data);
-      setBudget(b);
-    } catch (error) {
-      console.error("Failed to fetch finance data", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const handleTxSubmit = async (data: any) => {
     const result = await createTransaction(data);
     if (result.success) {
       toast.success("Transaction recorded");
-      fetchData();
+      setRefreshKey(prev => prev + 1);
       return { success: true };
     } else {
       return { success: false, error: result.error };
@@ -95,7 +65,7 @@ export default function FinancePage() {
     try {
       await deleteTransaction(txToDelete);
       toast.success("Transaction deleted");
-      fetchData();
+      setRefreshKey(prev => prev + 1);
     } catch (error) {
       toast.error("Failed to delete transaction");
     } finally {
@@ -103,22 +73,12 @@ export default function FinancePage() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="h-full w-full flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
     }).format(amount);
   };
-
-  const budgetBuckets = budget?.categories?.map((c: any) => c.name) || ["Food", "Chill", "Saving", "Investment"];
 
   return (
     <div className="flex flex-col gap-8 p-6 max-w-7xl mx-auto overflow-y-auto custom-scrollbar h-full">
@@ -132,15 +92,13 @@ export default function FinancePage() {
         isOpen={isTxFormOpen}
         onClose={() => setIsTxFormOpen(false)}
         onSubmit={handleTxSubmit}
-        wallets={wallets}
-        budgetBuckets={budgetBuckets}
       />
 
       <WalletManager 
         isOpen={isWalletModalOpen}
         onClose={() => setIsWalletModalOpen(false)}
-        wallets={wallets}
-        onRefresh={fetchData}
+        onRefresh={() => setRefreshKey(prev => prev + 1)}
+        refreshKey={refreshKey}
       />
 
       {/* Content Area with Transitions */}
@@ -155,24 +113,21 @@ export default function FinancePage() {
         >
           {activeTab === "dashboard" && (
             <DashboardTab 
-              netWorthData={netWorthData}
-              wallets={wallets}
-              cashFlowData={cashFlowData}
-              transactions={transactions}
               formatCurrency={formatCurrency}
               setIsWalletModalOpen={setIsWalletModalOpen}
               setActiveTab={setActiveTab}
+              refreshKey={refreshKey}
             />
           )}
 
-          {activeTab === "assets" && <AssetManager />}
-          {activeTab === "loans" && <LoanModule />}
-          {activeTab === "budget" && <BudgetManager />}
+          {activeTab === "assets" && <AssetManager refreshKey={refreshKey} />}
+          {activeTab === "loans" && <LoanModule refreshKey={refreshKey} />}
+          {activeTab === "budget" && <BudgetManager refreshKey={refreshKey} />}
           {activeTab === "history" && (
             <HistoryTab 
-              transactions={transactions}
               onDeleteTransaction={handleDeleteTransaction}
               formatCurrency={formatCurrency}
+              refreshKey={refreshKey}
             />
           )}
         </motion.div>

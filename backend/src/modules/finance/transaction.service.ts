@@ -7,17 +7,18 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateTransactionDto, TransactionType } from '@personalization/shared';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { FINANCE_EVENT } from '../ai/events/finance.events';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class TransactionService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
-  async create(dto: CreateTransactionDto, userId: number) {
-    const transaction = await this.prisma.$transaction(async (tx) => {
-      // 1. Create the transaction
+  async create(dto: CreateTransactionDto, userId: number, externalTx?: Prisma.TransactionClient) {
+    const logic = async (tx: Prisma.TransactionClient) => {
+      // 1. Create the transaction record
       const transaction = await tx.transaction.create({
         data: {
           ...dto,
@@ -105,8 +106,37 @@ export class TransactionService {
         }
       }
 
+      // 3. Handle Loan Integration
+      if (dto.loanId) {
+        const loan = await tx.loan.findUnique({
+          where: { id: dto.loanId },
+        });
+
+        if (loan) {
+          const isIncomeOnReceivable =
+            dto.type === TransactionType.INCOME && loan.type === 'RECEIVABLE';
+          const isExpenseOnPayable =
+            dto.type === TransactionType.EXPENSE && loan.type === 'PAYABLE';
+
+          if (isIncomeOnReceivable || isExpenseOnPayable) {
+            const newRemaining = Math.max(0, loan.remaining - dto.amount);
+            await tx.loan.update({
+              where: { id: dto.loanId },
+              data: {
+                remaining: newRemaining,
+                status: newRemaining === 0 ? 'PAID_OFF' : loan.status
+              },
+            });
+          }
+        }
+      }
+
       return transaction;
-    });
+    };
+
+    const transaction = externalTx
+      ? await logic(externalTx)
+      : await this.prisma.$transaction(logic);
 
     // Background AI Sync
     this.eventEmitter.emit(FINANCE_EVENT.TRANSACTION_CREATED, {
@@ -116,6 +146,7 @@ export class TransactionService {
 
     return transaction;
   }
+
 
   async findAll(userId: number, walletId?: number) {
     return this.prisma.transaction.findMany({
@@ -186,6 +217,31 @@ export class TransactionService {
           where: { id: transaction.toWalletId },
           data: { balance: { decrement: transaction.amount } },
         });
+      }
+
+      // Reverse Loan Integration if applicable
+      if ((transaction as any).loanId) {
+        const loan = await tx.loan.findUnique({
+          where: { id: (transaction as any).loanId },
+        });
+
+        if (loan) {
+          const isIncomeOnReceivable = 
+            transaction.type === TransactionType.INCOME && loan.type === 'RECEIVABLE';
+          const isExpenseOnPayable = 
+            transaction.type === TransactionType.EXPENSE && loan.type === 'PAYABLE';
+
+          if (isIncomeOnReceivable || isExpenseOnPayable) {
+            const newRemaining = loan.remaining + transaction.amount;
+            await tx.loan.update({
+              where: { id: (transaction as any).loanId },
+              data: { 
+                remaining: newRemaining,
+                status: newRemaining > 0 && loan.status === 'PAID_OFF' ? 'ACTIVE' : loan.status
+              },
+            });
+          }
+        }
       }
 
       return tx.transaction.delete({

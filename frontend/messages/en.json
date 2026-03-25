@@ -197,6 +197,8 @@
     "netWorth": "Total Net Worth",
     "liquidCash": "Liquid Cash",
     "totalAssets": "Total Assets",
+    "totalProperties": "Total Properties",
+    "totalLoans": "Total Loans",
     "totalDebt": "Total Debt",
     "wallets": "Wallets",
     "manageWallets": "Manage Wallets",
@@ -237,6 +239,8 @@
         "remaining": "Remaining Amount",
         "dueDate": "Due Date",
         "note": "Note",
+        "wallet": "Wallet for Transaction (Optional)",
+        "selectWallet": "Select a wallet",
         "save": "Save Loan"
       }
     },

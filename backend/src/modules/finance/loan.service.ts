@@ -1,25 +1,63 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateLoanDto, UpdateLoanDto } from '@personalization/shared';
+import { CreateLoanDto, LoanType, UpdateLoanDto, TransactionType, LoanStatus } from '@personalization/shared';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { FINANCE_EVENT } from '../ai/events/finance.events';
+import { TransactionService } from './transaction.service';
 
 @Injectable()
 export class LoanService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+    private readonly transactionService: TransactionService,
+  ) { }
 
   async create(dto: CreateLoanDto, userId: number) {
-    const { dueDate, ...rest } = dto;
-    const loan = await this.prisma.loan.create({
-      data: {
-        ...rest,
-        dueDate: dueDate ? new Date(dueDate) : null,
-        userId,
-      },
+    if (dto.remaining > dto.principal) {
+      throw new BadRequestException('Remaining amount cannot exceed principal');
+    }
+    const loan = await this.prisma.$transaction(async (tx) => {
+      const { dueDate, walletId, ...rest } = dto;
+      const loan = await tx.loan.create({
+        data: {
+          ...rest,
+          dueDate: dueDate ? new Date(dueDate) : null,
+          userId,
+        },
+      });
+
+      // Handle automatic transactions if wallet is provided
+      if (walletId) {
+        // 1. Log the principal movement
+        await this.transactionService.create({
+          type: loan.type === LoanType.PAYABLE ? TransactionType.INCOME : TransactionType.EXPENSE,
+          amount: loan.principal,
+          walletId,
+          category: 'Loan Principal',
+          note: `Initial principal for loan: ${loan.counterparty}`,
+          date: new Date().toISOString(),
+          loanId: loan.id,
+        }, userId, tx);
+
+        // 2. Log the "difference" (payments already made)
+        const paidAmount = loan.principal - loan.remaining;
+        if (paidAmount > 0) {
+          await this.transactionService.create({
+            type: loan.type === LoanType.PAYABLE ? TransactionType.EXPENSE : TransactionType.INCOME,
+            amount: paidAmount,
+            walletId,
+            category: 'Loan Payment',
+            note: `Initial adjustment/payment for loan: ${loan.counterparty}`,
+            date: new Date().toISOString(),
+            loanId: loan.id,
+          }, userId, tx);
+        }
+      }
+
+      return loan;
     });
+
     this.eventEmitter.emit(FINANCE_EVENT.LOAN_CREATED, { userId, loan });
     return loan;
   }
@@ -42,19 +80,56 @@ export class LoanService {
   }
 
   async update(id: number, dto: UpdateLoanDto, userId: number) {
-    await this.findOne(id, userId);
-    const { dueDate, ...rest } = dto;
-    const loan = await this.prisma.loan.update({
-      where: { id },
-      data: {
-        ...rest,
-        dueDate: dueDate
-          ? new Date(dueDate)
-          : dueDate === null
-            ? null
-            : undefined,
-      },
+    const oldLoan = await this.findOne(id, userId);
+    
+    const principal = dto.principal !== undefined ? dto.principal : oldLoan.principal;
+    const remaining = dto.remaining !== undefined ? dto.remaining : oldLoan.remaining;
+
+    if (remaining > principal) {
+      throw new BadRequestException('Remaining amount cannot exceed principal');
+    }
+
+    const { dueDate, walletId, ...rest } = dto;
+
+    const loan = await this.prisma.$transaction(async (tx) => {
+      // Determine status if remaining is changing
+      if (rest.remaining !== undefined) {
+        rest.status = rest.remaining === 0 ? LoanStatus.PAID_OFF : LoanStatus.ACTIVE;
+      }
+
+      const loan = await tx.loan.update({
+        where: { id },
+        data: {
+          ...rest,
+          dueDate: dueDate
+            ? new Date(dueDate)
+            : dueDate === null
+              ? null
+              : undefined,
+        },
+      });
+
+      // Handle automatic transactions on remaining change
+      if (walletId && rest.remaining !== undefined && rest.remaining !== oldLoan.remaining) {
+        const delta = oldLoan.remaining - rest.remaining;
+        if (delta !== 0) {
+          await this.transactionService.create({
+            type: delta > 0
+              ? (loan.type === LoanType.PAYABLE ? TransactionType.EXPENSE : TransactionType.INCOME)
+              : (loan.type === LoanType.PAYABLE ? TransactionType.INCOME : TransactionType.EXPENSE),
+            amount: Math.abs(delta),
+            walletId,
+            category: 'Loan Update',
+            note: `Loan balance manual adjustment: ${loan.counterparty}`,
+            date: new Date().toISOString(),
+            loanId: loan.id,
+          }, userId, tx);
+        }
+      }
+
+      return loan;
     });
+
     this.eventEmitter.emit(FINANCE_EVENT.LOAN_UPDATED, { userId, loan });
     return loan;
   }

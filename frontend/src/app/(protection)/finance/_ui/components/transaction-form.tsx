@@ -12,27 +12,32 @@ import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
+import { getWallets, getLoans, getBudget } from "../../_actions/finance.actions";
+
 interface TransactionFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: any) => Promise<any>;
-  wallets: any[];
-  budgetBuckets: string[];
 }
 
 export function TransactionForm({
   isOpen,
   onClose,
   onSubmit,
-  wallets,
-  budgetBuckets,
 }: TransactionFormProps) {
   const t = useTranslations("Finance.transactionForm");
+  const [wallets, setWallets] = useState<any[]>([]);
+  const [loans, setLoans] = useState<any[]>([]);
+  const [budget, setBudget] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
   const [type, setType] = useState<TransactionType>(TransactionType.EXPENSE);
   const [amount, setAmount] = useState("");
   const [walletId, setWalletId] = useState("");
   const [toWalletId, setToWalletId] = useState("");
   const [category, setCategory] = useState("");
+  const [sourceType, setSourceType] = useState<"GENERAL" | "LOAN">("GENERAL");
+  const [loanId, setLoanId] = useState("");
   const [note, setNote] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,10 +45,34 @@ export function TransactionForm({
 
   useEffect(() => {
     if (isOpen) {
-      if (wallets.length > 0 && !walletId) setWalletId(wallets[0].id.toString());
-      if (budgetBuckets.length > 0 && !category) setCategory(budgetBuckets[0]);
+      const fetchData = async () => {
+        setIsLoading(true);
+        try {
+          const now = new Date();
+          const [w, l, b] = await Promise.all([
+            getWallets(),
+            getLoans(),
+            getBudget(now.getMonth() + 1, now.getFullYear())
+          ]);
+          setWallets(w || []);
+          setLoans(l || []);
+          setBudget(b);
+          
+          if (w && w.length > 0 && !walletId) setWalletId(w[0].id.toString());
+          
+          const incomeCats = b?.categories?.filter((c: any) => c.type === "INCOME").map((c: any) => c.name) || [];
+          const expenseCats = b?.categories?.filter((c: any) => c.type === "EXPENSE").map((c: any) => c.name) || [];
+          const currentCats = type === TransactionType.INCOME ? incomeCats : expenseCats;
+          if (currentCats.length > 0 && !category) setCategory(currentCats[0]);
+        } catch (error) {
+          console.error("Failed to fetch form data", error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchData();
     }
-  }, [isOpen, wallets, budgetBuckets, walletId, category]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -75,6 +104,7 @@ export function TransactionForm({
         walletId: parseInt(walletId),
         toWalletId: type === TransactionType.TRANSFER ? parseInt(toWalletId) : null,
         category: type === TransactionType.TRANSFER ? undefined : category,
+        loanId: sourceType === "LOAN" && loanId ? parseInt(loanId) : null,
         note,
         date: new Date(date).toISOString(),
       });
@@ -89,6 +119,8 @@ export function TransactionForm({
       setAmount("");
       setNote("");
       setToWalletId("");
+      setLoanId("");
+      setSourceType("GENERAL");
       setErrors({});
     } catch (error: any) {
       console.error(error);
@@ -97,6 +129,17 @@ export function TransactionForm({
       setIsSubmitting(false);
     }
   };
+
+  const incomeCategories = budget?.categories
+    ?.filter((c: any) => c.type === "INCOME")
+    ?.map((c: any) => c.name) || ["Salary", "Bonus", "Gift", "Interest", "Dividend", "Other"];
+
+  const expenseCategories = budget?.categories
+    ?.filter((c: any) => c.type === "EXPENSE")
+    ?.map((c: any) => c.name) || ["Food", "Chill", "Saving", "Investment", "Other"];
+
+  const currentCategories = type === TransactionType.INCOME ? incomeCategories : expenseCategories;
+  const activeReceivableLoans = loans.filter(l => l.type === 'RECEIVABLE' && l.status === 'ACTIVE');
 
   return (
     <AnimatePresence>
@@ -135,13 +178,19 @@ export function TransactionForm({
               </Button>
             </div>
 
+            {isLoading ? (
+               <div className="py-20 flex flex-col items-center justify-center gap-4">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  <p className="text-xs font-black uppercase tracking-widest text-gray-400">Synchronizing Data...</p>
+               </div>
+            ) : (
             <form onSubmit={handleSubmit} className="space-y-6" noValidate>
               {/* Type Switcher */}
               <div className="flex p-1 bg-gray-100 dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800">
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => setType(TransactionType.EXPENSE)}
+                  onClick={() => { setType(TransactionType.EXPENSE); setCategory(expenseCategories[0]); }}
                   className={cn(
                     "flex-1 flex items-center justify-center gap-2 py-6 rounded-xl font-bold text-sm transition-all",
                     type === TransactionType.EXPENSE 
@@ -154,7 +203,7 @@ export function TransactionForm({
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => setType(TransactionType.INCOME)}
+                  onClick={() => { setType(TransactionType.INCOME); setCategory(incomeCategories[0]); }}
                   className={cn(
                     "flex-1 flex items-center justify-center gap-2 py-6 rounded-xl font-bold text-sm transition-all",
                     type === TransactionType.INCOME 
@@ -221,12 +270,61 @@ export function TransactionForm({
                       label={t("category")}
                       value={category}
                       onChange={(val) => setCategory(val)}
-                      options={budgetBuckets.length > 0 ? [...budgetBuckets, "Other"] : ["Other"]}
+                      options={(() => {
+                        const baseOptions = currentCategories.length > 0 ? currentCategories : [];
+                        const uniqueOptions = Array.from(new Set([...baseOptions, "Other"]));
+                        return uniqueOptions;
+                      })()}
                       error={errors.category}
                     />
                   )}
                 </div>
               </div>
+
+              {/* Income Source Toggle */}
+              {type === TransactionType.INCOME && (
+                <div className="space-y-4">
+                   <div className="flex p-1 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-100 dark:border-gray-800">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSourceType("GENERAL")}
+                        className={cn(
+                          "flex-1 py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider transition-all",
+                          sourceType === "GENERAL" ? "bg-white dark:bg-gray-800 shadow-sm text-primary" : "text-gray-400"
+                        )}
+                      >
+                        General Income
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSourceType("LOAN")}
+                        className={cn(
+                          "flex-1 py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider transition-all",
+                          sourceType === "LOAN" ? "bg-white dark:bg-gray-800 shadow-sm text-primary" : "text-gray-400"
+                        )}
+                      >
+                        Loan Retrieval
+                      </Button>
+                   </div>
+
+                   {sourceType === "LOAN" && (
+                     <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+                        <CustomSelect
+                          id="loan-select"
+                          label="Select Receivable Loan"
+                          value={loanId}
+                          onChange={(val) => setLoanId(val)}
+                          options={activeReceivableLoans.map(l => ({ value: l.id.toString(), label: `${l.counterparty} (${new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(l.remaining)})` }))}
+                          error={errors.loan}
+                        />
+                     </motion.div>
+                   )}
+                </div>
+              )}
 
               {/* Date & Note */}
               <div className="grid grid-cols-2 gap-4">
@@ -261,6 +359,7 @@ export function TransactionForm({
                 )}
               </Button>
             </form>
+            )}
           </div>
         </motion.div>
       </div>

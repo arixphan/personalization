@@ -25,7 +25,7 @@ export class DashboardService {
       totalAssets,
       totalReceivables,
       totalPayables,
-      netWorth: totalCash + totalAssets + totalReceivables - totalPayables,
+      netWorth: totalCash + totalAssets,
     };
   }
 

@@ -197,6 +197,8 @@
     "netWorth": "Tổng Tài sản ròng",
     "liquidCash": "Tiền mặt",
     "totalAssets": "Tổng Tài sản",
+    "totalProperties": "Tổng bất động sản & tài sản",
+    "totalLoans": "Tổng khoản vay",
     "totalDebt": "Tổng Nợ",
     "wallets": "Ví",
     "manageWallets": "Quản lý Ví",
@@ -237,6 +239,8 @@
         "remaining": "Số tiền còn lại",
         "dueDate": "Hạn thanh toán",
         "note": "Ghi chú",
+        "wallet": "Ví ghi nhận giao dịch (Tùy chọn)",
+        "selectWallet": "Chọn một ví",
         "save": "Lưu Khoản vay"
       }
     },

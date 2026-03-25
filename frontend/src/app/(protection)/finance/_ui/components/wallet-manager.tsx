@@ -1,29 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Save, Plus, Trash2, Edit2, Loader2, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CustomInput } from "@/components/ui/input";
 import { motion, AnimatePresence } from "motion/react";
-import { createWallet, updateWallet, deleteWallet } from "../../_actions/finance.actions";
+import { createWallet, updateWallet, deleteWallet, getWallets } from "../../_actions/finance.actions";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
 interface WalletManagerProps {
   isOpen: boolean;
   onClose: () => void;
-  wallets: any[];
   onRefresh: () => void;
+  refreshKey?: number;
 }
 
 export function WalletManager({
   isOpen,
   onClose,
-  wallets,
   onRefresh,
+  refreshKey
 }: WalletManagerProps) {
   const t = useTranslations("Finance.walletManager");
+  const [wallets, setWallets] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState<number | null>(null);
+
+  const fetchWallets = async () => {
+    setIsLoading(true);
+    try {
+      const data = await getWallets();
+      setWallets(data || []);
+    } catch (error) {
+      console.error("Failed to fetch wallets", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchWallets();
+    }
+  }, [isOpen, refreshKey]);
   const [name, setName] = useState("");
   const [balance, setBalance] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -129,7 +149,11 @@ export function WalletManager({
             </div>
 
             <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-               {wallets.map(wallet => (
+               {isLoading ? (
+                  <div className="py-12 flex justify-center">
+                     <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  </div>
+               ) : wallets.map(wallet => (
                  <div key={wallet.id} className="p-4 rounded-3xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 group">
                     {isEditing === wallet.id ? (
                       <div className="space-y-4">

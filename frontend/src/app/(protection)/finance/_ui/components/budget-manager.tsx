@@ -24,7 +24,7 @@ import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-export function BudgetManager() {
+export function BudgetManager({ refreshKey }: { refreshKey?: number }) {
   const t = useTranslations("Finance.budget");
   const [budget, setBudget] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -60,7 +60,7 @@ export function BudgetManager() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [refreshKey]);
 
   const handleSaveBucket = async (e: React.FormEvent) => {
     e.preventDefault();

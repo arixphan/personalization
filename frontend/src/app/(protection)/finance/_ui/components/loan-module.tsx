@@ -5,11 +5,13 @@ import {
   getLoans, 
   createLoan,
   updateLoan,
-  deleteLoan
+  deleteLoan,
+  getWallets
 } from "../../_actions/finance.actions";
-import { Loader2, Plus, Calendar, ArrowRight, ArrowLeft, MoreVertical, X, Save, Trash2, Edit2, CheckCircle, HandCoins } from "lucide-react";
+import { Loader2, Plus, Calendar, ArrowRight, ArrowLeft, MoreVertical, X, Save, Trash2, Edit2, CheckCircle, HandCoins, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CustomInput } from "@/components/ui/input";
+import { CustomSelect } from "@/components/ui/input/custom-select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "motion/react";
@@ -17,9 +19,10 @@ import { useTranslations } from "next-intl";
 import { LoanType, LoanStatus } from "@personalization/shared";
 import { toast } from "sonner";
 
-export function LoanModule() {
+export function LoanModule({ refreshKey }: { refreshKey?: number }) {
   const t = useTranslations("Finance.loans");
   const [loans, setLoans] = useState<any[]>([]);
+  const [wallets, setWallets] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,21 +36,26 @@ export function LoanModule() {
   const [remaining, setRemaining] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [note, setNote] = useState("");
+  const [walletId, setWalletId] = useState("");
 
-  const fetchLoans = async () => {
+  const fetchData = async () => {
     try {
-      const data = await getLoans();
-      setLoans(data || []);
+      const [loansData, walletsData] = await Promise.all([
+        getLoans(),
+        getWallets()
+      ]);
+      setLoans(loansData || []);
+      setWallets(walletsData || []);
     } catch (error) {
-      console.error("Failed to fetch loans", error);
+      console.error("Failed to fetch data", error);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchLoans();
-  }, []);
+    fetchData();
+  }, [refreshKey]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +64,10 @@ export function LoanModule() {
     if (!counterparty.trim()) newErrors.counterparty = "Required";
     if (!principal) newErrors.principal = "Required";
     if (!remaining) newErrors.remaining = "Required";
+
+    if (parseFloat(remaining) > parseFloat(principal)) {
+      newErrors.remaining = "Remaining amount cannot exceed principal";
+    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -72,6 +84,7 @@ export function LoanModule() {
         remaining: parseFloat(remaining),
         dueDate: dueDate ? new Date(dueDate).toISOString() : null,
         note,
+        walletId: walletId ? parseInt(walletId) : null,
         status: parseFloat(remaining) === 0 ? LoanStatus.PAID_OFF : LoanStatus.ACTIVE
       };
 
@@ -84,7 +97,7 @@ export function LoanModule() {
       }
       setIsModalOpen(false);
       resetForm();
-      fetchLoans();
+      fetchData();
     } catch (error) {
       toast.error("Failed to save loan");
     } finally {
@@ -97,7 +110,7 @@ export function LoanModule() {
     try {
       await deleteLoan(id);
       toast.success("Loan deleted");
-      fetchLoans();
+      fetchData();
     } catch (error) {
       toast.error("Failed to delete loan");
     }
@@ -107,7 +120,7 @@ export function LoanModule() {
     try {
       await updateLoan(loan.id, { remaining: 0, status: LoanStatus.PAID_OFF });
       toast.success("Loan marked as paid off");
-      fetchLoans();
+      fetchData();
     } catch (error) {
       toast.error("Failed to update status");
     }
@@ -132,6 +145,7 @@ export function LoanModule() {
     setRemaining("");
     setDueDate("");
     setNote("");
+    setWalletId("");
     setErrors({});
   };
 
@@ -283,6 +297,20 @@ export function LoanModule() {
                    <div className="grid grid-cols-2 gap-4">
                       <DatePicker id="due-date" label={t("form.dueDate")} value={dueDate} onChange={setDueDate} />
                       <CustomInput id="note" label={t("form.note")} value={note} onChange={setNote} />
+                   </div>
+
+                   <div className="space-y-4">
+                      <div className="flex items-center gap-2 text-xs font-black text-gray-400 uppercase tracking-widest">
+                         <Wallet className="w-3.5 h-3.5" />
+                         {t("form.wallet")}
+                      </div>
+                      <CustomSelect 
+                        id="wallet-select" 
+                        label={t("form.selectWallet")} 
+                        value={walletId} 
+                        onChange={setWalletId} 
+                        options={wallets.map(w => ({ value: w.id.toString(), label: w.name }))} 
+                      />
                    </div>
 
                    <Button type="submit" disabled={isSubmitting} className="w-full h-14 rounded-2xl font-bold shadow-xl">

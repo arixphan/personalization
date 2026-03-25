@@ -1,29 +1,61 @@
-import { ArrowUpRight, ArrowDownLeft, Wallet, Landmark } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowUpRight, ArrowDownLeft, Wallet, Landmark, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "motion/react";
 import { format } from "date-fns";
 import { useTranslations } from "next-intl";
+import { getNetWorth, getWallets, getCashFlow, getTransactions } from "../../_actions/finance.actions";
 
 interface DashboardTabProps {
-  netWorthData: any;
-  wallets: any[];
-  cashFlowData: any[];
-  transactions: any[];
   formatCurrency: (amount: number) => string;
   setIsWalletModalOpen: (open: boolean) => void;
   setActiveTab: (tab: any) => void;
+  refreshKey?: number;
 }
 
 export function DashboardTab({
-  netWorthData,
-  wallets,
-  cashFlowData,
-  transactions,
   formatCurrency,
   setIsWalletModalOpen,
-  setActiveTab
+  setActiveTab,
+  refreshKey
 }: DashboardTabProps) {
   const t = useTranslations("Finance");
+  const [netWorthData, setNetWorthData] = useState<any>(null);
+  const [wallets, setWallets] = useState<any[]>([]);
+  const [cashFlowData, setCashFlowData] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchData = async () => {
+    try {
+      const [nw, w, cf, t_data] = await Promise.all([
+        getNetWorth(),
+        getWallets(),
+        getCashFlow(),
+        getTransactions()
+      ]);
+      setNetWorthData(nw);
+      setWallets(w);
+      setCashFlowData(cf);
+      setTransactions(t_data);
+    } catch (error) {
+      console.error("Failed to fetch dashboard data", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [refreshKey]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
             <div className="space-y-8">
@@ -44,16 +76,18 @@ export function DashboardTab({
                     
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-6 pt-6 border-t border-gray-800">
                        <div>
-                         <p className="text-gray-500 text-xs font-bold uppercase">{t("liquidCash")}</p>
+                         <p className="text-gray-500 text-xs font-bold uppercase">{t("wallets")}</p>
                          <p className="text-xl font-bold text-white">{formatCurrency(netWorthData?.totalCash || 0)}</p>
                        </div>
                        <div>
-                         <p className="text-gray-500 text-xs font-bold uppercase">{t("totalAssets")}</p>
+                         <p className="text-gray-500 text-xs font-bold uppercase">{t("totalProperties")}</p>
                          <p className="text-xl font-bold text-white">{formatCurrency(netWorthData?.totalAssets || 0)}</p>
                        </div>
                        <div>
-                         <p className="text-gray-500 text-xs font-bold uppercase">{t("totalDebt")}</p>
-                         <p className="text-xl font-bold text-red-400">{formatCurrency(netWorthData?.totalPayables || 0)}</p>
+                         <p className="text-gray-500 text-xs font-bold uppercase">{t("totalLoans")}</p>
+                         <p className={`text-xl font-bold ${(netWorthData?.totalReceivables || 0) - (netWorthData?.totalPayables || 0) >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                           {formatCurrency((netWorthData?.totalReceivables || 0) - (netWorthData?.totalPayables || 0))}
+                         </p>
                        </div>
                     </div>
                   </div>
