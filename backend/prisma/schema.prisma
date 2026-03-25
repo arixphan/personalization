@@ -32,6 +32,7 @@ model User {
   monthlyBudgets MonthlyBudget[]
   aiSettings     UserAiSettings?
   mindMaps       MindMap[]
+  progressTrackers ProgressTracker[]
 }
 
 model UserProfile {
@@ -378,4 +379,45 @@ model MindMapEdge {
   mindMap      MindMap  @relation(fields: [mindMapId], references: [id], onDelete: Cascade)
 
   @@index([mindMapId])
+}
+
+// Progress Tracking Module Models
+model ProgressTracker {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  title       String   @db.VarChar(255)
+  description String?  @db.Text
+  type        String   // "BOOK", "NOVEL", "LEARNING_PLAN", "GENERIC"
+  status      String   @default("IN_PROGRESS") // "IN_PROGRESS", "COMPLETED", "ON_HOLD", "DROPPED"
+  tags        String[] // For filtering and organization
+  
+  // For Range-based progress (Book/Novel/Generic)
+  currentValue Float?   @default(0)
+  totalValue   Float?
+  unit         String?  @default("unit") // "pages", "chapters", "%", etc.
+  
+  startDate   DateTime? @default(now())
+  endDate     DateTime?
+  lastUpdate  DateTime @default(now())
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  user        User     @relation(fields: [userId], references: [id])
+  items       ProgressItem[]
+}
+
+model ProgressItem {
+  id                Int             @id @default(autoincrement())
+  progressTrackerId Int
+  title             String          @db.VarChar(255)
+  isCompleted       Boolean         @default(false)
+  dueDate           DateTime?
+  completedAt       DateTime?
+  position          Int             @default(0)
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  progressTracker   ProgressTracker  @relation(fields: [progressTrackerId], references: [id], onDelete: Cascade)
 }

@@ -62,3 +62,28 @@ export const UserEndpoint = {
   skills: createRoute({ path: "user/profile/skills" }),
 };
 
+export const ProgressEndpoint = {
+  list: createRoute({ path: "progress" }),
+  create: createRoute({ path: "progress" }),
+  detail: createRoute({
+    path: "progress/:id",
+    params: z.object({ id: z.coerce.string() }),
+  }),
+  update: createRoute({
+    path: "progress/:id",
+    params: z.object({ id: z.coerce.string() }),
+  }),
+  delete: createRoute({
+    path: "progress/:id",
+    params: z.object({ id: z.coerce.string() }),
+  }),
+  updateItem: createRoute({
+    path: "progress/:id/items/:itemId",
+    params: z.object({ id: z.coerce.string(), itemId: z.coerce.string() }),
+  }),
+  addItem: createRoute({
+    path: "progress/:id/items",
+    params: z.object({ id: z.coerce.string() }),
+  }),
+};
+
