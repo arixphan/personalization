@@ -10,8 +10,8 @@ export interface AiStatus {
 
 export interface AiSettings {
   provider: string;
-  apiKey: string;
-  model: string;
+  apiKey?: string;
+  model?: string;
 }
 
 export interface Provider {

@@ -24,7 +24,7 @@ export default function AiConfigPage() {
   });
 
   const providers: Provider[] = [
-    { id: "google", name: "Google Gemini", defaultModel: "gemini-1.5-flash-latest" },
+    { id: "google", name: "Google Gemini", defaultModel: "gemini-3-flash-preview" },
     { id: "openai", name: "OpenAI GPT", defaultModel: "gpt-4o-mini" },
     { id: "anthropic", name: "Anthropic Claude", defaultModel: "claude-3-5-sonnet-latest" },
   ];
@@ -60,11 +60,16 @@ export default function AiConfigPage() {
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
+    const payload = { ...aiSettings };
+    if (payload.apiKey === "••••••••••••••••") {
+      delete payload.apiKey;
+    }
+
     try {
       const res = await fetch("/api/ai/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(aiSettings),
+        body: JSON.stringify(payload),
       });
       if (res.ok) {
         toast.success("AI Settings updated successfully");
