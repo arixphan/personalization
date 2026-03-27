@@ -368,15 +368,17 @@ model MindMapNode {
 }
 
 model MindMapEdge {
-  id           String   @id // XYFlow Edge ID
-  mindMapId    Int
-  source       String   // Source Node ID
-  target       String   // Target Node ID
-  label        String?
-  type         String?  @default("default")
-  animated     Boolean  @default(false)
-  style        Json?
-  mindMap      MindMap  @relation(fields: [mindMapId], references: [id], onDelete: Cascade)
+  id            String   @id // XYFlow Edge ID
+  mindMapId     Int
+  source        String   // Source Node ID
+  target        String   // Target Node ID
+  sourceHandle  String?  // ReactFlow handle ID on source
+  targetHandle  String?  // ReactFlow handle ID on target
+  label         String?
+  type          String?  @default("default")
+  animated      Boolean  @default(false)
+  style         Json?
+  mindMap       MindMap  @relation(fields: [mindMapId], references: [id], onDelete: Cascade)
 
   @@index([mindMapId])
 }

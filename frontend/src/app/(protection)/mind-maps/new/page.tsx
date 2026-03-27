@@ -38,6 +38,8 @@ export default function NewMindMapPage() {
           id: 'root',
           type: 'mindmap',
           position: { x: 250, y: 5 },
+          width: 150,
+          height: 50,
           data: { label: name },
         } as any);
       }

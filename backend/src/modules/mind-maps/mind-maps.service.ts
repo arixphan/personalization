@@ -7,45 +7,61 @@ export class MindMapService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(userId: number, dto: CreateMindMapDto) {
-    const { nodes = [], edges = [], ...metadata } = dto;
+    // metadata will contain name, description, etc.
+    // Explicitly exclude 'id' just in case it's passed from the client
+    const { nodes = [], edges = [], id: _id, ...metadata } = dto as any;
 
-    return this.prisma.mindMap.create({
-      data: {
-        ...metadata,
-        userId,
-        nodes: {
-          create: nodes.map(n => ({
-            id: n.id,
-            type: n.type,
-            positionX: n.positionX,
-            positionY: n.positionY,
-            data: n.data,
-            style: n.style,
-          })),
+    try {
+      // MindMapNode.id and MindMapEdge.id must be GLOBALLY unique in the current schema.
+      // We prepend a unique prefix to the user-provided IDs to avoid collisions between maps.
+      const prefix = Math.random().toString(36).substring(2, 7);
+
+      return await this.prisma.mindMap.create({
+        data: {
+          ...metadata,
+          userId,
+          nodes: {
+            create: nodes.map(n => ({
+              id: `${prefix}_${n.id}`, // Ensure global uniqueness
+              type: n.type,
+              positionX: n.positionX,
+              positionY: n.positionY,
+              data: n.data,
+              style: n.style,
+            })),
+          },
+          edges: {
+            create: edges.map(e => ({
+              id: `${prefix}_${e.id}`, // Ensure global uniqueness
+              source: `${prefix}_${e.source}`,
+              target: `${prefix}_${e.target}`,
+              sourceHandle: e.sourceHandle,
+              targetHandle: e.targetHandle,
+              label: e.label,
+              type: e.type,
+              animated: e.animated,
+              style: e.style,
+            })),
+          },
         },
-        edges: {
-          create: edges.map(e => ({
-            id: e.id,
-            source: e.source,
-            target: e.target,
-            label: e.label,
-            type: e.type,
-            animated: e.animated,
-            style: e.style,
-          })),
+        include: {
+          nodes: true,
+          edges: true,
         },
-      },
-      include: {
-        nodes: true,
-        edges: true,
-      },
-    });
+      });
+    } catch (error) {
+      console.error('MindMapService.create error:', error);
+      throw error;
+    }
   }
 
   async findAll(userId: number) {
     return this.prisma.mindMap.findMany({
       where: { userId },
       orderBy: { updatedAt: 'desc' },
+      include: {
+        _count: { select: { nodes: true } },
+      },
     });
   }
 
@@ -76,13 +92,11 @@ export class MindMapService {
 
     // 2. Handle Nodes (Sync)
     if (nodes) {
-      // Delete missing nodes
-      const nodeIds = nodes.map(n => n.id);
+      const nodeIds = nodes.map((n: any) => n.id);
       await this.prisma.mindMapNode.deleteMany({
         where: { mindMapId: id, id: { notIn: nodeIds } },
       });
 
-      // Upsert existing nodes
       for (const node of nodes) {
         await this.prisma.mindMapNode.upsert({
           where: { id: node.id },
@@ -108,7 +122,7 @@ export class MindMapService {
 
     // 3. Handle Edges (Sync)
     if (edges) {
-      const edgeIds = edges.map(e => e.id);
+      const edgeIds = edges.map((e: any) => e.id);
       await this.prisma.mindMapEdge.deleteMany({
         where: { mindMapId: id, id: { notIn: edgeIds } },
       });
@@ -119,6 +133,8 @@ export class MindMapService {
           update: {
             source: edge.source,
             target: edge.target,
+            sourceHandle: edge.sourceHandle,
+            targetHandle: edge.targetHandle,
             label: edge.label,
             type: edge.type,
             animated: edge.animated,
@@ -129,6 +145,8 @@ export class MindMapService {
             mindMapId: id,
             source: edge.source,
             target: edge.target,
+            sourceHandle: edge.sourceHandle,
+            targetHandle: edge.targetHandle,
             label: edge.label,
             type: edge.type,
             animated: edge.animated,

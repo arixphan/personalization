@@ -34,6 +34,14 @@ export class CreateMindMapEdgeDto {
 
   @IsString()
   @IsOptional()
+  sourceHandle?: string;
+
+  @IsString()
+  @IsOptional()
+  targetHandle?: string;
+
+  @IsString()
+  @IsOptional()
   label?: string;
 
   @IsString()

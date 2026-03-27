@@ -2,15 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { AiHeader } from "./_components/AiHeader";
-import { AiProviderSettings } from "./_components/AiProviderSettings";
-import { AiToolList } from "./_components/AiToolList";
-import { AiStatsSidebar } from "./_components/AiStatsSidebar";
+import { Bot, MessageSquare, Settings, CheckCircle2, AlertCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { AiChatTab } from "./_components/ai-chat-tab";
+import { AiSettingsTab } from "./_components/ai-settings-tab";
 import { AiStatus, AiSettings, Provider } from "./_components/types";
 
-
+type Tab = "chat" | "settings";
 
 export default function AiConfigPage() {
+  const [activeTab, setActiveTab] = useState<Tab>("chat");
   const [status, setStatus] = useState<AiStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -32,7 +33,7 @@ export default function AiConfigPage() {
     try {
       const [resStatus, resSettings] = await Promise.all([
         fetch("/api/ai/status"),
-        fetch("/api/ai/settings")
+        fetch("/api/ai/settings"),
       ]);
       const statusData = resStatus.ok ? await resStatus.json() : null;
       const settingsData = resSettings.ok ? await resSettings.json() : null;
@@ -45,7 +46,7 @@ export default function AiConfigPage() {
           model: settingsData.model || "",
         });
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to fetch AI configuration");
     } finally {
       setLoading(false);
@@ -71,7 +72,7 @@ export default function AiConfigPage() {
       } else {
         throw new Error("Failed to save");
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to save AI settings");
     } finally {
       setIsSaving(false);
@@ -88,38 +89,91 @@ export default function AiConfigPage() {
       } else {
         throw new Error("Sync failed");
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to start synchronization");
     } finally {
       setSyncing(false);
     }
   };
 
-  if (loading) return <div className="p-8 flex items-center justify-center">Loading AI Configuration...</div>;
+  if (loading) {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-3 text-muted-foreground">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          <span className="text-sm">Loading AI Configuration...</span>
+        </div>
+      </div>
+    );
+  }
+
+  const isActive = !!aiSettings.apiKey;
+
+  const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
+    { id: "chat", label: "AI Chat", icon: <MessageSquare size={16} /> },
+    { id: "settings", label: "Settings", icon: <Settings size={16} /> },
+  ];
 
   return (
-    <div className="p-8 max-w-6xl mx-auto space-y-8">
-      <AiHeader isActive={!!aiSettings.apiKey} />
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          <AiProviderSettings
-            settings={aiSettings}
-            providers={providers}
-            isSaving={isSaving}
-            onSettingsChange={setAiSettings}
-            onSave={handleSaveSettings}
-          />
-
-          <AiToolList status={status} />
+    <div className="p-8 max-w-6xl mx-auto space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <Bot className="w-8 h-8 text-blue-500" />
+            AI Assistant
+          </h1>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Chat with your AI assistant or configure your provider settings.
+          </p>
         </div>
+        {isActive ? (
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full text-sm font-medium">
+            <CheckCircle2 className="w-4 h-4" />
+            AI Assistant Active
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-full text-sm font-medium">
+            <AlertCircle className="w-4 h-4" />
+            Configuration Required
+          </div>
+        )}
+      </div>
 
-        <AiStatsSidebar
+      {/* Tabs */}
+      <div className="flex gap-1 p-1 bg-muted rounded-xl w-fit">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={cn(
+              "flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+              activeTab === tab.id
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {tab.icon}
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === "chat" ? (
+        <AiChatTab />
+      ) : (
+        <AiSettingsTab
+          aiSettings={aiSettings}
+          providers={providers}
+          isSaving={isSaving}
           status={status}
           syncing={syncing}
+          onSettingsChange={setAiSettings}
+          onSave={handleSaveSettings}
           onSync={handleSync}
         />
-      </div>
+      )}
     </div>
   );
 }

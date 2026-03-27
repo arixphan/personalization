@@ -1,20 +1,25 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { MindMapCanvas } from '../_ui/mind-map-canvas';
 import { ReactFlowProvider } from '@xyflow/react';
 import { ClientApiHandler } from '@/lib/client-api';
 import { toast } from 'sonner';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, Trash2, Check, X } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 export default function MindMapDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const [mindMap, setMindMap] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleValue, setTitleValue] = useState('');
+  const [deletingMap, setDeletingMap] = useState(false);
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
   const loadMindMap = useCallback(async () => {
     try {
@@ -24,6 +29,8 @@ export default function MindMapDetailPage() {
           id: n.id,
           type: n.type,
           position: { x: n.positionX, y: n.positionY },
+          width: n.data?.width,
+          height: n.data?.height,
           data: n.data,
           style: n.style,
         }));
@@ -31,14 +38,17 @@ export default function MindMapDetailPage() {
           id: e.id,
           source: e.source,
           target: e.target,
+          sourceHandle: e.sourceHandle,
+          targetHandle: e.targetHandle,
           label: e.label,
           type: e.type,
           animated: e.animated,
           style: e.style,
         }));
         setMindMap({ ...res.data, nodes, edges });
+        setTitleValue(res.data.name);
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to load mind map');
     } finally {
       setLoading(false);
@@ -48,6 +58,13 @@ export default function MindMapDetailPage() {
   useEffect(() => {
     loadMindMap();
   }, [loadMindMap]);
+
+  useEffect(() => {
+    if (editingTitle && titleInputRef.current) {
+      titleInputRef.current.focus();
+      titleInputRef.current.select();
+    }
+  }, [editingTitle]);
 
   const handleSave = async (nodes: any[], edges: any[]) => {
     try {
@@ -64,6 +81,8 @@ export default function MindMapDetailPage() {
           id: e.id,
           source: e.source,
           target: e.target,
+          sourceHandle: e.sourceHandle,
+          targetHandle: e.targetHandle,
           label: e.label,
           type: e.type,
           animated: e.animated,
@@ -71,35 +90,39 @@ export default function MindMapDetailPage() {
         })),
       });
       if (res.error) throw new Error(res.error);
-      toast.success('Mind map saved');
-    } catch (error) {
+    } catch {
       toast.error('Failed to save mind map');
     }
   };
 
-  const handleExpand = async (nodeId: string) => {
-    toast.info('AI is brainstorming sub-topics...');
+  const handleRenameCommit = async () => {
+    const trimmed = titleValue.trim();
+    if (!trimmed || trimmed === mindMap.name) {
+      setTitleValue(mindMap.name);
+      setEditingTitle(false);
+      return;
+    }
     try {
-      const res = await ClientApiHandler.post(`/mind-maps/${id}/expand`, {
-        nodeId,
-        context: { nodes: mindMap.nodes, edges: mindMap.edges },
-      });
+      await ClientApiHandler.patch(`/mind-maps/${id}`, { name: trimmed });
+      setMindMap((prev: any) => ({ ...prev, name: trimmed }));
+      toast.success('Renamed');
+    } catch {
+      toast.error('Failed to rename');
+      setTitleValue(mindMap.name);
+    }
+    setEditingTitle(false);
+  };
 
-      if (res.data) {
-        const { newNodes, newEdges } = res.data;
-
-        // Merge new data into local state
-        setMindMap(prev => ({
-          ...prev,
-          nodes: [...prev.nodes, ...newNodes],
-          edges: [...prev.edges, ...newEdges],
-        }));
-
-        toast.success('AI expansion complete!');
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error('AI expansion failed');
+  const handleDeleteMap = async () => {
+    if (!confirm(`Delete "${mindMap.name}"? This cannot be undone.`)) return;
+    setDeletingMap(true);
+    try {
+      await ClientApiHandler.delete(`/mind-maps/${id}`);
+      toast.success('Mind map deleted');
+      router.push('/mind-maps');
+    } catch {
+      toast.error('Failed to delete');
+      setDeletingMap(false);
     }
   };
 
@@ -111,41 +134,87 @@ export default function MindMapDetailPage() {
     );
   }
 
-  if (!mindMap) return (
-    <div className="flex flex-col h-screen items-center justify-center gap-4">
-      <p>Mind map not found</p>
-      <Link href="/mind-maps">
-        <Button variant="outline">Back to Gallery</Button>
-      </Link>
-    </div>
-  );
+  if (!mindMap) {
+    return (
+      <div className="flex flex-col h-screen items-center justify-center gap-4">
+        <p>Mind map not found</p>
+        <Link href="/mind-maps">
+          <Button variant="outline">Back to Gallery</Button>
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
-      <div className="p-4 border-b bg-background flex justify-between items-center px-6">
-        <div className="flex items-center gap-4">
+      {/* Header */}
+      <div className="p-4 border-b bg-background flex justify-between items-center px-6 gap-4">
+        <div className="flex items-center gap-3 min-w-0">
           <Link href="/mind-maps">
             <Button variant="ghost" size="icon">
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-xl font-bold tracking-tight">{mindMap.name}</h1>
+
+          {editingTitle ? (
+            <div className="flex items-center gap-1">
+              <Input
+                ref={titleInputRef}
+                value={titleValue}
+                onChange={e => setTitleValue(e.target.value)}
+                onBlur={handleRenameCommit}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') handleRenameCommit();
+                  if (e.key === 'Escape') {
+                    setTitleValue(mindMap.name);
+                    setEditingTitle(false);
+                  }
+                }}
+                className="text-xl font-bold h-9 w-64"
+              />
+              <Button size="icon" variant="ghost" className="h-8 w-8" onMouseDown={handleRenameCommit}>
+                <Check className="h-4 w-4 text-green-600" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8"
+                onMouseDown={() => { setTitleValue(mindMap.name); setEditingTitle(false); }}
+              >
+                <X className="h-4 w-4 text-destructive" />
+              </Button>
+            </div>
+          ) : (
+            <h1
+              className="text-xl font-bold tracking-tight cursor-pointer hover:text-primary transition-colors truncate"
+              title="Click to rename"
+              onClick={() => setEditingTitle(true)}
+            >
+              {mindMap.name}
+            </h1>
+          )}
         </div>
+
         <div className="flex items-center gap-2">
-          {/* <p className="text-xs text-muted-foreground mr-4 italic">Right-click any node to expand with AI</p> */}
-          <Button variant="outline" size="sm" onClick={() => loadMindMap()}>
-            Refresh
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleDeleteMap}
+            disabled={deletingMap}
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            {deletingMap ? 'Deleting…' : 'Delete'}
           </Button>
         </div>
       </div>
+
+      {/* Canvas */}
       <div className="flex-1 relative">
         <ReactFlowProvider>
           <MindMapCanvas
-            key={mindMap.nodes.length + mindMap.edges.length} // Force re-render on expand
             initialNodes={mindMap.nodes}
             initialEdges={mindMap.edges}
             onSave={handleSave}
-            onExpand={handleExpand}
           />
         </ReactFlowProvider>
       </div>
