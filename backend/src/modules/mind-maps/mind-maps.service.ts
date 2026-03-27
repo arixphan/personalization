@@ -164,4 +164,58 @@ export class MindMapService {
     await this.prisma.mindMap.delete({ where: { id: mindMap.id } });
     return { success: true };
   }
+
+  // --- Real-time WebSocket support ---
+
+  async updateNodePosition(nodeId: string, x: number, y: number) {
+    return this.prisma.mindMapNode.update({
+      where: { id: nodeId },
+      data: { positionX: x, positionY: y },
+    });
+  }
+
+  async updateNodeData(nodeId: string, data: any) {
+    return this.prisma.mindMapNode.update({
+      where: { id: nodeId },
+      data: { data },
+    });
+  }
+
+  async updateEdgeData(edgeId: string, data: any) {
+    return this.prisma.mindMapEdge.update({
+      where: { id: edgeId },
+      data: { style: data },
+    });
+  }
+
+  async createNode(mindMapId: number, node: any) {
+    return this.prisma.mindMapNode.create({
+      data: {
+        id: node.id,
+        mindMapId: mindMapId,
+        type: node.type,
+        positionX: node.position.x,
+        positionY: node.position.y,
+        data: node.data,
+        style: node.style,
+      },
+    });
+  }
+
+  async createEdge(mindMapId: number, edge: any) {
+    return this.prisma.mindMapEdge.create({
+      data: {
+        id: edge.id,
+        mindMapId: mindMapId,
+        source: edge.source,
+        target: edge.target,
+        sourceHandle: edge.sourceHandle,
+        targetHandle: edge.targetHandle,
+        label: edge.label,
+        type: edge.type,
+        animated: edge.animated,
+        style: edge.style,
+      },
+    });
+  }
 }

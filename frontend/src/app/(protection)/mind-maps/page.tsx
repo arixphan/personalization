@@ -108,7 +108,7 @@ export default function MindMapsPage() {
                 {/* Delete button — shown on hover */}
                 <button
                   onClick={e => handleDelete(e, map.id, map.name)}
-                  className="absolute top-3 right-3 p-1.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 text-destructive"
+                  className="absolute bottom-3 right-3 p-1.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 text-destructive"
                   title="Delete"
                 >
                   <Trash2 className="h-4 w-4" />

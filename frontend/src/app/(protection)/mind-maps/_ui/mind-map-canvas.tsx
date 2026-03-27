@@ -22,14 +22,90 @@ import {
 import '@xyflow/react/dist/style.css';
 import { MindMapNode } from './mind-map-node';
 import { MindMapContextMenu } from './mind-map-context-menu';
+import { BRANCH_COLORS, MindMapNodeData } from './mind-map-types';
+import { useMindMapSocket } from './use-mind-map-socket';
+import { MindMapSocketProvider } from './mind-map-socket-context';
 
 const nodeTypes = { mindmap: MindMapNode };
 const nodeOrigin: [number, number] = [0.5, 0];
 
+// ---------------------------------------------------------------------------
+// Branch coloring utility
+// ---------------------------------------------------------------------------
+
+/**
+ * BFS from the root (node with no incoming edges) to assign a branch color
+ * to every node and a matching stroke to every edge.
+ * Returns NEW node/edge arrays so React can detect the change.
+ */
+function applyBranchColors(nodes: Node[], edges: Edge[]): { nodes: Node[]; edges: Edge[] } {
+  if (nodes.length === 0) return { nodes, edges };
+
+  // Build adjacency (source → target) and in-degree maps
+  const children = new Map<string, string[]>();
+  const inDegree = new Map<string, number>();
+  nodes.forEach(n => { children.set(n.id, []); inDegree.set(n.id, 0); });
+  edges.forEach(e => {
+    children.get(e.source)?.push(e.target);
+    inDegree.set(e.target, (inDegree.get(e.target) ?? 0) + 1);
+  });
+
+  // Find root(s): nodes with no incoming edges
+  const roots = nodes.filter(n => (inDegree.get(n.id) ?? 0) === 0);
+
+  // BFS — assign colors
+  const nodeColor = new Map<string, string>();
+  const queue: { id: string; color: string | null }[] = roots.map(r => ({ id: r.id, color: null }));
+  let branchIndex = 0;
+
+  while (queue.length > 0) {
+    const { id, color } = queue.shift()!;
+
+    // Determine this node's color
+    let assignedColor = color;
+    if (assignedColor === null) {
+      // This is a root; give it a neutral color
+      assignedColor = '#64748b';
+    }
+    nodeColor.set(id, assignedColor);
+
+    const kids = children.get(id) ?? [];
+    kids.forEach((childId, idx) => {
+      // Direct children of roots each get a unique branch color
+      let childColor: string;
+      if (color === null) {
+        childColor = BRANCH_COLORS[branchIndex % BRANCH_COLORS.length];
+        branchIndex++;
+      } else {
+        childColor = assignedColor!;
+      }
+      queue.push({ id: childId, color: childColor });
+    });
+  }
+
+  const updatedNodes = nodes.map(n => {
+    const branchColor = nodeColor.get(n.id) ?? '#64748b';
+    const prevColor = (n.data as MindMapNodeData).branchColor;
+    if (prevColor === branchColor) return n; // no change
+    return { ...n, data: { ...n.data, branchColor } };
+  });
+
+  const updatedEdges = edges.map(e => {
+    const color = nodeColor.get(e.target) ?? nodeColor.get(e.source) ?? '#64748b';
+    const prevStroke = (e.style as React.CSSProperties | undefined)?.stroke;
+    if (prevStroke === color) return e;
+    return { ...e, style: { ...(e.style ?? {}), stroke: color, strokeWidth: 2 } };
+  });
+
+  return { nodes: updatedNodes, edges: updatedEdges };
+}
+
+// ---------------------------------------------------------------------------
+
 interface MindMapCanvasProps {
+  mindMapId: number;
   initialNodes?: Node[];
   initialEdges?: Edge[];
-  onSave?: (nodes: Node[], edges: Edge[]) => Promise<void> | void;
 }
 
 interface ContextMenuState {
@@ -39,86 +115,93 @@ interface ContextMenuState {
 }
 
 export function MindMapCanvas({
+  mindMapId,
   initialNodes = [],
   initialEdges = [],
-  onSave,
 }: MindMapCanvasProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const { screenToFlowPosition, deleteElements } = useReactFlow();
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
-  const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isFirstRender = useRef(true);
 
-  // Debounced auto-save: 1.5 s after any change
-  const scheduleSave = useCallback(
-    (currentNodes: Node[], currentEdges: Edge[]) => {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-      setIsDirty(true);
-      saveTimerRef.current = setTimeout(async () => {
-        if (!onSave) return;
-        setIsSaving(true);
-        try {
-          await onSave(currentNodes, currentEdges);
-        } finally {
-          setIsSaving(false);
-          setIsDirty(false);
-        }
-      }, 1500);
-    },
-    [onSave],
-  );
+  // --- WebSocket Integration ---
+  const handleNodeMoved = useCallback(({ nodeId, position }: { nodeId: string; position: { x: number; y: number } }) => {
+    setNodes(nds => nds.map(n => n.id === nodeId ? { ...n, position } : n));
+  }, [setNodes]);
 
-  useEffect(() => {
-    return () => {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    };
-  }, []);
+  const handleNodeUpdated = useCallback(({ nodeId, data }: { nodeId: string; data: any }) => {
+    setNodes(nds => nds.map(n => n.id === nodeId ? { ...n, data: { ...n.data, ...data } } : n));
+  }, [setNodes]);
+
+  const handleNodeAdded = useCallback((node: any) => {
+    setNodes(nds => nds.concat(node));
+  }, [setNodes]);
+
+  const handleNodeRemoved = useCallback(({ nodeId }: { nodeId: string }) => {
+    setNodes(nds => nds.filter(n => n.id !== nodeId));
+    setEdges(eds => eds.filter(e => e.source !== nodeId && e.target !== nodeId));
+  }, [setNodes, setEdges]);
+
+  const handleEdgeAdded = useCallback((edge: any) => {
+    setEdges(eds => eds.concat(edge));
+  }, [setEdges]);
+
+  const { emitNodeMove, emitNodeSave, emitNodeUpdate, emitNodeAdd, emitEdgeAdd, emitNodeRemove } = useMindMapSocket({
+    mindMapId,
+    onNodeMoved: handleNodeMoved,
+    onNodeUpdated: handleNodeUpdated,
+    onNodeAdded: handleNodeAdded,
+    onNodeRemoved: handleNodeRemoved,
+    onEdgeAdded: handleEdgeAdded,
+  });
+
+  const lastEmitTimeRef = useRef(0);
 
   const handleNodesChange = useCallback(
     (changes: NodeChange[]) => {
       onNodesChange(changes);
-      if (isFirstRender.current) {
-        isFirstRender.current = false;
-        return;
-      }
-      // Skip dimension-only changes (caused by NodeResizer initialisation)
-      const meaningful = changes.some(c => c.type !== 'dimensions' && c.type !== 'select');
-      if (meaningful) {
-        setNodes(nds => {
-          scheduleSave(nds, edges);
-          return nds;
+
+      // Throttle movement sync to ~30fps (32ms) to reduce lag
+      const now = Date.now();
+      if (now - lastEmitTimeRef.current > 32) {
+        changes.forEach(change => {
+          if (change.type === 'position' && change.position) {
+            emitNodeMove(change.id, change.position);
+          }
         });
+        lastEmitTimeRef.current = now;
       }
     },
-    [onNodesChange, edges, scheduleSave, setNodes],
+    [onNodesChange, emitNodeMove],
+  );
+
+  const onNodeDragStop = useCallback(
+    (_: any, node: Node) => {
+      // Persist the final position to the database only when the drag ends
+      emitNodeSave(node.id, node.position);
+    },
+    [emitNodeSave],
   );
 
   const handleEdgesChange = useCallback(
     (changes: EdgeChange[]) => {
       onEdgesChange(changes);
-      const meaningful = changes.some(c => c.type !== 'select');
-      if (meaningful) {
-        setEdges(eds => {
-          scheduleSave(nodes, eds);
-          return eds;
-        });
-      }
+      // Edge deletions can be added here if needed
     },
-    [onEdgesChange, nodes, scheduleSave, setEdges],
+    [onEdgesChange],
   );
 
   const onConnect = useCallback(
     (params: Connection) => {
       setEdges(eds => {
         const newEdges = addEdge(params, eds);
-        scheduleSave(nodes, newEdges);
+        const addedEdge = newEdges[newEdges.length - 1];
+        emitEdgeAdd(addedEdge); // Sync new connection
         return newEdges;
       });
     },
-    [setEdges, nodes, scheduleSave],
+    [setEdges, emitEdgeAdd],
   );
 
   const onConnectEnd = useCallback(
@@ -139,9 +222,8 @@ export function MindMapCanvas({
         };
 
         const isFromTarget = connectionState.fromHandle.type === 'target';
-        
-        // Pick a logical counterpart handle
-        let targetHandle = 'target-top'; // default
+
+        let targetHandle = 'target-top';
         if (connectionState.fromHandle.id.includes('left')) targetHandle = 'target-right';
         else if (connectionState.fromHandle.id.includes('right')) targetHandle = 'target-left';
         else if (connectionState.fromHandle.id.includes('bottom')) targetHandle = 'target-top';
@@ -159,14 +241,15 @@ export function MindMapCanvas({
           const updated = nds.concat(newNode);
           setEdges(eds => {
             const updatedEdges = eds.concat(newEdge);
-            scheduleSave(updated, updatedEdges);
             return updatedEdges;
           });
+          emitNodeAdd(newNode);
+          emitEdgeAdd(newEdge);
           return updated;
         });
       }
     },
-    [screenToFlowPosition, setNodes, setEdges, scheduleSave],
+    [screenToFlowPosition, setNodes, setEdges, emitNodeAdd, emitEdgeAdd],
   );
 
   const onNodesDelete = useCallback(
@@ -187,13 +270,13 @@ export function MindMapCanvas({
             })),
           );
           remainingNodes = remainingNodes.filter(rn => rn.id !== node.id);
+          emitNodeRemove(node.id); // Broadcast removal
           return [...remainingEdges, ...createdEdges];
         }, acc);
-        scheduleSave(remainingNodes, result);
         return result;
       });
     },
-    [nodes, setEdges, scheduleSave],
+    [nodes, setEdges, emitNodeRemove],
   );
 
   const onNodeContextMenu = useCallback((event: React.MouseEvent, node: Node) => {
@@ -211,71 +294,78 @@ export function MindMapCanvas({
     [nodes, deleteElements],
   );
 
-  const processedNodes = useMemo(
-    () => nodes.map(n => ({ ...n, type: 'mindmap' })),
-    [nodes],
-  );
+  const onPaneClick = useCallback((event: React.MouseEvent) => {
+    setContextMenu(null);
 
-  const handleManualSave = async () => {
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    setIsSaving(true);
-    try {
-      await onSave?.(nodes, edges);
-      setIsDirty(false);
-    } finally {
-      setIsSaving(false);
+    // Detect double-click (event.detail counts sequential clicks)
+    if (event.detail === 2) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const id = `node_${Date.now()}`;
+      const newNode: Node = {
+        id,
+        type: 'mindmap',
+        position: screenToFlowPosition({ x: event.clientX, y: event.clientY }),
+        data: { label: 'New Idea' },
+        width: 150,
+        height: 50,
+        origin: [0.5, 0.0],
+      };
+
+      setNodes(nds => {
+        const updated = nds.concat(newNode);
+        emitNodeAdd(newNode); // Sync new node
+        return updated;
+      });
     }
-  };
+  }, [screenToFlowPosition, setNodes, emitNodeAdd]);
+
+  // Apply branch colors + force type = 'mindmap'
+  const { nodes: coloredNodes, edges: coloredEdges } = useMemo(() => {
+    const typed = nodes.map(n => ({ ...n, type: 'mindmap' }));
+    return applyBranchColors(typed, edges);
+  }, [nodes, edges]);
+
 
   return (
-    <div style={{ width: '100%', height: 'calc(100vh - 120px)' }} className="relative">
-      <ReactFlow
-        nodes={processedNodes}
-        edges={edges}
-        onNodesChange={handleNodesChange}
-        onNodesDelete={onNodesDelete}
-        onEdgesChange={handleEdgesChange}
-        onConnect={onConnect}
-        onConnectEnd={onConnectEnd}
-        onNodeContextMenu={onNodeContextMenu}
-        onPaneClick={() => setContextMenu(null)}
-        nodeTypes={nodeTypes}
-        nodeOrigin={nodeOrigin}
-        fitView
-        deleteKeyCode={['Backspace', 'Delete']}
-      >
-        <Background />
-        <Controls />
-        <MiniMap />
-      </ReactFlow>
-
-      {/* Status + Save button */}
-      <div className="absolute bottom-4 right-4 flex items-center gap-2">
-        {isDirty && !isSaving && (
-          <span className="text-xs text-muted-foreground italic">Unsaved changes</span>
-        )}
-        {isSaving && (
-          <span className="text-xs text-muted-foreground italic">Saving…</span>
-        )}
-        <button
-          onClick={handleManualSave}
-          disabled={isSaving}
-          className="bg-primary text-primary-foreground px-4 py-2 rounded-md shadow-md text-sm font-medium disabled:opacity-60 hover:bg-primary/90 transition-colors"
+    <MindMapSocketProvider value={{ emitNodeMove, emitNodeSave, emitNodeUpdate, emitNodeAdd, emitEdgeAdd, emitNodeRemove }}>
+      <div style={{ width: '100%', height: 'calc(100vh - 120px)' }} className="relative group">
+        <ReactFlow
+          nodes={coloredNodes}
+          edges={coloredEdges}
+          onNodesChange={handleNodesChange}
+          onNodesDelete={onNodesDelete}
+          onNodeDragStop={onNodeDragStop}
+          onEdgesChange={handleEdgesChange}
+          onConnect={onConnect}
+          onConnectEnd={onConnectEnd}
+          onNodeContextMenu={onNodeContextMenu}
+          onPaneClick={onPaneClick}
+          nodeTypes={nodeTypes}
+          nodeOrigin={nodeOrigin}
+          fitView
+          deleteKeyCode={['Backspace', 'Delete']}
         >
-          Save
-        </button>
-      </div>
+          <Background />
+          <Controls />
+          <MiniMap
+            nodeColor={node => (node.data as MindMapNodeData).branchColor ?? '#94a3b8'}
+            maskColor="rgba(0,0,0,0.05)"
+          />
+        </ReactFlow>
 
-      {/* Context menu */}
-      {contextMenu && (
-        <MindMapContextMenu
-          x={contextMenu.x}
-          y={contextMenu.y}
-          nodeId={contextMenu.nodeId}
-          onDelete={handleDeleteNode}
-          onClose={() => setContextMenu(null)}
-        />
-      )}
-    </div>
+        {/* Context menu */}
+        {contextMenu && (
+          <MindMapContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            nodeId={contextMenu.nodeId}
+            onDelete={handleDeleteNode}
+            onClose={() => setContextMenu(null)}
+          />
+        )}
+      </div>
+    </MindMapSocketProvider>
   );
 }

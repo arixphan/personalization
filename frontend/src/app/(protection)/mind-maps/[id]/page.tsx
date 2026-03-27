@@ -66,35 +66,6 @@ export default function MindMapDetailPage() {
     }
   }, [editingTitle]);
 
-  const handleSave = async (nodes: any[], edges: any[]) => {
-    try {
-      const res = await ClientApiHandler.patch(`/mind-maps/${id}`, {
-        nodes: nodes.map(n => ({
-          id: n.id,
-          type: n.type,
-          positionX: n.position.x,
-          positionY: n.position.y,
-          data: n.data,
-          style: n.style,
-        })),
-        edges: edges.map(e => ({
-          id: e.id,
-          source: e.source,
-          target: e.target,
-          sourceHandle: e.sourceHandle,
-          targetHandle: e.targetHandle,
-          label: e.label,
-          type: e.type,
-          animated: e.animated,
-          style: e.style,
-        })),
-      });
-      if (res.error) throw new Error(res.error);
-    } catch {
-      toast.error('Failed to save mind map');
-    }
-  };
-
   const handleRenameCommit = async () => {
     const trimmed = titleValue.trim();
     if (!trimmed || trimmed === mindMap.name) {
@@ -212,9 +183,9 @@ export default function MindMapDetailPage() {
       <div className="flex-1 relative">
         <ReactFlowProvider>
           <MindMapCanvas
+            mindMapId={Number(id)}
             initialNodes={mindMap.nodes}
             initialEdges={mindMap.edges}
-            onSave={handleSave}
           />
         </ReactFlowProvider>
       </div>
