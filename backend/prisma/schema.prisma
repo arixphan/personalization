@@ -33,6 +33,8 @@ model User {
   aiSettings     UserAiSettings?
   mindMaps       MindMap[]
   progressTrackers ProgressTracker[]
+  englishRecords EnglishRecord[]
+  englishWritings EnglishWriting[]
 }
 
 model UserProfile {
@@ -422,4 +424,45 @@ model ProgressItem {
   updatedAt         DateTime        @updatedAt
   
   progressTracker   ProgressTracker  @relation(fields: [progressTrackerId], references: [id], onDelete: Cascade)
+}
+
+// English Learning Module Models
+enum EnglishRecordType {
+  WORD
+  PHRASE
+  GRAMMAR
+  SENTENCE
+}
+
+model EnglishRecord {
+  id              Int               @id @default(autoincrement())
+  userId          Int
+  type            EnglishRecordType @default(WORD)
+  content         String            @db.Text
+  definition      String?           @db.Text
+  translation     String?           @db.Text
+  example         String?           @db.Text
+  note            String?           @db.Text
+  tags            String[]
+  masteryLevel    Int               @default(0)
+  lastReviewedAt  DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+}
+
+model EnglishWriting {
+  id              Int               @id @default(autoincrement())
+  userId          Int
+  content         String            @db.Text
+  feedback        Json?             // { score: number, corrections: [], enhancedVersion: string, suggestions: [] }
+  title           String?           @db.VarChar(255)
+  wordCount       Int               @default(0)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }

@@ -31,6 +31,7 @@ import {
   MindMapModule,
   AppConfigModule,
   ProgressModule,
+  EnglishLearningModule,
 } from './modules';
 import { TradingModule } from './modules/trading/trading.module';
 
@@ -69,6 +70,7 @@ import { TradingModule } from './modules/trading/trading.module';
     MindMapModule,
     AppConfigModule,
     ProgressModule,
+    EnglishLearningModule,
     I18nModule.forRoot({
       fallbackLanguage: 'en',
       loaderOptions: {

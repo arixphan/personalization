@@ -11,3 +11,4 @@ export { MindMapModule } from './mind-maps/mind-maps.module';
 export { AiModule } from './ai/ai.module';
 export { AppConfigModule, AppConfigService } from './config/index';
 export { ProgressModule } from './progress/progress.module';
+export { EnglishLearningModule } from './english-learning/english-learning.module';

@@ -87,3 +87,24 @@ export const ProgressEndpoint = {
   }),
 };
 
+export const EnglishLearningEndpoint = {
+  list: createRoute({ path: "english-learning" }),
+  random: createRoute({ path: "english-learning/random" }),
+  aiAssist: createRoute({ path: "english-learning/ai-assist" }),
+  create: createRoute({ path: "english-learning" }),
+  update: createRoute({
+    path: "english-learning/:id",
+    params: z.object({ id: z.coerce.string() }),
+  }),
+  delete: createRoute({
+    path: "english-learning/:id",
+    params: z.object({ id: z.coerce.string() }),
+  }),
+  listWritings: createRoute({ path: "english-learning/writings" }),
+  createWriting: createRoute({ path: "english-learning/writings" }),
+  writingDetail: createRoute({
+    path: "english-learning/writings/:id",
+    params: z.object({ id: z.coerce.string() }),
+  }),
+};
+
