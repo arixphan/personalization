@@ -71,9 +71,6 @@ export class TicketsService {
         phase: phaseId ? { connect: { id: phaseId } } : undefined,
       };
 
-      this.logger.debug(
-        `Prisma ticket create data: ${JSON.stringify(ticketData)}`,
-      );
       const ticket = await this.ticketsRepository.create(ticketData);
       this.logger.log(`Ticket created successfully: ${ticket.id}`);
       return ticket;
@@ -119,9 +116,6 @@ export class TicketsService {
         }
       }
 
-      this.logger.debug(
-        `Prisma ticket update data: ${JSON.stringify(updateData)}`,
-      );
       return await this.ticketsRepository.update(id, updateData);
     } catch (error) {
       this.logger.error(`Failed to update ticket ${id}`, error);

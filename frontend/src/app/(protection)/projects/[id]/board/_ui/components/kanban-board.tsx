@@ -1,23 +1,6 @@
 "use client";
-import React, { useState } from "react";
-
-import {
-  Search,
-  Plus,
-  Play,
-  Pause,
-  CheckCircle,
-  MoreHorizontal,
-  Calendar,
-  Users,
-  Target,
-  Clock,
-  AlertCircle,
-  Settings,
-  X,
-} from "lucide-react";
+import React, { useState, useRef } from "react";
 import { useTheme } from "next-themes";
-import { AnimatePresence, motion } from "motion/react";
 import {
   DndContext,
   closestCorners,
@@ -29,18 +12,15 @@ import {
   DragOverEvent,
   DragStartEvent,
   DragOverlay,
-  defaultDropAnimationSideEffects,
 } from '@dnd-kit/core';
 import {
   SortableContext,
   sortableKeyboardCoordinates,
-  horizontalListSortingStrategy,
   arrayMove,
 } from '@dnd-kit/sortable';
 import { KanbanColumn } from '../kanban-column';
 import { KanbanCard, type Ticket } from '../../../_ui/components/kanban-card';
 import { updateTicket } from '../../../../_actions/ticket';
-import { updateProject } from '../../../../_actions/project';
 import { toast } from 'sonner';
 
 interface KanbanBoardProps {
@@ -61,13 +41,8 @@ interface KanbanBoardProps {
   typeFilter: string;
 }
 
-const KanbanBoard: React.FC<KanbanBoardProps> = ({
+const KanbanBoardComponent: React.FC<KanbanBoardProps> = ({
   projectId,
-  projectName,
-  projectStatus,
-  onStatusChange,
-  onEndPhase,
-  onShowSettings,
   onTicketClick,
   initialTickets,
   columns: initialColumns,
@@ -75,7 +50,6 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
   onTicketsChange,
   searchQuery,
   priorityFilter,
-  assigneeFilter = "all",
   typeFilter,
 }) => {
   const { theme } = useTheme();
@@ -84,15 +58,37 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const [columns, setColumns] = React.useState<string[]>(initialColumns);
   const [activeId, setActiveId] = useState<string | number | null>(null);
   const [activeType, setActiveType] = useState<'column' | 'ticket' | null>(null);
+  const [isPendingParentSync, setIsPendingParentSync] = useState(false);
 
-  // Sync state with props when they change (e.g. after a full re-fetch)
+  // Use a ref to guarantee we always read the absolute latest state in handleDragEnd
+  // regardless of React's render cycle timing.
+  const ticketsRef = useRef<Ticket[]>(tickets);
+  
   React.useEffect(() => {
-    // Only update if the length or IDs have changed to avoid resetting optimistic updates
-    if (initialTickets.length !== tickets.length || 
-        JSON.stringify(initialTickets.map(t => t.id)) !== JSON.stringify(tickets.map(t => t.id))) {
+    ticketsRef.current = tickets;
+  }, [tickets]);
+
+  React.useEffect(() => {
+    // If we are dragging, ignore external updates to avoid reverting the drag visually
+    if (activeId) return;
+
+    const incomingHash = JSON.stringify(initialTickets);
+    const localHash = JSON.stringify(tickets);
+
+    // If we are waiting for the parent to process our drag update...
+    if (isPendingParentSync) {
+      if (incomingHash === localHash) {
+        // Parent has caught up to our drag! We can resume normal syncing.
+        setIsPendingParentSync(false);
+      }
+      return; 
+    }
+
+    // Normal sync: if incoming props differ from local state (e.g. from modal save), sync them.
+    if (incomingHash !== localHash) {
       setTickets(initialTickets);
     }
-  }, [initialTickets]);
+  }, [initialTickets, activeId, isPendingParentSync, tickets]);
 
   React.useEffect(() => {
     if (JSON.stringify(initialColumns) !== JSON.stringify(columns)) {
@@ -102,9 +98,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8, // Increase distance to better distinguish between click and drag
-      },
+      activationConstraint: { distance: 8 },
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
@@ -124,42 +118,55 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
     const activeId = active.id;
     const overId = over.id;
-
     if (activeId === overId) return;
 
-    // Moving a ticket across columns
     const isActiveATicket = typeof activeId === 'number';
     const isOverAColumn = typeof overId === 'string';
+    if (!isActiveATicket) return;
 
-    if (isActiveATicket) {
-      setTickets((prev) => {
-        const activeIndex = prev.findIndex((t) => t.id === activeId);
-        const overIndex = prev.findIndex((t) => t.id === overId);
-        
-        if (activeIndex === -1) return prev;
+    setTickets((prev) => {
+      const activeIndex = prev.findIndex((t) => t.id === activeId);
+      if (activeIndex === -1) return prev;
 
-        const activeTicket = prev[activeIndex];
-        let newStatus = activeTicket.status;
+      const activeTicket = prev[activeIndex];
+      const overData = over.data.current as { type?: string; status?: string } | undefined;
 
-        if (isOverAColumn) {
-          newStatus = overId as string;
-        } else {
-          const overTicket = prev.find((t) => t.id === overId);
-          if (overTicket) newStatus = overTicket.status;
-        }
+      let newStatus: string;
 
-        // If we moved within the same column or to a new column, update array order and status
-        if (activeTicket.status !== newStatus || activeIndex !== overIndex) {
-          const targetIndex = overIndex === -1 ? prev.length - 1 : overIndex;
-          const reordered = arrayMove(prev, activeIndex, targetIndex);
-          return reordered.map((t) => 
-            t.id === activeId ? { ...t, status: newStatus } : t
-          );
-        }
+      if (isOverAColumn) {
+        // Dropped over the column background
+        newStatus = overId as string;
+      } else if (overData?.status) {
+        // Dropped over a ticket that carries its status in metadata
+        newStatus = overData.status;
+      } else {
+        // Last resort: look up the ticket's current status in state
+        const overTicket = prev.find((t) => t.id === overId);
+        newStatus = overTicket ? overTicket.status : activeTicket.status;
+      }
 
-        return prev;
-      });
-    }
+      // Guard: never assign an empty status
+      if (!newStatus) return prev;
+
+      const overIndex = prev.findIndex((t) => t.id === overId);
+
+      if (activeTicket.status === newStatus && activeIndex === overIndex) return prev;
+
+      let targetIndex: number;
+      if (isOverAColumn) {
+        // Place at end of the target column's section in the flat array
+        const lastInColumn = prev.reduce((last, t, idx) =>
+          t.status === newStatus ? idx : last, -1);
+        targetIndex = lastInColumn === -1 ? prev.length - 1 : lastInColumn;
+      } else {
+        targetIndex = overIndex === -1 ? prev.length - 1 : overIndex;
+      }
+
+      const reordered = arrayMove(prev, activeIndex, targetIndex);
+      return reordered.map((t) =>
+        t.id === activeId ? { ...t, status: newStatus } : t
+      );
+    });
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -169,51 +176,68 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
     if (!over) return;
 
-    // Settling Ticket Movement
-    if (typeof activeId === 'number') {
-      const ticketId = activeId;
-      // We expect the array order and status to be correct from handleDragOver
-      const finalTicket = tickets.find((t) => t.id === ticketId);
-      if (!finalTicket) return;
+    const isActiveATicket = typeof active.id === 'number';
+    if (!isActiveATicket) return;
 
-      const columnId = finalTicket.status;
-      const columnTickets = tickets.filter(t => t.status === columnId);
-      
-      const newIndex = columnTickets.findIndex(t => t.id === ticketId);
-      const prevTicket = columnTickets[newIndex - 1];
-      const nextTicket = columnTickets[newIndex + 1];
-      
-      let newPosition: number;
-      
-      if (!prevTicket && !nextTicket) {
-        newPosition = 1024;
-      } else if (!prevTicket) {
-        newPosition = (nextTicket.position || 0) - 1000;
-      } else if (!nextTicket) {
-        newPosition = (prevTicket.position || 0) + 1000;
-      } else {
-        newPosition = ((prevTicket.position || 0) + (nextTicket.position || 0)) / 2;
-      }
+    const ticketId = active.id as number;
+    
+    // Read from ticketsRef for absolute latest state instantly after onDragOver
+    const currentTickets = ticketsRef.current;
+    const finalTicket = currentTickets.find((t) => t.id === ticketId);
+    if (!finalTicket) return;
 
-      // Find the ORIGINAL ticket to compare
-      const initialTicket = initialTickets.find((t) => t.id === ticketId);
-      
-      // Update local state and parent state with the final precise position
-      const updatedTickets = tickets.map(t => t.id === ticketId ? { ...t, position: newPosition } : t);
-      setTickets(updatedTickets);
-      onTicketsChange?.(updatedTickets);
+    // Defensively calculate finalStatus from the drop target data, not just local state.
+    let finalStatus = finalTicket.status;
+    const overData = over.data.current as { type?: string; status?: string } | undefined;
+    const isOverAColumn = typeof over.id === 'string';
 
-      if (initialTicket && (initialTicket.status !== finalTicket.status || initialTicket.position !== newPosition)) {
-        try {
-          const result = await updateTicket(ticketId, { 
-            status: finalTicket.status,
-            position: newPosition 
-          }, parseInt(projectId));
-          if (result.error) throw new Error(result.error);
-        } catch (error) {
-          setTickets(initialTickets);
-          toast.error('Failed to update ticket position');
-        }
+    if (isOverAColumn) {
+      finalStatus = over.id as string;
+    } else if (overData?.status) {
+      finalStatus = overData.status;
+    } else {
+      const overTicket = currentTickets.find((t) => t.id === over.id);
+      if (overTicket) finalStatus = overTicket.status;
+    }
+
+    if (!finalStatus) finalStatus = finalTicket.status;
+
+    const columnTickets = currentTickets.filter(t => t.status === finalStatus);
+    const newIndex = columnTickets.findIndex(t => t.id === ticketId);
+    const prevTicket = columnTickets[newIndex - 1];
+    const nextTicket = columnTickets[newIndex + 1];
+
+    let newPosition: number;
+    if (!prevTicket && !nextTicket) {
+      newPosition = 1024;
+    } else if (!prevTicket) {
+      newPosition = (nextTicket.position || 1024) - 1000;
+    } else if (!nextTicket) {
+      newPosition = (prevTicket.position || 1024) + 1000;
+    } else {
+      newPosition = ((prevTicket.position || 0) + (nextTicket.position || 0)) / 2;
+    }
+
+    const updatedTickets = currentTickets.map(t => 
+      t.id === ticketId ? { ...t, status: finalStatus, position: newPosition } : t
+    );
+    
+    // Set pending lock to prevent stale incoming props from reverting this drag
+    setIsPendingParentSync(true);
+    setTickets(updatedTickets);
+    onTicketsChange?.(updatedTickets);
+
+    const originalTicket = initialTickets.find((t) => t.id === ticketId);
+    if (originalTicket && (originalTicket.status !== finalStatus || originalTicket.position !== newPosition)) {
+      try {
+        const result = await updateTicket(ticketId, {
+          status: finalStatus,
+          position: newPosition
+        }, parseInt(projectId));
+        if (result.error) throw new Error(result.error);
+      } catch {
+        setTickets(initialTickets);
+        toast.error('Failed to update ticket position');
       }
     }
   };
@@ -223,8 +247,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
       ticket.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (ticket.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       ticket.id.toString().includes(searchQuery.toLowerCase());
-    const matchesPriority =
-      priorityFilter === "all" || ticket.priority === priorityFilter;
+    const matchesPriority = priorityFilter === "all" || ticket.priority === priorityFilter;
     const matchesType = typeFilter === "all" || ticket.type === typeFilter;
     return matchesSearch && matchesPriority && matchesType;
   });
@@ -263,7 +286,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
           <DragOverlay>
             {activeId ? (
               activeType === 'column' && activeColumn ? (
-                 <KanbanColumn
+                <KanbanColumn
                   id={activeColumn.id}
                   title={activeColumn.title}
                   tickets={filteredTickets.filter((t) => t.status === activeColumn.id)}
@@ -285,4 +308,5 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
   );
 };
 
+const KanbanBoard = React.memo(KanbanBoardComponent);
 export default KanbanBoard;

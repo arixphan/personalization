@@ -76,7 +76,9 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent>{formattedOptions}</SelectContent>
+        <SelectContent>
+          {formattedOptions}
+        </SelectContent>
       </Select>
       {error && (
         <p id={errorId} className="mt-1 text-sm text-red-500">

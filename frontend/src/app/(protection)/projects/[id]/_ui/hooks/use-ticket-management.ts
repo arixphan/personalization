@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Ticket } from "../components/kanban-card";
 import { createTicket, updateTicket, deleteTicket, getTicketsByProject } from "../../../_actions/ticket";
 import { toast } from "sonner";
@@ -22,10 +22,28 @@ export const useTicketManagement = ({
     (initialTickets || []).filter(Boolean)
   );
 
+  // Prop-to-State Sync: Ensure hook state refreshes if parent props change (e.g. server revalidation)
+  // This is crucial for board reliability after saves.
+  useEffect(() => {
+    if (initialTickets && initialTickets.length > 0) {
+      setTickets(prev => {
+        // Only update if it's actually different from what we have
+        if (JSON.stringify(prev) !== JSON.stringify(initialTickets)) {
+          return (initialTickets || []).filter(Boolean);
+        }
+        return prev;
+      });
+    }
+  }, [initialTickets]);
+
   const refreshTickets = useCallback(async () => {
-    const result = await getTicketsByProject(projectId);
-    if (!result.error && result.data) {
-      setTickets((result.data as Ticket[]).filter(Boolean));
+    try {
+      const result = await getTicketsByProject(projectId);
+      if (!result.error && result.data && Array.isArray(result.data)) {
+        setTickets((result.data as Ticket[]).filter(t => t && t.id));
+      }
+    } catch (err) {
+      console.error("Failed to refresh tickets:", err);
     }
   }, [projectId]);
 
@@ -59,23 +77,48 @@ export const useTicketManagement = ({
   }, []);
 
   const handleSaveTicket = async (data: Partial<Ticket>, isBacklog: boolean) => {
+    // Safety Check: never allow an empty status to overwrite a valid one.
+    const cleanData = { ...data };
+    if (cleanData.status === "") {
+      delete cleanData.status;
+    }
+
     try {
       if (selectedTicket) {
-        const result = await updateTicket(selectedTicket.id, data, projectId);
-        if (result.error) throw new Error(result.error);
+        // Optimistic update
+        const updatedTicket = { 
+          ...selectedTicket, 
+          ...cleanData,
+          id: selectedTicket.id,
+          projectId: selectedTicket.projectId || projectId,
+          phaseId: selectedTicket.phaseId
+        };
+        
+        setTickets(prev => prev.map(t => (t && Number(t.id) === Number(selectedTicket.id)) ? updatedTicket : t));
+        setIsModalOpen(false); 
+
+        const result = await updateTicket(selectedTicket.id, cleanData, projectId);
+        if (result.error) {
+          setTickets(prev => prev.map(t => (t && Number(t.id) === Number(selectedTicket.id)) ? selectedTicket : t));
+          throw new Error(result.error);
+        }
         toast.success("Ticket updated successfully");
       } else {
-        const result = await createTicket({
+        const newTicketData = {
           ...data,
           projectId,
           phaseId: isBacklog ? null : activePhaseId,
-        });
+        };
+        
+        const result = await createTicket(newTicketData);
         if (result.error) throw new Error(result.error);
         toast.success("Ticket created successfully");
+        setIsModalOpen(false);
       }
+      
       await refreshTickets();
-      setIsModalOpen(false);
     } catch (error: any) {
+      console.error("Save failed:", error);
       toast.error(error.message || "Failed to save ticket");
     }
   };

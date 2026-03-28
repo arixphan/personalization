@@ -45,7 +45,11 @@ export const BoardView = ({ project, initialTickets }: BoardViewProps) => {
   const lastColumnStatus = columns[columns.length - 1];
 
   const boardTickets = useMemo(() =>
-    tickets.filter(t => t && t.phaseId === activePhaseId),
+    tickets.filter(t => {
+      if (!t) return false;
+      // Allow tickets to show if they match the active phase OR if both are null/undefined
+      return (t.phaseId || null) === (activePhaseId || null);
+    }),
     [tickets, activePhaseId]
   );
 
@@ -95,6 +99,7 @@ export const BoardView = ({ project, initialTickets }: BoardViewProps) => {
       </div>
 
       <TicketModal
+        key={selectedTicket?.id || 'new'}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={(data) => handleSaveTicket(data, false)}

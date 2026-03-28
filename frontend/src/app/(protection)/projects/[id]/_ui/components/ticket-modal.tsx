@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Save, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CustomInput, CustomSelect, MarkdownEditor } from '@/components/ui/input';
+import { CustomInput, CustomSelect, RichTextEditor } from '@/components/ui/input';
 import { Ticket } from './kanban-card';
 import { TICKET_TYPES, TicketType, getTicketTypeStyles } from '@/lib/ticket-utils';
 import { cn } from '@/lib/utils';
@@ -27,23 +27,45 @@ export const TicketModal: React.FC<TicketModalProps> = ({
   projectId,
   columns,
 }) => {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [status, setStatus] = useState('');
-  const [priority, setPriority] = useState('medium');
-  const [type, setType] = useState('task');
+  // Sync state with ticket/columns IMMEDIATELY when props change to avoid "empty first render"
+  const [title, setTitle] = useState(ticket?.title || '');
+  const [description, setDescription] = useState(ticket?.description || '');
+  
+  const initialStatus = ticket?.status && ticket.status.trim() !== '' 
+    ? ticket.status 
+    : (columns && columns.length > 0 ? columns[0] : 'To Do');
+    
+  const [status, setStatus] = useState(initialStatus);
+  const [priority, setPriority] = useState(ticket?.priority || 'medium');
+  const [type, setType] = useState(ticket?.type || 'task');
+
+  // Memoize column options outside of any early returns
+  const statusOptions = React.useMemo(() => columns.map(col => ({
+    value: col,
+    label: col.charAt(0).toUpperCase() + col.slice(1).replace(/_/g, ' ')
+  })), [columns]);
 
   useEffect(() => {
+    if (!isOpen) return;
+
     if (ticket) {
       setTitle(ticket.title || '');
       setDescription(ticket.description || '');
-      setStatus(ticket.status || columns[0]);
+      
+      // AGGRESSIVE INITIALIZATION: Ensure we ALWAYS have a status.
+      let statusValue = ticket.status;
+      if (!statusValue || statusValue.trim() === '') {
+        statusValue = columns && columns.length > 0 ? columns[0] : 'To Do';
+      }
+
+      setStatus(statusValue);
       setPriority(ticket.priority || 'medium');
       setType(ticket.type || 'task');
     } else {
       setTitle('');
       setDescription('');
-      setStatus(columns[0]);
+      const defaultStatus = (columns && columns.length > 0 ? columns[0] : 'To Do');
+      setStatus(defaultStatus);
       setPriority('medium');
       setType('task');
     }
@@ -108,12 +130,12 @@ export const TicketModal: React.FC<TicketModalProps> = ({
                   placeholder="E.g., Implementation of design system"
                 />
 
-                <MarkdownEditor
+                <RichTextEditor
                   id="description"
                   label="Description"
                   value={description}
                   onChange={setDescription}
-                  placeholder="Describe the ticket in detail using markdown..."
+                  placeholder="Describe the ticket in detail with rich text..."
                 />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -122,10 +144,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
                     label="Status"
                     value={status}
                     onChange={setStatus}
-                    options={columns.map(col => ({
-                      value: col,
-                      label: col.charAt(0).toUpperCase() + col.slice(1).replace(/_/g, ' ')
-                    }))}
+                    options={statusOptions}
                   />
 
                   <CustomSelect
@@ -221,6 +240,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
                     variant="default"
                     className="flex items-center space-x-2 px-6"
                     size="lg"
+                    disabled={!title.trim() || !status}
                   >
                     <Save size={18} />
                     <span>{ticket ? 'Save Changes' : 'Create Ticket'}</span>

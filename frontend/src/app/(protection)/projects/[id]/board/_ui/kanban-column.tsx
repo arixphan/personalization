@@ -3,11 +3,8 @@ import { useDroppable } from '@dnd-kit/core';
 import {
   SortableContext,
   verticalListSortingStrategy,
-  useSortable,
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { KanbanCard, Ticket } from '../../_ui/components/kanban-card';
-import { GripVertical } from 'lucide-react';
 
 interface KanbanColumnProps {
   id: string;
@@ -17,7 +14,7 @@ interface KanbanColumnProps {
   onTicketClick: (ticketId: number) => void;
 }
 
-export const KanbanColumn: React.FC<KanbanColumnProps> = ({
+const KanbanColumnComponent: React.FC<KanbanColumnProps> = ({
   id,
   title,
   tickets,
@@ -26,6 +23,10 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
 }) => {
   const { setNodeRef } = useDroppable({
     id,
+    data: {
+      type: 'column',
+      status: id,
+    }
   });
 
   return (
@@ -72,3 +73,5 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
     </div>
   );
 };
+
+export const KanbanColumn = React.memo(KanbanColumnComponent);

@@ -143,3 +143,20 @@
     perspective: 1000px;
   }
 }
+
+/* Tiptap Editor & Prose Adjustments */
+.prose mark {
+  background-color: #fef08a; /* Default yellow */
+  color: inherit;
+  padding: 0 0.125rem;
+  border-radius: 0.125rem;
+}
+
+.dark .prose mark {
+  color: #000;
+}
+
+/* Ensure inline styles from Tiptap multicolor highlight override prose defaults */
+.prose mark[style] {
+  background-color: inherit;
+}
