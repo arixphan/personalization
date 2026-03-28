@@ -25,6 +25,10 @@ export const ProjectEndpoint = {
     path: "projects/:id",
     params: z.object({ id: z.string() }),
   }),
+  updateStatus: createRoute({
+    path: "projects/:id/status",
+    params: z.object({ id: z.string() }),
+  }),
 };
 
 export const TicketEndpoint = {
@@ -44,6 +48,10 @@ export const TicketEndpoint = {
   }),
   listByProject: createRoute({
     path: "tickets/project/:projectId",
+    params: z.object({ projectId: z.coerce.string() }),
+  }),
+  closeDone: createRoute({
+    path: "tickets/project/:projectId/close-done",
     params: z.object({ projectId: z.coerce.string() }),
   }),
 };

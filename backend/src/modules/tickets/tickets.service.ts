@@ -131,4 +131,17 @@ export class TicketsService {
       throw new InternalServerErrorException('Failed to delete ticket');
     }
   }
+
+  async closeDoneTickets(projectId: number, phaseId: number, status: string) {
+    try {
+      this.logger.log(`Closing done tickets for project ${projectId}, phase ${phaseId}, status ${status}`);
+      return await this.ticketsRepository.updateMany(
+        { projectId, phaseId, status, isClosed: false },
+        { isClosed: true },
+      );
+    } catch (error) {
+      this.logger.error(`Failed to close done tickets for project ${projectId}`, error);
+      throw new InternalServerErrorException('Failed to close done tickets');
+    }
+  }
 }

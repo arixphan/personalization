@@ -12,6 +12,7 @@ interface KanbanColumnProps {
   tickets: Ticket[];
   theme: string;
   onTicketClick: (ticketId: number) => void;
+  readOnly?: boolean;
 }
 
 const KanbanColumnComponent: React.FC<KanbanColumnProps> = ({
@@ -20,6 +21,7 @@ const KanbanColumnComponent: React.FC<KanbanColumnProps> = ({
   tickets,
   theme,
   onTicketClick,
+  readOnly,
 }) => {
   const { setNodeRef } = useDroppable({
     id,

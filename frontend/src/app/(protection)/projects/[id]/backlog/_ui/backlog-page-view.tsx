@@ -9,6 +9,7 @@ import { Ticket } from "../../_ui/components/kanban-card";
 import { useTicketManagement } from "../../_ui/hooks/use-ticket-management";
 import { updateTicket } from "../../../_actions/ticket";
 import { toast } from "sonner";
+import { ProjectStatus } from "@personalization/shared";
 
 interface BacklogPageViewProps {
   project: any;
@@ -39,7 +40,10 @@ export const BacklogPageView = ({ project, initialTickets }: BacklogPageViewProp
     [tickets]
   );
 
+  const isReadOnly = project.status === ProjectStatus["on-hold"] || project.status === ProjectStatus.completed;
+
   const handleMoveToBoard = async (ticketId: number) => {
+    if (isReadOnly) return;
     if (!activePhaseId || !project?.id) {
       toast.error("No active phase found to move ticket to");
       return;
@@ -69,12 +73,14 @@ export const BacklogPageView = ({ project, initialTickets }: BacklogPageViewProp
                 Back to Board
               </Link>
             </Button>
-            <Button
-              onClick={handleNewTicket}
-              variant="default"
-            >
-              New Ticket
-            </Button>
+            {!isReadOnly && (
+              <Button
+                onClick={handleNewTicket}
+                variant="default"
+              >
+                New Ticket
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -83,19 +89,21 @@ export const BacklogPageView = ({ project, initialTickets }: BacklogPageViewProp
         <BacklogView
           tickets={backlogTickets}
           onMoveToBoard={handleMoveToBoard}
-          onTicketClick={handleTicketClick}
-          onTicketsChange={handleTicketsChange}
+          onTicketClick={isReadOnly ? () => {} : handleTicketClick}
+          onTicketsChange={isReadOnly ? () => {} : handleTicketsChange}
+          readOnly={isReadOnly}
         />
       </div>
 
       <TicketModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSave={(data) => handleSaveTicket(data, true)}
+        onSave={(data, keepOpen) => handleSaveTicket(data, true, keepOpen)}
         onDelete={handleDeleteTicket}
         ticket={selectedTicket}
         projectId={project.id}
         columns={project.columns || []}
+        readOnly={isReadOnly}
       />
     </div>
   );

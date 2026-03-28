@@ -90,7 +90,7 @@ export async function getProject(id: string) {
   };
 }
 export async function updateProject(id: number, data: any) {
-  const response = await ServerApiHandler.patch<Project>(
+  const response = await ServerApiHandler.put<Project>(
     ProjectEndpoint.update({ id: id.toString() }),
     data
   );
@@ -101,6 +101,22 @@ export async function updateProject(id: number, data: any) {
 
   return {
     error: response.error || "Failed to update project.",
+    statusCode: response.status || 500,
+  };
+}
+
+export async function updateProjectStatus(id: number, status: string) {
+  const response = await ServerApiHandler.patch<Project>(
+    ProjectEndpoint.updateStatus({ id: id.toString() }),
+    { status }
+  );
+
+  if (isSuccessApiResponse(response) && response.data) {
+    return { data: response.data };
+  }
+
+  return {
+    error: response.error || "Failed to update project status.",
     statusCode: response.status || 500,
   };
 }

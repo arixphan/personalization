@@ -33,6 +33,13 @@ export class TicketsRepository {
     });
   }
 
+  async updateMany(where: any, data: any) {
+    return (this.prisma as any).ticket.updateMany({
+      where,
+      data,
+    });
+  }
+
   async delete(id: number) {
     return (this.prisma as any).ticket.delete({
       where: { id },

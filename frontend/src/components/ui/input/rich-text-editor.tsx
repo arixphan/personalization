@@ -37,6 +37,7 @@ interface RichTextEditorProps {
   required?: boolean;
   error?: string;
   className?: string;
+  readOnly?: boolean;
 }
 
 const COLORS = [
@@ -65,6 +66,7 @@ const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
   required = false,
   error,
   className,
+  readOnly = false,
 }) => {
   const editor = useEditor({
     extensions: [
@@ -77,6 +79,7 @@ const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
       }),
     ],
     content: value,
+    editable: !readOnly,
     immediatelyRender: false,
     onBlur: ({ editor }) => {
       const html = editor.getHTML();

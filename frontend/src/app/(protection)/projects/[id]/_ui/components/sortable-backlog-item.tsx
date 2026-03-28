@@ -13,6 +13,7 @@ interface SortableBacklogItemProps {
   onTicketClick: (ticketId: number) => void;
   onMoveToBoard: (ticketId: number) => void;
   isOverlay?: boolean;
+  readOnly?: boolean;
 }
 
 export const SortableBacklogItem = React.memo<SortableBacklogItemProps>(({
@@ -21,6 +22,7 @@ export const SortableBacklogItem = React.memo<SortableBacklogItemProps>(({
   onTicketClick,
   onMoveToBoard,
   isOverlay = false,
+  readOnly = false,
 }) => {
   const {
     attributes,
@@ -95,18 +97,20 @@ export const SortableBacklogItem = React.memo<SortableBacklogItemProps>(({
         </div>
       </div>
 
-      <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onMoveToBoard(ticket.id);
-          }}
-          className="flex items-center space-x-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-all shadow-lg shadow-blue-500/20"
-        >
-          <span>Move to Board</span>
-          <ArrowRight size={14} />
-        </button>
-      </div>
+      {!readOnly && (
+        <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onMoveToBoard(ticket.id);
+            }}
+            className="flex items-center space-x-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-all shadow-lg shadow-blue-500/20"
+          >
+            <span>Move to Board</span>
+            <ArrowRight size={14} />
+          </button>
+        </div>
+      )}
     </div>
   );
 });

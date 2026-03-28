@@ -1,11 +1,16 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
+import { ProjectStatus } from "@personalization/shared";
 import { KanbanBoardHead } from "./components/kanban-board-head";
 import KanbanBoard from "./components/kanban-board";
 import { TicketModal } from "../../_ui/components/ticket-modal";
 import { Ticket } from "../../_ui/components/kanban-card";
 import { useTicketManagement } from "../../_ui/hooks/use-ticket-management";
+import { useRouter } from "next/navigation";
+import { updateProjectStatus } from "../../../_actions/project";
+import { archiveDoneTickets } from "../../../_actions/ticket";
+import { toast } from "sonner";
 
 interface BoardViewProps {
   project: any;
@@ -13,6 +18,7 @@ interface BoardViewProps {
 }
 
 export const BoardView = ({ project, initialTickets }: BoardViewProps) => {
+  const router = useRouter();
   const activePhaseId = project.phases?.[0]?.id;
   const {
     tickets,
@@ -46,7 +52,7 @@ export const BoardView = ({ project, initialTickets }: BoardViewProps) => {
 
   const boardTickets = useMemo(() =>
     tickets.filter(t => {
-      if (!t) return false;
+      if (!t || t.isClosed) return false;
       // Allow tickets to show if they match the active phase OR if both are null/undefined
       return (t.phaseId || null) === (activePhaseId || null);
     }),
@@ -54,9 +60,32 @@ export const BoardView = ({ project, initialTickets }: BoardViewProps) => {
   );
 
   const completedTickets = useMemo(() =>
-    tickets.filter(t => t && t.status === lastColumnStatus),
+    tickets.filter(t => t && t.status === lastColumnStatus && !t.isClosed),
     [tickets, lastColumnStatus]
   );
+
+  const isReadOnly = project.status === ProjectStatus["on-hold"] || project.status === ProjectStatus.completed;
+
+  const handleStatusChange = async (status: any) => {
+    const res = await updateProjectStatus(project.id, status);
+    if (res.error) {
+      toast.error(res.error);
+    } else {
+      toast.success(`Project marked as ${status.replace("-", " ")}`);
+      router.refresh();
+    }
+  };
+
+  const handleArchiveDone = async () => {
+    if (!activePhaseId) return;
+    const res = await archiveDoneTickets(project.id, activePhaseId, lastColumnStatus);
+    if (res.error) {
+      toast.error(res.error);
+    } else {
+      toast.success("Completed tickets have been archived.");
+      router.refresh();
+    }
+  };
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -64,9 +93,9 @@ export const BoardView = ({ project, initialTickets }: BoardViewProps) => {
         projectId={project.id}
         projectName={project.title}
         projectStatus={project.status}
-        onStatusChange={() => { }}
-        onEndPhase={() => { }}
-        onShowSettings={() => { }}
+        onStatusChange={handleStatusChange}
+        onArchiveDone={handleArchiveDone}
+        onShowSettings={() => router.push(`/projects/${project.id}`)}
         onNewTicket={handleNewTicket}
         isBacklog={false}
         ticketCount={tickets.length}
@@ -84,10 +113,7 @@ export const BoardView = ({ project, initialTickets }: BoardViewProps) => {
           projectId={project.id.toString()}
           projectName={project.title}
           projectStatus={project.status.toLowerCase() as any}
-          onStatusChange={() => { }}
-          onEndPhase={() => { }}
-          onShowSettings={() => { }}
-          onTicketClick={handleTicketClick}
+          onTicketClick={isReadOnly ? () => {} : handleTicketClick}
           initialTickets={boardTickets}
           columns={columns}
           onColumnsChange={setColumns}
@@ -95,6 +121,7 @@ export const BoardView = ({ project, initialTickets }: BoardViewProps) => {
           searchQuery={searchQuery}
           priorityFilter={priorityFilter}
           typeFilter={typeFilter}
+          readOnly={isReadOnly}
         />
       </div>
 
@@ -102,11 +129,12 @@ export const BoardView = ({ project, initialTickets }: BoardViewProps) => {
         key={selectedTicket?.id || 'new'}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSave={(data) => handleSaveTicket(data, false)}
+        onSave={(data, keepOpen) => handleSaveTicket(data, false, keepOpen)}
         onDelete={handleDeleteTicket}
         ticket={selectedTicket}
         projectId={project.id}
         columns={columns}
+        readOnly={isReadOnly}
       />
     </div>
   );

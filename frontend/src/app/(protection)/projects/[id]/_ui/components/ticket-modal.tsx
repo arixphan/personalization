@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Save, Trash2 } from 'lucide-react';
+import { X, Save, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CustomInput, CustomSelect, RichTextEditor } from '@/components/ui/input';
@@ -11,11 +11,12 @@ import { cn } from '@/lib/utils';
 interface TicketModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: Partial<Ticket>) => void;
+  onSave: (data: Partial<Ticket>, keepOpen?: boolean) => void;
   onDelete?: (id: number) => void;
   ticket?: Ticket;
   projectId: number;
   columns: string[];
+  readOnly?: boolean;
 }
 
 export const TicketModal: React.FC<TicketModalProps> = ({
@@ -26,15 +27,16 @@ export const TicketModal: React.FC<TicketModalProps> = ({
   ticket,
   projectId,
   columns,
+  readOnly = false,
 }) => {
   // Sync state with ticket/columns IMMEDIATELY when props change to avoid "empty first render"
   const [title, setTitle] = useState(ticket?.title || '');
   const [description, setDescription] = useState(ticket?.description || '');
-  
-  const initialStatus = ticket?.status && ticket.status.trim() !== '' 
-    ? ticket.status 
+
+  const initialStatus = ticket?.status && ticket.status.trim() !== ''
+    ? ticket.status
     : (columns && columns.length > 0 ? columns[0] : 'To Do');
-    
+
   const [status, setStatus] = useState(initialStatus);
   const [priority, setPriority] = useState(ticket?.priority || 'medium');
   const [type, setType] = useState(ticket?.type || 'task');
@@ -51,7 +53,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
     if (ticket) {
       setTitle(ticket.title || '');
       setDescription(ticket.description || '');
-      
+
       // AGGRESSIVE INITIALIZATION: Ensure we ALWAYS have a status.
       let statusValue = ticket.status;
       if (!statusValue || statusValue.trim() === '') {
@@ -73,6 +75,8 @@ export const TicketModal: React.FC<TicketModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (readOnly) return;
+
     onSave({
       title,
       description,
@@ -81,6 +85,19 @@ export const TicketModal: React.FC<TicketModalProps> = ({
       type,
     });
     onClose();
+  };
+
+  const handleInstantStatusChange = (newStatus: string) => {
+    setStatus(newStatus);
+    if (ticket && !readOnly) {
+      onSave({
+        title,
+        description,
+        status: newStatus,
+        priority,
+        type,
+      }, true);
+    }
   };
 
   return (
@@ -128,6 +145,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
                   value={title}
                   onChange={setTitle}
                   placeholder="E.g., Implementation of design system"
+                  disabled={readOnly}
                 />
 
                 <RichTextEditor
@@ -136,22 +154,17 @@ export const TicketModal: React.FC<TicketModalProps> = ({
                   value={description}
                   onChange={setDescription}
                   placeholder="Describe the ticket in detail with rich text..."
+                  readOnly={readOnly}
                 />
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <CustomSelect
-                    id="status"
-                    label="Status"
-                    value={status}
-                    onChange={setStatus}
-                    options={statusOptions}
-                  />
+                <div className="space-y-4">
 
                   <CustomSelect
                     id="priority"
                     label="Priority"
                     value={priority}
                     onChange={setPriority}
+                    disabled={readOnly}
                     options={[
                       { value: 'highest', label: 'Highest' },
                       { value: 'high', label: 'High' },
@@ -162,70 +175,96 @@ export const TicketModal: React.FC<TicketModalProps> = ({
                   />
                 </div>
 
-                    <div className="flex flex-col space-y-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="text-sm font-medium">
-                          Type
-                        </label>
-                        <Badge 
-                          variant="outline"
+                <div className="flex flex-col space-y-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-sm font-medium">
+                      Type
+                    </label>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "uppercase tracking-wider px-2 py-0.5 border-none",
+                        getTicketTypeStyles(type).color,
+                        getTicketTypeStyles(type).bgColor,
+                        getTicketTypeStyles(type).darkBgColor
+                      )}
+                    >
+                      {type}
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(Object.keys(TICKET_TYPES) as TicketType[]).map((t) => {
+                      const config = TICKET_TYPES[t];
+                      const Icon = config.icon;
+                      const isSelected = type === t;
+                      return (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => setType(t)}
+                          disabled={readOnly}
                           className={cn(
-                            "uppercase tracking-wider px-2 py-0.5 border-none",
-                            getTicketTypeStyles(type).color,
-                            getTicketTypeStyles(type).bgColor,
-                            getTicketTypeStyles(type).darkBgColor
+                            "flex items-center space-x-3 px-3 py-2 rounded-lg border transition-all text-left",
+                            isSelected
+                              ? cn(config.borderColor, config.bgColor, config.darkBgColor, "ring-2 ring-offset-2 ring-blue-500/20")
+                              : "border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-white dark:bg-gray-800",
+                            readOnly ? "opacity-70 cursor-not-allowed" : ""
                           )}
                         >
-                          {type}
-                        </Badge>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        {(Object.keys(TICKET_TYPES) as TicketType[]).map((t) => {
-                          const config = TICKET_TYPES[t];
-                          const Icon = config.icon;
-                          const isSelected = type === t;
-                          return (
-                            <button
-                              key={t}
-                              type="button"
-                              onClick={() => setType(t)}
-                              className={cn(
-                                "flex items-center space-x-3 px-3 py-2 rounded-lg border transition-all text-left",
-                                isSelected 
-                                  ? cn(config.borderColor, config.bgColor, config.darkBgColor, "ring-2 ring-offset-2 ring-blue-500/20")
-                                  : "border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-white dark:bg-gray-800"
-                              )}
-                            >
-                              <div className={cn("p-1.5 rounded-md", isSelected ? "bg-white dark:bg-gray-900" : config.bgColor, config.darkBgColor)}>
-                                <Icon size={14} className={config.color} />
-                              </div>
-                              <span className={cn(
-                                "text-sm font-medium capitalize",
-                                isSelected ? config.color : "text-gray-600 dark:text-gray-400"
-                              )}>
-                                {t}
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                </form>
+                          <div className={cn("p-1.5 rounded-md", isSelected ? "bg-white dark:bg-gray-900" : config.bgColor, config.darkBgColor)}>
+                            <Icon size={14} className={config.color} />
+                          </div>
+                          <span className={cn(
+                            "text-sm font-medium capitalize",
+                            isSelected ? config.color : "text-gray-600 dark:text-gray-400"
+                          )}>
+                            {t}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </form>
 
               {/* Footer Actions */}
               <div className="p-4 sm:p-6 border-t dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 flex items-center justify-between">
                 <div>
-                  {ticket && onDelete && (
+                  <div className="flex items-stretch shadow-sm h-10">
                     <Button
-                      type="button"
-                      variant="destructive"
-                      onClick={() => onDelete(ticket.id)}
-                      className="flex items-center space-x-2"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        const idx = columns.indexOf(status);
+                        if (idx > 0) handleInstantStatusChange(columns[idx - 1]);
+                      }}
+                      disabled={readOnly || columns.indexOf(status) <= 0}
+                      className="rounded-e-none focus:z-10 h-full w-10 bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800"
                     >
-                      <Trash2 size={18} />
-                      <span className="hidden sm:inline">Delete</span>
+                      <ChevronLeft size={16} className="text-gray-600 dark:text-gray-300" />
                     </Button>
-                  )}
+                    <div className="w-[140px] -mx-px focus-within:z-10 [&>div]:h-full [&_button]:rounded-none [&_button]:h-10 [&_[role=combobox]]:h-10 [&_button]:border-gray-200 dark:[&_button]:border-gray-800 [&_button]:bg-white dark:[&_button]:bg-gray-950 [&_button]:text-center [&_span]:mx-auto">
+                      <CustomSelect
+                        id="quick-status"
+                        value={status}
+                        onChange={handleInstantStatusChange}
+                        options={statusOptions}
+                        disabled={readOnly}
+                      />
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        const idx = columns.indexOf(status);
+                        if (idx < columns.length - 1) handleInstantStatusChange(columns[idx + 1]);
+                      }}
+                      disabled={readOnly || columns.indexOf(status) >= columns.length - 1}
+                      className="rounded-s-none focus:z-10 h-full w-10 bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800"
+                    >
+                      <ChevronRight size={16} className="text-gray-600 dark:text-gray-300" />
+                    </Button>
+                  </div>
                 </div>
                 <div className="flex items-center space-x-3">
                   <Button
@@ -233,18 +272,20 @@ export const TicketModal: React.FC<TicketModalProps> = ({
                     variant="ghost"
                     onClick={onClose}
                   >
-                    Cancel
+                    {readOnly ? 'Close' : 'Cancel'}
                   </Button>
-                  <Button
-                    onClick={handleSubmit}
-                    variant="default"
-                    className="flex items-center space-x-2 px-6"
-                    size="lg"
-                    disabled={!title.trim() || !status}
-                  >
-                    <Save size={18} />
-                    <span>{ticket ? 'Save Changes' : 'Create Ticket'}</span>
-                  </Button>
+                  {!readOnly && (
+                    <Button
+                      onClick={handleSubmit}
+                      variant="default"
+                      className="flex items-center space-x-2 px-6"
+                      size="lg"
+                      disabled={!title.trim() || !status}
+                    >
+                      <Save size={18} />
+                      <span>{ticket ? 'Save Changes' : 'Create Ticket'}</span>
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>

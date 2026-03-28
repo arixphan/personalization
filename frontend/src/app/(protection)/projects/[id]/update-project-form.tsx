@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 
 import { toast } from "sonner";
+import { ProjectStatus } from "@personalization/shared";
+import { Button } from "@/components/ui/button";
 
 import { updateProject } from "../_lib/dal";
 import { BaseProjectDto } from "../_lib/dto";
@@ -29,6 +31,18 @@ export function UpdateProjectForm({ initialProject }: UpdateProjectFormProps) {
       toast.error("Failed to update project");
     }
   };
+
+  if (initialProject.status === ProjectStatus.completed) {
+    return (
+      <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 rounded-lg border border-yellow-200 dark:border-yellow-800">
+        <h3 className="font-medium text-lg mb-1">Project is Completed</h3>
+        <p>This project has been marked as completed and can no longer be edited.</p>
+        <div className="mt-4">
+          <Button onClick={() => router.push(`/projects/${initialProject.id}/board`)}>Return to Board</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <ProjectForm

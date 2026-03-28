@@ -31,6 +31,7 @@ export interface Ticket {
   attachmentsCount?: number;
   storyPoints?: number;
   position: number;
+  isClosed?: boolean;
 }
 
 interface KanbanCardProps {

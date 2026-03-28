@@ -72,3 +72,20 @@ export async function deleteTicket(id: number, projectId: number) {
     statusCode: response.status || 500,
   };
 }
+
+export async function archiveDoneTickets(projectId: number, phaseId: number, status: string) {
+  const response = await ServerApiHandler.post<any>(
+    TicketEndpoint.closeDone({ projectId: projectId.toString() }),
+    { phaseId, status }
+  );
+
+  if (isSuccessApiResponse(response)) {
+    revalidatePath(`/projects/${projectId}/board`);
+    return { success: true };
+  }
+
+  return {
+    error: response.error || "Failed to archive done tickets.",
+    statusCode: response.status || 500,
+  };
+}

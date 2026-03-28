@@ -22,6 +22,7 @@ export interface CustomSelectProps {
   required?: boolean;
   options: SelectOption[] | string[]; // Accepts both string arrays and objects with value/label
   error?: string;
+  disabled?: boolean;
 }
 
 export const CustomSelect: React.FC<CustomSelectProps> = ({
@@ -33,6 +34,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   required = false,
   options,
   error,
+  disabled = false,
 }) => {
   const errorId = `${id}-error`;
 
@@ -64,7 +66,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
           {label} {required && "*"}
         </label>
       )}
-      <Select value={value} onValueChange={onChange} required={required}>
+      <Select value={value} onValueChange={onChange} required={required} disabled={disabled}>
         <SelectTrigger
           id={id}
           aria-invalid={!!error}

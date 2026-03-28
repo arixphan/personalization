@@ -27,9 +27,6 @@ interface KanbanBoardProps {
   projectId: string;
   projectName: string;
   projectStatus: "active" | "completed" | "on-hold";
-  onStatusChange: (status: "active" | "completed" | "on-hold") => void;
-  onEndPhase: () => void;
-  onShowSettings: () => void;
   onTicketClick: (ticketId: number) => void;
   initialTickets: Ticket[];
   columns: string[];
@@ -39,6 +36,7 @@ interface KanbanBoardProps {
   priorityFilter: string;
   assigneeFilter?: string;
   typeFilter: string;
+  readOnly?: boolean;
 }
 
 const KanbanBoardComponent: React.FC<KanbanBoardProps> = ({
@@ -51,6 +49,7 @@ const KanbanBoardComponent: React.FC<KanbanBoardProps> = ({
   searchQuery,
   priorityFilter,
   typeFilter,
+  readOnly = false,
 }) => {
   const { theme } = useTheme();
 
@@ -106,6 +105,7 @@ const KanbanBoardComponent: React.FC<KanbanBoardProps> = ({
   );
 
   const handleDragStart = (event: DragStartEvent) => {
+    if (readOnly) return;
     const { active } = event;
     setActiveId(active.id);
     const type = typeof active.id === 'string' ? 'column' : 'ticket';
@@ -113,6 +113,7 @@ const KanbanBoardComponent: React.FC<KanbanBoardProps> = ({
   };
 
   const handleDragOver = (event: DragOverEvent) => {
+    if (readOnly) return;
     const { active, over } = event;
     if (!over) return;
 
@@ -170,6 +171,7 @@ const KanbanBoardComponent: React.FC<KanbanBoardProps> = ({
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
+    if (readOnly) return;
     const { active, over } = event;
     setActiveId(null);
     setActiveType(null);
@@ -279,6 +281,7 @@ const KanbanBoardComponent: React.FC<KanbanBoardProps> = ({
                 tickets={filteredTickets.filter((t) => t.status === column.id)}
                 theme={theme || "light"}
                 onTicketClick={onTicketClick}
+                readOnly={readOnly}
               />
             ))}
           </div>

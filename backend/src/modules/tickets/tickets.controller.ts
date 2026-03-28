@@ -25,6 +25,14 @@ export class TicketsController {
     return this.ticketsService.create(createTicketDto, userId);
   }
 
+  @Post('project/:projectId/close-done')
+  closeDoneTickets(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @Body() payload: { phaseId: number; status: string },
+  ) {
+    return this.ticketsService.closeDoneTickets(projectId, payload.phaseId, payload.status);
+  }
+
   @Get('project/:projectId')
   findAllByProject(@Param('projectId', ParseIntPipe) projectId: number) {
     return this.ticketsService.findAllByProject(projectId);

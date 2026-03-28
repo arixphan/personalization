@@ -29,6 +29,7 @@ interface BacklogViewProps {
   onTicketClick: (ticketId: number) => void;
   onTicketsChange?: (tickets: Ticket[]) => void;
   isLoading?: boolean;
+  readOnly?: boolean;
 }
 
 export const BacklogView: React.FC<BacklogViewProps> = ({
@@ -36,7 +37,8 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
   onMoveToBoard,
   onTicketClick,
   onTicketsChange,
-  isLoading
+  isLoading,
+  readOnly = false,
 }) => {
   const { theme } = useTheme();
   const [tickets, setTickets] = useState<Ticket[]>(initialTickets);
@@ -62,10 +64,12 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
   );
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
+    if (readOnly) return;
     setActiveId(event.active.id as number);
-  }, []);
+  }, [readOnly]);
 
   const handleDragEnd = useCallback(async (event: DragEndEvent) => {
+    if (readOnly) return;
     const { active, over } = event;
     setActiveId(null);
 
@@ -105,7 +109,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
       setTickets(initialTickets);
       toast.error('Failed to update backlog order');
     }
-  }, [tickets, sortedTickets, onTicketsChange, initialTickets]);
+  }, [tickets, sortedTickets, onTicketsChange, initialTickets, readOnly]);
 
   const activeTicket = useMemo(() => 
     activeId ? tickets.find(t => t.id === activeId) : null
@@ -152,6 +156,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                 theme={theme || 'light'}
                 onTicketClick={onTicketClick}
                 onMoveToBoard={onMoveToBoard}
+                readOnly={readOnly}
               />
             ))}
           </SortableContext>
@@ -165,6 +170,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
               onTicketClick={() => {}}
               onMoveToBoard={() => {}}
               isOverlay
+              readOnly={readOnly}
             />
           ) : null}
         </DragOverlay>

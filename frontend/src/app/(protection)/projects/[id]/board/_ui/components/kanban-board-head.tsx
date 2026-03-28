@@ -49,7 +49,7 @@ interface KanbanBoardProps {
   projectName: string;
   projectStatus: ProjectStatus;
   onStatusChange: (status: ProjectStatus) => void;
-  onEndPhase: () => void;
+  onArchiveDone: () => void;
   onShowSettings: () => void;
   onNewTicket: () => void;
   isBacklog: boolean;
@@ -68,7 +68,7 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
   projectName,
   projectStatus,
   onStatusChange,
-  onEndPhase,
+  onArchiveDone,
   onShowSettings,
   onNewTicket,
   isBacklog,
@@ -114,6 +114,8 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
     ? `/projects/${projectId}/board` 
     : `/projects/${projectId}/backlog`;
 
+  const isReadOnly = (projectStatus as string) === ProjectStatus["on-hold"] || (projectStatus as string) === ProjectStatus.completed;
+
   return (
     <div className="h-full flex flex-col min-w-0">
       {/* Enhanced Project Header */}
@@ -156,20 +158,22 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
 
           {/* Action Buttons */}
           <div className="flex flex-row flex-wrap items-center gap-2 sm:gap-3">
-            <Button
-              asChild
-              variant="default"
-              className="flex-1 sm:flex-none px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg"
-            >
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={onNewTicket}
+            {!isReadOnly && (
+              <Button
+                asChild
+                variant="default"
+                className="flex-1 sm:flex-none px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg"
               >
-                <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />
-                <span>New Ticket</span>
-              </motion.button>
-            </Button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={onNewTicket}
+                >
+                  <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />
+                  <span>New Ticket</span>
+                </motion.button>
+              </Button>
+            )}
 
             <Button
               asChild
@@ -188,68 +192,73 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
               </Link>
             </Button>
 
-            <div className="relative">
-              <Button
-                asChild
-                variant="outline"
-                className="px-3 py-1.5 sm:px-4 sm:py-2"
-              >
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setShowProjectActions(!showProjectActions)}
+            {(projectStatus as string) !== ProjectStatus.completed && (
+              <div className="relative">
+                <Button
+                  asChild
+                  variant="outline"
+                  className="px-3 py-1.5 sm:px-4 sm:py-2"
                 >
-                  <Settings size={16} className="sm:w-[18px] sm:h-[18px]" />
-                  <span className="hidden xs:inline">Actions</span>
-                  <MoreHorizontal size={14} className="sm:w-4 sm:h-4" />
-                </motion.button>
-              </Button>
-
-              <AnimatePresence>
-                {showProjectActions && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className={`absolute right-0 top-full mt-2 w-64 sm:w-56 rounded-xl shadow-2xl z-50 ${
-                      theme === "dark"
-                        ? "bg-gray-800 border border-gray-700"
-                        : "bg-white border border-gray-200"
-                    }`}
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setShowProjectActions(!showProjectActions)}
                   >
+                    <Settings size={16} className="sm:w-[18px] sm:h-[18px]" />
+                    <span className="hidden xs:inline">Actions</span>
+                    <MoreHorizontal size={14} className="sm:w-4 sm:h-4" />
+                  </motion.button>
+                </Button>
+
+                <AnimatePresence>
+                  {showProjectActions && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className={`absolute right-0 top-full mt-2 w-64 sm:w-56 rounded-xl shadow-2xl z-50 ${
+                        theme === "dark"
+                          ? "bg-gray-800 border border-gray-700"
+                          : "bg-white border border-gray-200"
+                      }`}
+                    >
                     <div className="p-2">
-                      <div
-                        className={`px-3 py-2 text-xs font-medium uppercase tracking-wider ${
-                          theme === "dark" ? "text-gray-400" : "text-gray-500"
-                        }`}
-                      >
-                        Sprint Actions
-                      </div>
-                      <button
-                        onClick={() => {
-                          onEndPhase();
-                          setShowProjectActions(false);
-                        }}
-                        className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left ${
-                          theme === "dark"
-                            ? "hover:bg-gray-700 text-white"
-                            : "hover:bg-gray-50 text-gray-900"
-                        } transition-colors`}
-                      >
-                        <Target size={16} className="text-orange-500" />
-                        <div>
-                          <div className="font-medium">End Current Sprint</div>
+                      {!isReadOnly && (
+                        <>
                           <div
-                            className={`text-xs ${
-                              theme === "dark"
-                                ? "text-gray-400"
-                                : "text-gray-500"
+                            className={`px-3 py-2 text-xs font-medium uppercase tracking-wider ${
+                              theme === "dark" ? "text-gray-400" : "text-gray-500"
                             }`}
                           >
-                            Complete current sprint
+                            Sprint Actions
                           </div>
-                        </div>
-                      </button>
+                          <button
+                            onClick={() => {
+                              onArchiveDone();
+                              setShowProjectActions(false);
+                            }}
+                            className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left ${
+                              theme === "dark"
+                                ? "hover:bg-gray-700 text-white"
+                                : "hover:bg-gray-50 text-gray-900"
+                            } transition-colors`}
+                          >
+                            <Target size={16} className="text-orange-500" />
+                            <div>
+                              <div className="font-medium">Archive Done Tickets</div>
+                              <div
+                                className={`text-xs ${
+                                  theme === "dark"
+                                    ? "text-gray-400"
+                                    : "text-gray-500"
+                                }`}
+                              >
+                                Move completed tickets from board
+                              </div>
+                            </div>
+                          </button>
+                        </>
+                      )}
 
                       <div
                         className={`px-3 py-2 text-xs font-medium uppercase tracking-wider mt-3 ${
@@ -259,7 +268,7 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
                         Project Status
                       </div>
 
-                      {projectStatus !== ProjectStatus["on-hold"] && (
+                      {(projectStatus as string) !== ProjectStatus["on-hold"] && (
                         <button
                           onClick={() => {
                             onStatusChange(ProjectStatus["on-hold"]);
@@ -287,7 +296,7 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
                         </button>
                       )}
 
-                      {projectStatus === ProjectStatus["on-hold"] && (
+                      {(projectStatus as string) === ProjectStatus["on-hold"] && (
                         <button
                           onClick={() => {
                             onStatusChange(ProjectStatus.active);
@@ -315,7 +324,7 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
                         </button>
                       )}
 
-                      {projectStatus !== ProjectStatus.completed && (
+                      {(projectStatus as string) !== ProjectStatus.completed && (
                         <button
                           onClick={() => {
                             onStatusChange(ProjectStatus.completed);
@@ -381,6 +390,7 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
                 )}
               </AnimatePresence>
             </div>
+            )}
           </div>
         </div>
 

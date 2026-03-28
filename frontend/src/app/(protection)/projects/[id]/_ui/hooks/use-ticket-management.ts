@@ -76,7 +76,7 @@ export const useTicketManagement = ({
     });
   }, []);
 
-  const handleSaveTicket = async (data: Partial<Ticket>, isBacklog: boolean) => {
+  const handleSaveTicket = async (data: Partial<Ticket>, isBacklog: boolean, keepOpen: boolean = false) => {
     // Safety Check: never allow an empty status to overwrite a valid one.
     const cleanData = { ...data };
     if (cleanData.status === "") {
@@ -95,7 +95,8 @@ export const useTicketManagement = ({
         };
         
         setTickets(prev => prev.map(t => (t && Number(t.id) === Number(selectedTicket.id)) ? updatedTicket : t));
-        setIsModalOpen(false); 
+        setSelectedTicket(updatedTicket);
+        if (!keepOpen) setIsModalOpen(false);
 
         const result = await updateTicket(selectedTicket.id, cleanData, projectId);
         if (result.error) {
@@ -113,7 +114,7 @@ export const useTicketManagement = ({
         const result = await createTicket(newTicketData);
         if (result.error) throw new Error(result.error);
         toast.success("Ticket created successfully");
-        setIsModalOpen(false);
+        if (!keepOpen) setIsModalOpen(false);
       }
       
       await refreshTickets();
