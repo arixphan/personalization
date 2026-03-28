@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { 
@@ -9,7 +9,8 @@ import {
   Link as LinkIcon, 
   Eye, 
   Code,
-  Type
+  Type,
+  Heading2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -37,10 +38,11 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   className,
 }) => {
   const [isPreview, setIsPreview] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const errorId = `${id}-error`;
 
   const insertMarkdown = (prefix: string, suffix: string = '') => {
-    const textarea = document.getElementById(id) as HTMLTextAreaElement;
+    const textarea = textareaRef.current;
     if (!textarea) return;
 
     const start = textarea.selectionStart;
@@ -60,6 +62,68 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     }, 0);
   };
 
+  const toggleList = (marker: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = value.substring(start, end);
+    const beforeText = value.substring(0, start);
+    const afterText = value.substring(end);
+
+    // If something is selected, apply marker to each line
+    if (selectedText.length > 0) {
+      const lines = selectedText.split('\n');
+      const updatedLines = lines.map(line => {
+        if (line.trim() === '') return line;
+        return line.startsWith(marker) ? line : `${marker}${line}`;
+      });
+      const newValue = `${beforeText}${updatedLines.join('\n')}${afterText}`;
+      onChange(newValue);
+      
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start, start + updatedLines.join('\n').length);
+      }, 0);
+    } else {
+      // If nothing selected, insert marker at start of line
+      const lineStart = beforeText.lastIndexOf('\n') + 1;
+      const newBefore = value.substring(0, lineStart);
+      const rest = value.substring(lineStart);
+      const newValue = `${newBefore}${marker}${rest}`;
+      onChange(newValue);
+      
+      setTimeout(() => {
+        textarea.focus();
+        const newPos = start + marker.length;
+        textarea.setSelectionRange(newPos, newPos);
+      }, 0);
+    }
+  };
+
+  const toggleHeader = () => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const beforeText = value.substring(0, start);
+    const lineStart = beforeText.lastIndexOf('\n') + 1;
+    
+    const newBefore = value.substring(0, lineStart);
+    const rest = value.substring(lineStart);
+    
+    const headerPrefix = '### ';
+    const newValue = `${newBefore}${headerPrefix}${rest}`;
+    onChange(newValue);
+
+    setTimeout(() => {
+      textarea.focus();
+      const newPos = start + headerPrefix.length;
+      textarea.setSelectionRange(newPos, newPos);
+    }, 0);
+  };
+
   const handleToolbarAction = (action: string) => {
     if (isPreview) return;
 
@@ -74,16 +138,16 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         insertMarkdown('[', '](url)');
         break;
       case 'list':
-        insertMarkdown('\n- ');
+        toggleList('- ');
         break;
       case 'ordered-list':
-        insertMarkdown('\n1. ');
+        toggleList('1. ');
         break;
       case 'code':
         insertMarkdown('`', '`');
         break;
       case 'header':
-        insertMarkdown('\n### ');
+        toggleHeader();
         break;
       default:
         break;
@@ -139,6 +203,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             {[
               { icon: Bold, action: 'bold', label: 'Bold' },
               { icon: Italic, action: 'italic', label: 'Italic' },
+              { icon: Heading2, action: 'header', label: 'Heading' },
               { icon: Code, action: 'code', label: 'Code' },
               { icon: LinkIcon, action: 'link', label: 'Link' },
               { icon: List, action: 'list', label: 'List' },
@@ -169,11 +234,12 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           ) : (
             <Textarea
               id={id}
+              ref={textareaRef}
               value={value}
               onChange={(e) => onChange(e.target.value)}
               placeholder={placeholder}
               required={required}
-              className="border-0 focus-visible:ring-0 min-h-[160px] resize-none p-4 text-sm"
+              className="border-0 focus-visible:ring-0 min-h-[160px] resize-none p-4 text-sm bg-transparent"
               aria-invalid={!!error}
               aria-describedby={error ? errorId : undefined}
             />
