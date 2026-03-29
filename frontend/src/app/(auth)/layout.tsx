@@ -1,6 +1,6 @@
 import { AnimatePresence } from "motion/react";
 
-import { ThemeContext } from "@/shared/context/ThemeContext";
+import { ThemeProvider } from "@/shared/context/ThemeProvider";
 import "../globals.css";
 
 import { NextIntlClientProvider } from "next-intl";
@@ -28,7 +28,7 @@ export default async function AuthLayout({
     <html lang={locale} suppressHydrationWarning>
       <body>
         <NextIntlClientProvider messages={messages} locale={locale}>
-          <ThemeContext>
+          <ThemeProvider>
             <AnimatePresence mode="wait">
               <div
                 className={`min-h-screen relative flex items-center justify-center py-8 dark:bg-gray-800
@@ -48,7 +48,7 @@ export default async function AuthLayout({
                 {children}
               </div>
             </AnimatePresence>
-          </ThemeContext>
+          </ThemeProvider>
         </NextIntlClientProvider>
       </body>
     </html>

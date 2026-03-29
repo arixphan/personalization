@@ -9,7 +9,6 @@ import { cn } from '@/lib/utils';
 
 interface SortableBacklogItemProps {
   ticket: Ticket;
-  theme: string;
   onTicketClick: (ticketId: number) => void;
   onMoveToBoard: (ticketId: number) => void;
   isOverlay?: boolean;
@@ -18,7 +17,6 @@ interface SortableBacklogItemProps {
 
 export const SortableBacklogItem = React.memo<SortableBacklogItemProps>(({
   ticket,
-  theme,
   onTicketClick,
   onMoveToBoard,
   isOverlay = false,
@@ -65,9 +63,7 @@ export const SortableBacklogItem = React.memo<SortableBacklogItemProps>(({
         "group p-4 rounded-xl border flex items-center justify-between cursor-pointer transition-all border-l-4",
         typeStyles.borderLeftColor,
         isOverlay ? 'shadow-2xl ring-2 ring-blue-500 bg-white dark:bg-gray-800 scale-105' : 
-        theme === 'dark'
-          ? 'bg-gray-800/50 border-gray-700 hover:bg-gray-800'
-          : 'bg-white border-gray-200 hover:shadow-md'
+        'bg-white border-gray-200 hover:shadow-md dark:bg-gray-800/50 dark:border-gray-700 dark:hover:bg-gray-800'
       )}
     >
 
@@ -78,7 +74,7 @@ export const SortableBacklogItem = React.memo<SortableBacklogItemProps>(({
         <div>
           <h4 className={cn(
             "font-semibold transition-colors line-clamp-1",
-            theme === 'dark' ? 'text-gray-100 group-hover:text-white' : 'text-gray-800 group-hover:text-blue-600'
+            "text-gray-800 group-hover:text-blue-600 dark:text-gray-100 dark:group-hover:text-white"
           )}>
             {ticket.title}
           </h4>

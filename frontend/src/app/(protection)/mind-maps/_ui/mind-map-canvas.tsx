@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
+import { useTheme } from 'next-themes';
 import {
   ReactFlow,
   Background,
@@ -121,6 +122,7 @@ export function MindMapCanvas({
 }: MindMapCanvasProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const { theme, resolvedTheme } = useTheme();
   const { screenToFlowPosition, deleteElements } = useReactFlow();
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -327,6 +329,7 @@ export function MindMapCanvas({
     return applyBranchColors(typed, edges);
   }, [nodes, edges]);
 
+  const colorMode = resolvedTheme === 'dark' ? 'dark' : 'light';
 
   return (
     <MindMapSocketProvider value={{ emitNodeMove, emitNodeSave, emitNodeUpdate, emitNodeAdd, emitEdgeAdd, emitNodeRemove }}>
@@ -346,6 +349,7 @@ export function MindMapCanvas({
           nodeOrigin={nodeOrigin}
           fitView
           deleteKeyCode={['Backspace', 'Delete']}
+          colorMode={colorMode}
         >
           <Background />
           <Controls />

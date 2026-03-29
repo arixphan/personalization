@@ -18,7 +18,7 @@ import { LogoutButton } from "../buttons/LogoutButton";
 
 const ThemeSwitcher = React.lazy(async () => {
   return {
-    default: (await import("../theme-switcher/ThemSwitcher")).ThemeSwitcher,
+    default: (await import("../theme-switcher/ThemeSwitcher")).ThemeSwitcher,
   };
 });
 

@@ -21,9 +21,7 @@ export const ThemeSwitcher = () => {
       onClick={() => {
         setTheme(theme === "light" ? "dark" : "light");
       }}
-      className={`p-2 rounded-lg transition-colors ${
-        theme === "dark" ? "hover:bg-gray-700" : "hover:bg-gray-100"
-      }`}
+      className="p-2 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
       aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
     >
       {theme === "dark" ? <Sun size={24} /> : <Moon size={24} />}

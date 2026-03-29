@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useRef } from "react";
-import { useTheme } from "next-themes";
 import {
   DndContext,
   closestCorners,
@@ -51,8 +50,6 @@ const KanbanBoardComponent: React.FC<KanbanBoardProps> = ({
   typeFilter,
   readOnly = false,
 }) => {
-  const { theme } = useTheme();
-
   const [tickets, setTickets] = React.useState<Ticket[]>(initialTickets);
   const [columns, setColumns] = React.useState<string[]>(initialColumns);
   const [activeId, setActiveId] = useState<string | number | null>(null);
@@ -272,14 +269,13 @@ const KanbanBoardComponent: React.FC<KanbanBoardProps> = ({
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex flex-row h-full overflow-x-auto pb-4 gap-1.5 sm:gap-4 snap-x snap-mandatory">
+          <div className="flex flex-row h-full overflow-x-auto pb-4 gap-1.5 sm:gap-4 snap-x snap-mandatory font-sans">
             {displayColumns.map((column) => (
               <KanbanColumn
                 key={column.id}
                 id={column.id}
                 title={column.title}
                 tickets={filteredTickets.filter((t) => t.status === column.id)}
-                theme={theme || "light"}
                 onTicketClick={onTicketClick}
                 readOnly={readOnly}
               />
@@ -293,13 +289,11 @@ const KanbanBoardComponent: React.FC<KanbanBoardProps> = ({
                   id={activeColumn.id}
                   title={activeColumn.title}
                   tickets={filteredTickets.filter((t) => t.status === activeColumn.id)}
-                  theme={theme || "light"}
                   onTicketClick={() => {}}
                 />
               ) : activeTicket ? (
                 <KanbanCard
                   ticket={activeTicket}
-                  theme={theme || "light"}
                   onTicketClick={() => {}}
                 />
               ) : null

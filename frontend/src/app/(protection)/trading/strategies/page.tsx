@@ -87,7 +87,7 @@ export default function StrategiesPage() {
     <div className="flex flex-col h-full gap-6">
       {/* Top Section: TradingView Chart */}
       <div className="h-[300px] shrink-0">
-        <TradingViewChart symbol="BINANCE:BTCUSDT" theme="dark" />
+        <TradingViewChart symbol="BINANCE:BTCUSDT" />
       </div>
 
       {/* Bottom Section: Strategy Management */}

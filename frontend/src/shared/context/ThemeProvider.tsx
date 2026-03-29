@@ -1,13 +1,13 @@
-import { ThemeProvider } from "next-themes";
+import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { ReactNode } from "react";
 
-interface ThemeContextProps {
+interface ThemeProviderProps {
   children: ReactNode;
 }
 
-export const ThemeContext = ({ children }: ThemeContextProps) => {
+export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   return (
-    <ThemeProvider
+    <NextThemesProvider
       attribute="class"
       defaultTheme="dark"
       value={{ light: "light", dark: "dark" }}
@@ -18,6 +18,6 @@ export const ThemeContext = ({ children }: ThemeContextProps) => {
       storageKey="theme"
     >
       {children}
-    </ThemeProvider>
+    </NextThemesProvider>
   );
 };

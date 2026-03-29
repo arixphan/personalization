@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'motion/react';
 import { Ticket } from './kanban-card';
 import { ArrowRight, Search, Filter, MoreVertical, LayoutGrid, LayoutList } from 'lucide-react';
-import { useTheme } from 'next-themes';
 import {
   DndContext,
   closestCenter,
@@ -40,7 +39,6 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
   isLoading,
   readOnly = false,
 }) => {
-  const { theme } = useTheme();
   const [tickets, setTickets] = useState<Ticket[]>(initialTickets);
   const [activeId, setActiveId] = useState<number | null>(null);
 
@@ -153,7 +151,6 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
               <SortableBacklogItem
                 key={ticket.id}
                 ticket={ticket}
-                theme={theme || 'light'}
                 onTicketClick={onTicketClick}
                 onMoveToBoard={onMoveToBoard}
                 readOnly={readOnly}
@@ -166,7 +163,6 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
           {activeTicket ? (
             <SortableBacklogItem
               ticket={activeTicket}
-              theme={theme || 'light'}
               onTicketClick={() => {}}
               onMoveToBoard={() => {}}
               isOverlay

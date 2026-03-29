@@ -17,7 +17,6 @@ import {
   LayoutList,
   Search,
 } from "lucide-react";
-import { useTheme } from "next-themes";
 import { AnimatePresence, motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import {
@@ -81,7 +80,6 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
   typeFilter = "all",
   onTypeChange = () => { },
 }) => {
-  const { theme } = useTheme();
   const [showProjectActions, setShowProjectActions] = useState(false);
 
   const getStatusColor = (status: string) => {
@@ -120,9 +118,7 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
     <div className="h-full flex flex-col min-w-0">
       {/* Enhanced Project Header */}
       <div
-        className={`mb-3 sm:mb-6 p-3 sm:p-6 rounded-xl ${
-          theme === "dark" ? "bg-gray-800" : "bg-white"
-        } shadow-lg`}
+        className="mb-3 sm:mb-6 p-3 sm:p-6 rounded-xl bg-white dark:bg-gray-800 shadow-lg"
       >
         {/* Project Title and Status */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-4 sm:mb-6 gap-4 min-w-0">
@@ -146,9 +142,7 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
                   </span>
                 </span>
                 <span
-                  className={`text-xs sm:text-sm ${
-                    theme === "dark" ? "text-gray-400" : "text-gray-600"
-                  }`}
+                  className="text-xs sm:text-sm text-gray-600 dark:text-gray-400"
                 >
                   {ticketCount} tickets • {completedCount} completed
                 </span>
@@ -216,19 +210,13 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
                       initial={{ opacity: 0, y: 10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className={`absolute right-0 top-full mt-2 w-64 sm:w-56 rounded-xl shadow-2xl z-50 ${
-                        theme === "dark"
-                          ? "bg-gray-800 border border-gray-700"
-                          : "bg-white border border-gray-200"
-                      }`}
+                      className="absolute right-0 top-full mt-2 w-64 sm:w-56 rounded-xl shadow-2xl z-50 bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700"
                     >
                     <div className="p-2">
                       {!isReadOnly && (
                         <>
                           <div
-                            className={`px-3 py-2 text-xs font-medium uppercase tracking-wider ${
-                              theme === "dark" ? "text-gray-400" : "text-gray-500"
-                            }`}
+                            className="px-3 py-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400"
                           >
                             Sprint Actions
                           </div>
@@ -237,22 +225,12 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
                               onArchiveDone();
                               setShowProjectActions(false);
                             }}
-                            className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left ${
-                              theme === "dark"
-                                ? "hover:bg-gray-700 text-white"
-                                : "hover:bg-gray-50 text-gray-900"
-                            } transition-colors`}
+                            className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left hover:bg-gray-50 text-gray-900 dark:hover:bg-gray-700 dark:text-white transition-colors"
                           >
                             <Target size={16} className="text-orange-500" />
                             <div>
                               <div className="font-medium">Archive Done Tickets</div>
-                              <div
-                                className={`text-xs ${
-                                  theme === "dark"
-                                    ? "text-gray-400"
-                                    : "text-gray-500"
-                                }`}
-                              >
+                              <div className="text-xs text-gray-500 dark:text-gray-400">
                                 Move completed tickets from board
                               </div>
                             </div>
@@ -261,9 +239,7 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
                       )}
 
                       <div
-                        className={`px-3 py-2 text-xs font-medium uppercase tracking-wider mt-3 ${
-                          theme === "dark" ? "text-gray-400" : "text-gray-500"
-                        }`}
+                        className="px-3 py-2 text-xs font-medium uppercase tracking-wider mt-3 text-gray-500 dark:text-gray-400"
                       >
                         Project Status
                       </div>
@@ -274,22 +250,12 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
                             onStatusChange(ProjectStatus["on-hold"]);
                             setShowProjectActions(false);
                           }}
-                          className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left ${
-                            theme === "dark"
-                              ? "hover:bg-gray-700 text-white"
-                              : "hover:bg-gray-50 text-gray-900"
-                          } transition-colors`}
+                          className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left hover:bg-gray-50 text-gray-900 dark:hover:bg-gray-700 dark:text-white transition-colors"
                         >
                           <Pause size={16} className="text-yellow-500" />
                           <div>
                             <div className="font-medium">Put On Hold</div>
-                            <div
-                              className={`text-xs ${
-                                theme === "dark"
-                                  ? "text-gray-400"
-                                  : "text-gray-500"
-                              }`}
-                            >
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
                               Pause project temporarily
                             </div>
                           </div>
@@ -302,22 +268,12 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
                             onStatusChange(ProjectStatus.active);
                             setShowProjectActions(false);
                           }}
-                          className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left ${
-                            theme === "dark"
-                              ? "hover:bg-gray-700 text-white"
-                              : "hover:bg-gray-50 text-gray-900"
-                          } transition-colors`}
+                          className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left hover:bg-gray-50 text-gray-900 dark:hover:bg-gray-700 dark:text-white transition-colors"
                         >
                           <Play size={16} className="text-green-500" />
                           <div>
                             <div className="font-medium">Resume Project</div>
-                            <div
-                              className={`text-xs ${
-                                theme === "dark"
-                                  ? "text-gray-400"
-                                  : "text-gray-500"
-                              }`}
-                            >
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
                               Continue development
                             </div>
                           </div>
@@ -330,22 +286,12 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
                             onStatusChange(ProjectStatus.completed);
                             setShowProjectActions(false);
                           }}
-                          className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left ${
-                            theme === "dark"
-                              ? "hover:bg-gray-700 text-white"
-                              : "hover:bg-gray-50 text-gray-900"
-                          } transition-colors`}
+                          className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left hover:bg-gray-50 text-gray-900 dark:hover:bg-gray-700 dark:text-white transition-colors"
                         >
                           <CheckCircle size={16} className="text-blue-500" />
                           <div>
                             <div className="font-medium">Mark as Completed</div>
-                            <div
-                              className={`text-xs ${
-                                theme === "dark"
-                                  ? "text-gray-400"
-                                  : "text-gray-500"
-                              }`}
-                            >
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
                               Finish project
                             </div>
                           </div>
@@ -353,9 +299,7 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
                       )}
 
                       <div
-                        className={`px-3 py-2 text-xs font-medium uppercase tracking-wider mt-3 ${
-                          theme === "dark" ? "text-gray-400" : "text-gray-500"
-                        }`}
+                        className="px-3 py-2 text-xs font-medium uppercase tracking-wider mt-3 text-gray-500 dark:text-gray-400"
                       >
                         Project Settings
                       </div>
@@ -365,22 +309,12 @@ export const KanbanBoardHead: React.FC<KanbanBoardProps> = ({
                           onShowSettings();
                           setShowProjectActions(false);
                         }}
-                        className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left ${
-                          theme === "dark"
-                            ? "hover:bg-gray-700 text-white"
-                            : "hover:bg-gray-50 text-gray-900"
-                        } transition-colors`}
+                        className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left hover:bg-gray-50 text-gray-900 dark:hover:bg-gray-700 dark:text-white transition-colors"
                       >
                         <Settings size={16} className="text-gray-500" />
                         <div>
                           <div className="font-medium">Project Settings</div>
-                          <div
-                            className={`text-xs ${
-                              theme === "dark"
-                                ? "text-gray-400"
-                                : "text-gray-500"
-                            }`}
-                          >
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
                             Configure project options
                           </div>
                         </div>

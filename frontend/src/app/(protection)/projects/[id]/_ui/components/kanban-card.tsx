@@ -36,11 +36,10 @@ export interface Ticket {
 
 interface KanbanCardProps {
   ticket: Ticket;
-  theme: string;
   onTicketClick: (ticketId: number) => void;
 }
 
-const KanbanCardComponent: React.FC<KanbanCardProps> = ({ ticket, theme, onTicketClick }) => {
+const KanbanCardComponent: React.FC<KanbanCardProps> = ({ ticket, onTicketClick }) => {
   const {
     attributes,
     listeners,
@@ -90,11 +89,11 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({ ticket, theme, onTicke
       {...(mounted ? listeners : {})}
       onClick={() => onTicketClick(ticket.id)}
       className={cn(
-        "rounded-lg p-2.5 sm:p-4 cursor-pointer border-l-4",
+        "rounded-lg p-2.5 sm:p-4 cursor-pointer border-l-4 shadow-sm transition-all mb-2 group",
         getTicketTypeStyles(ticket.type || 'task').borderLeftColor,
         isDragging ? 'opacity-50' : 'opacity-100',
-        theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-white hover:bg-gray-50',
-        "transition-all shadow-sm hover:shadow-md mb-2 group"
+        "bg-white hover:bg-gray-50 hover:shadow-md dark:bg-gray-700 dark:hover:bg-gray-600",
+        "text-sm sm:text-base"
       )}
     >
       <div className="flex items-center justify-between mb-3">
@@ -108,10 +107,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({ ticket, theme, onTicke
           </span>
         </div>
         <div className="flex items-center space-x-2">
-          <span className={cn(
-            "text-[10px] font-mono",
-            theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
-          )}>
+          <span className="text-[10px] font-mono text-gray-400 dark:text-gray-500">
             #{ticket.id}
           </span>
           <div className="p-1 rounded-full bg-gray-100 dark:bg-gray-800">
@@ -123,8 +119,7 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({ ticket, theme, onTicke
       <h4
         className={cn(
           "font-semibold mb-2 line-clamp-2 transition-colors",
-          theme === 'dark' ? 'text-gray-100 group-hover:text-white' : 'text-gray-800 group-hover:text-blue-600',
-          "text-sm sm:text-base"
+          "text-gray-800 group-hover:text-blue-600 dark:text-gray-100 dark:group-hover:text-white"
         )}
       >
         {ticket.title}
@@ -135,15 +130,13 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({ ticket, theme, onTicke
           {(ticket.labels || []).slice(0, 2).map((label) => (
             <span
               key={label}
-              className={`text-xs px-2 py-0.5 rounded-full ${theme === 'dark' ? 'bg-gray-600 text-gray-300' : 'bg-gray-100 text-gray-700'
-                }`}
+              className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-600 dark:text-gray-300"
             >
               {label}
             </span>
           ))}
           {(ticket.labels || []).length > 2 && (
-            <span className={`text-xs px-2 py-0.5 rounded-full ${theme === 'dark' ? 'bg-gray-600 text-gray-300' : 'bg-gray-100 text-gray-700'
-              }`}>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-600 dark:text-gray-300">
               +{(ticket.labels || []).length - 2}
             </span>
           )}
@@ -154,18 +147,16 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({ ticket, theme, onTicke
         <div className="flex items-center space-x-2">
           {ticket.assignee && (
             <div className="flex items-center space-x-1">
-              <User size={10} className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} />
-              <span className={`text-[10px] sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                }`}>
+              <User size={10} className="text-gray-500 dark:text-gray-400" />
+              <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                 {ticket.assignee.split(' ')[0]}
               </span>
             </div>
           )}
           {ticket.dueDate && (
             <div className="flex items-center space-x-1">
-              <Calendar size={10} className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} />
-              <span className={`text-[10px] sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                }`}>
+              <Calendar size={10} className="text-gray-500 dark:text-gray-400" />
+              <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                 {new Date(ticket.dueDate).toLocaleDateString()}
               </span>
             </div>
@@ -175,18 +166,16 @@ const KanbanCardComponent: React.FC<KanbanCardProps> = ({ ticket, theme, onTicke
         <div className="flex items-center space-x-2">
           {(ticket.commentsCount || 0) > 0 && (
             <div className="flex items-center space-x-1">
-              <MessageSquare size={10} className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} />
-              <span className={`text-[10px] sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                }`}>
+              <MessageSquare size={10} className="text-gray-500 dark:text-gray-400" />
+              <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                 {ticket.commentsCount}
               </span>
             </div>
           )}
           {(ticket.attachmentsCount || 0) > 0 && (
             <div className="flex items-center space-x-1">
-              <Paperclip size={10} className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} />
-              <span className={`text-[10px] sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                }`}>
+              <Paperclip size={10} className="text-gray-500 dark:text-gray-400" />
+              <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                 {ticket.attachmentsCount}
               </span>
             </div>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
-import { ThemeContext } from "@/shared/context/ThemeContext";
+import { ThemeProvider } from "@/shared/context/ThemeProvider";
 import { AppLayout } from "@/shared/ui/layout/AppLayout";
 import { ApplicationContext } from "@/shared/context/ApplicationContext";
 import { Toaster } from "@/components/ui/sonner";

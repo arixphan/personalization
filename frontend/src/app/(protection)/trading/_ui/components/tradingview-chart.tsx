@@ -1,19 +1,22 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useTheme } from "next-themes";
 
 interface TradingViewChartProps {
   symbol?: string; // e.g. 'BINANCE:BTCUSDT'
-  theme?: "dark" | "light";
   autosize?: boolean;
 }
 
 export function TradingViewChart({
   symbol = "BINANCE:BTCUSDT",
-  theme = "dark",
   autosize = true,
 }: TradingViewChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const { theme, resolvedTheme } = useTheme();
+  
+  // Use resolvedTheme if available, fallback to theme or 'dark'
+  const currentTheme = (resolvedTheme || theme || "dark") as "light" | "dark";
 
   useEffect(() => {
     const container = containerRef.current;
@@ -29,7 +32,7 @@ export function TradingViewChart({
       symbol,
       interval: "1H",
       timezone: "Etc/UTC",
-      theme,
+      theme: currentTheme,
       style: "1",
       locale: "en",
       enable_publishing: false,
@@ -47,7 +50,7 @@ export function TradingViewChart({
         container.innerHTML = "";
       }
     };
-  }, [symbol, theme, autosize]);
+  }, [symbol, currentTheme, autosize]);
 
   return (
     <div className="tradingview-widget-container h-full w-full bg-gray-50 dark:bg-gray-950 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800">
@@ -55,3 +58,4 @@ export function TradingViewChart({
     </div>
   );
 }
+
