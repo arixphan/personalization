@@ -21,6 +21,7 @@ interface MarkdownEditorProps {
   label?: string;
   value: string;
   onChange: (value: string) => void;
+  onBlur?: () => void;
   placeholder?: string;
   required?: boolean;
   error?: string;
@@ -32,6 +33,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   label,
   value,
   onChange,
+  onBlur,
   placeholder,
   required = false,
   error,
@@ -237,6 +239,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               ref={textareaRef}
               value={value}
               onChange={(e) => onChange(e.target.value)}
+              onBlur={onBlur}
               placeholder={placeholder}
               required={required}
               className="border-0 focus-visible:ring-0 min-h-[160px] resize-none p-4 text-sm bg-transparent"

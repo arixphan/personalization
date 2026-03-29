@@ -62,11 +62,12 @@ export default function LogsPage() {
     fetchDayLog();
   }, [fetchDayLog]);
 
-  const handleSave = async () => {
+  const handleSave = async (overrideSentiment?: TradingLogSentiment) => {
     setIsSaving(true);
     try {
       const dateStr = format(selectedDate, "yyyy-MM-dd");
-      await upsertTradingLog(dateStr, content, sentiment);
+      const sentimentToSave = overrideSentiment ?? sentiment;
+      await upsertTradingLog(dateStr, content, sentimentToSave);
       toast.success("Log saved successfully");
       fetchMonthLogs(); // Refresh calendar dots
     } catch (error) {
@@ -75,6 +76,11 @@ export default function LogsPage() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleSentimentChange = (newSentiment: TradingLogSentiment) => {
+    setSentiment(newSentiment);
+    handleSave(newSentiment);
   };
 
   return (
@@ -94,18 +100,14 @@ export default function LogsPage() {
             </h1>
             <LogStreak streak={streak} />
           </div>
-          <Button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="font-semibold shadow-lg"
-          >
-            {isSaving ? (
-              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-            ) : (
-              <Save className="w-4 h-4 mr-2" />
+          <div className="flex items-center text-sm text-gray-500 font-medium h-10">
+            {isSaving && (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                Saving...
+              </>
             )}
-            Save
-          </Button>
+          </div>
         </div>
 
         {/* Sentiment Picker */}
@@ -113,7 +115,7 @@ export default function LogsPage() {
           <label className="text-xs font-bold uppercase text-gray-500 tracking-wider">
             Market Sentiment
           </label>
-          <SentimentSelector value={sentiment} onChange={setSentiment} />
+          <SentimentSelector value={sentiment} onChange={handleSentimentChange} />
         </div>
 
         {/* Calendar Picker */}
@@ -136,7 +138,8 @@ export default function LogsPage() {
             <MarkdownEditor 
               id="trading-log-editor"
               value={content} 
-              onChange={setContent} 
+              onChange={setContent}
+              onBlur={() => handleSave()}
               placeholder="Write today's market analysis and trade details..." 
             />
           )}

@@ -11,7 +11,6 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "motion/react";
 
 export default function EnglishLearningPage() {
   const [records, setRecords] = useState<EnglishRecord[]>([]);
@@ -161,20 +160,13 @@ export default function EnglishLearningPage() {
            No items found. 
         </div>
       ) : (
-        <AnimatePresence mode="popLayout">
-          <div className={viewMode === "grid" 
-            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-            : "space-y-3"
-          }>
-            {records.map((record) => (
-              <motion.div
-                layout
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                key={record.id}
-              >
-                {viewMode === "grid" ? (
+        <div className={viewMode === "grid" 
+          ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          : "space-y-3"
+        }>
+          {records.map((record) => (
+            <div key={record.id}>
+              {viewMode === "grid" ? (
                   <Card className="group relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 border-primary/5 h-full flex flex-col">
                     <div className="absolute top-0 left-0 w-1 h-full bg-primary/20 group-hover:bg-primary transition-colors" />
                     <CardHeader className="pb-3 flex flex-row items-start justify-between space-y-0">
@@ -249,10 +241,9 @@ export default function EnglishLearningPage() {
                     </div>
                   </Card>
                 )}
-              </motion.div>
+              </div>
             ))}
           </div>
-        </AnimatePresence>
       )}
 
       <AddRecordModal 
