@@ -10,7 +10,6 @@ export const useRefreshAccessToken = () => {
 
   useEffect(() => {
     const refresh = async () => {
-      console.log("Refreshing access token...");
       try {
         const res = await fetch(REFRESH_TOKEN_ENDPOINT, {
           method: "POST",

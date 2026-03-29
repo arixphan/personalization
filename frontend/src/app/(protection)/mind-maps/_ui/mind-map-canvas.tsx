@@ -29,20 +29,17 @@ import { MindMapSocketProvider } from './mind-map-socket-context';
 
 const nodeTypes = { mindmap: MindMapNode };
 const nodeOrigin: [number, number] = [0.5, 0];
+const deleteKeyCodes = ['Backspace', 'Delete'];
+const getMiniMapNodeColor = (node: Node) => (node.data as MindMapNodeData).branchColor ?? '#94a3b8';
 
 // ---------------------------------------------------------------------------
 // Branch coloring utility
 // ---------------------------------------------------------------------------
 
 /**
- * BFS from the root (node with no incoming edges) to assign a branch color
- * to every node and a matching stroke to every edge.
- * Returns NEW node/edge arrays so React can detect the change.
+ * Computes a map of node and edge colors using BFS from root nodes.
  */
-function applyBranchColors(nodes: Node[], edges: Edge[]): { nodes: Node[]; edges: Edge[] } {
-  if (nodes.length === 0) return { nodes, edges };
-
-  // Build adjacency (source → target) and in-degree maps
+function computeColorAssignments(nodes: Node[], edges: Edge[]) {
   const children = new Map<string, string[]>();
   const inDegree = new Map<string, number>();
   nodes.forEach(n => { children.set(n.id, []); inDegree.set(n.id, 0); });
@@ -51,54 +48,23 @@ function applyBranchColors(nodes: Node[], edges: Edge[]): { nodes: Node[]; edges
     inDegree.set(e.target, (inDegree.get(e.target) ?? 0) + 1);
   });
 
-  // Find root(s): nodes with no incoming edges
   const roots = nodes.filter(n => (inDegree.get(n.id) ?? 0) === 0);
-
-  // BFS — assign colors
   const nodeColor = new Map<string, string>();
   const queue: { id: string; color: string | null }[] = roots.map(r => ({ id: r.id, color: null }));
   let branchIndex = 0;
 
   while (queue.length > 0) {
     const { id, color } = queue.shift()!;
-
-    // Determine this node's color
-    let assignedColor = color;
-    if (assignedColor === null) {
-      // This is a root; give it a neutral color
-      assignedColor = '#64748b';
-    }
+    let assignedColor = color ?? '#64748b';
     nodeColor.set(id, assignedColor);
 
-    const kids = children.get(id) ?? [];
-    kids.forEach((childId, idx) => {
-      // Direct children of roots each get a unique branch color
-      let childColor: string;
-      if (color === null) {
-        childColor = BRANCH_COLORS[branchIndex % BRANCH_COLORS.length];
-        branchIndex++;
-      } else {
-        childColor = assignedColor!;
-      }
+    (children.get(id) ?? []).forEach(childId => {
+      let childColor = color === null ? BRANCH_COLORS[branchIndex++ % BRANCH_COLORS.length] : assignedColor;
       queue.push({ id: childId, color: childColor });
     });
   }
 
-  const updatedNodes = nodes.map(n => {
-    const branchColor = nodeColor.get(n.id) ?? '#64748b';
-    const prevColor = (n.data as MindMapNodeData).branchColor;
-    if (prevColor === branchColor) return n; // no change
-    return { ...n, data: { ...n.data, branchColor } };
-  });
-
-  const updatedEdges = edges.map(e => {
-    const color = nodeColor.get(e.target) ?? nodeColor.get(e.source) ?? '#64748b';
-    const prevStroke = (e.style as React.CSSProperties | undefined)?.stroke;
-    if (prevStroke === color) return e;
-    return { ...e, style: { ...(e.style ?? {}), stroke: color, strokeWidth: 2 } };
-  });
-
-  return { nodes: updatedNodes, edges: updatedEdges };
+  return nodeColor;
 }
 
 // ---------------------------------------------------------------------------
@@ -115,7 +81,7 @@ interface ContextMenuState {
   y: number;
 }
 
-export function MindMapCanvas({
+export const MindMapCanvas = React.memo(function MindMapCanvas({
   mindMapId,
   initialNodes = [],
   initialEdges = [],
@@ -137,7 +103,7 @@ export function MindMapCanvas({
   }, [setNodes]);
 
   const handleNodeAdded = useCallback((node: any) => {
-    setNodes(nds => nds.concat(node));
+    setNodes(nds => nds.some(n => n.id === node.id) ? nds : nds.concat(node));
   }, [setNodes]);
 
   const handleNodeRemoved = useCallback(({ nodeId }: { nodeId: string }) => {
@@ -146,7 +112,7 @@ export function MindMapCanvas({
   }, [setNodes, setEdges]);
 
   const handleEdgeAdded = useCallback((edge: any) => {
-    setEdges(eds => eds.concat(edge));
+    setEdges(eds => eds.some(e => e.id === edge.id) ? eds : eds.concat(edge));
   }, [setEdges]);
 
   const { emitNodeMove, emitNodeSave, emitNodeUpdate, emitNodeAdd, emitEdgeAdd, emitNodeRemove } = useMindMapSocket({
@@ -196,12 +162,18 @@ export function MindMapCanvas({
 
   const onConnect = useCallback(
     (params: Connection) => {
-      setEdges(eds => {
-        const newEdges = addEdge(params, eds);
-        const addedEdge = newEdges[newEdges.length - 1];
-        emitEdgeAdd(addedEdge); // Sync new connection
-        return newEdges;
-      });
+      const newEdgeId = crypto.randomUUID();
+      const edge = {
+        id: newEdgeId,
+        source: params.source,
+        target: params.target,
+        sourceHandle: params.sourceHandle,
+        targetHandle: params.targetHandle,
+      };
+
+      emitEdgeAdd(edge); // Sync new connection outside of updater
+
+      setEdges(eds => addEdge({ ...params, id: newEdgeId }, eds));
     },
     [setEdges, emitEdgeAdd],
   );
@@ -209,7 +181,7 @@ export function MindMapCanvas({
   const onConnectEnd = useCallback(
     (event: any, connectionState: any) => {
       if (!connectionState.isValid) {
-        const id = `node_${Date.now()}`;
+        const id = crypto.randomUUID();
         const { clientX, clientY } =
           'changedTouches' in event ? event.changedTouches[0] : event;
 
@@ -232,23 +204,17 @@ export function MindMapCanvas({
         else if (connectionState.fromHandle.id.includes('top')) targetHandle = 'target-bottom';
 
         const newEdge: Edge = {
-          id: `edge_${Date.now()}`,
+          id: crypto.randomUUID(),
           source: isFromTarget ? id : connectionState.fromNode.id,
           sourceHandle: isFromTarget ? 'source-bottom' : connectionState.fromHandle.id,
           target: isFromTarget ? connectionState.fromNode.id : id,
           targetHandle: isFromTarget ? connectionState.fromHandle.id : targetHandle,
         };
 
-        setNodes(nds => {
-          const updated = nds.concat(newNode);
-          setEdges(eds => {
-            const updatedEdges = eds.concat(newEdge);
-            return updatedEdges;
-          });
-          emitNodeAdd(newNode);
-          emitEdgeAdd(newEdge);
-          return updated;
-        });
+        setNodes(nds => nds.concat(newNode));
+        setEdges(eds => eds.concat(newEdge));
+        emitNodeAdd(newNode);
+        emitEdgeAdd(newEdge);
       }
     },
     [screenToFlowPosition, setNodes, setEdges, emitNodeAdd, emitEdgeAdd],
@@ -257,6 +223,12 @@ export function MindMapCanvas({
   const onNodesDelete = useCallback(
     (deleted: Node[]) => {
       let remainingNodes = [...nodes];
+
+      // Execute the emissions outside the state updater
+      deleted.forEach(node => {
+        emitNodeRemove(node.id); // Broadcast removal
+      });
+
       setEdges(acc => {
         const result = deleted.reduce((edgeAcc, node) => {
           const incomers = getIncomers(node, remainingNodes, edgeAcc);
@@ -272,7 +244,6 @@ export function MindMapCanvas({
             })),
           );
           remainingNodes = remainingNodes.filter(rn => rn.id !== node.id);
-          emitNodeRemove(node.id); // Broadcast removal
           return [...remainingEdges, ...createdEdges];
         }, acc);
         return result;
@@ -304,7 +275,7 @@ export function MindMapCanvas({
       event.preventDefault();
       event.stopPropagation();
 
-      const id = `node_${Date.now()}`;
+      const id = crypto.randomUUID();
       const newNode: Node = {
         id,
         type: 'mindmap',
@@ -315,19 +286,38 @@ export function MindMapCanvas({
         origin: [0.5, 0.0],
       };
 
-      setNodes(nds => {
-        const updated = nds.concat(newNode);
-        emitNodeAdd(newNode); // Sync new node
-        return updated;
-      });
+      setNodes(nds => nds.concat(newNode));
+      emitNodeAdd(newNode); // Sync new node
     }
   }, [screenToFlowPosition, setNodes, emitNodeAdd]);
 
-  // Apply branch colors + force type = 'mindmap'
-  const { nodes: coloredNodes, edges: coloredEdges } = useMemo(() => {
-    const typed = nodes.map(n => ({ ...n, type: 'mindmap' }));
-    return applyBranchColors(typed, edges);
-  }, [nodes, edges]);
+  // Compute branch colors periodically via useEffect rather than intercepting the render loop!
+  useEffect(() => {
+    if (nodes.length === 0) return;
+    const nodeColor = computeColorAssignments(nodes, edges);
+
+    setNodes(nds => {
+      let modified = false;
+      const updated = nds.map(n => {
+        const branchColor = nodeColor.get(n.id) ?? '#64748b';
+        if (n.type === 'mindmap' && (n.data as MindMapNodeData).branchColor === branchColor) return n;
+        modified = true;
+        return { ...n, type: 'mindmap', data: { ...n.data, branchColor } };
+      });
+      return modified ? updated : nds;
+    });
+
+    setEdges(eds => {
+      let modified = false;
+      const updated = eds.map(e => {
+        const color = nodeColor.get(e.target) ?? nodeColor.get(e.source) ?? '#64748b';
+        if ((e.style as any)?.stroke === color) return e;
+        modified = true;
+        return { ...e, style: { ...(e.style ?? {}), stroke: color, strokeWidth: 2 } };
+      });
+      return modified ? updated : eds;
+    });
+  }, [nodes.length, edges, setNodes, setEdges]); // Only recompute on topology changes!
 
   const colorMode = resolvedTheme === 'dark' ? 'dark' : 'light';
 
@@ -335,8 +325,8 @@ export function MindMapCanvas({
     <MindMapSocketProvider value={{ emitNodeMove, emitNodeSave, emitNodeUpdate, emitNodeAdd, emitEdgeAdd, emitNodeRemove }}>
       <div style={{ width: '100%', height: 'calc(100vh - 120px)' }} className="relative group">
         <ReactFlow
-          nodes={coloredNodes}
-          edges={coloredEdges}
+          nodes={nodes}
+          edges={edges}
           onNodesChange={handleNodesChange}
           onNodesDelete={onNodesDelete}
           onNodeDragStop={onNodeDragStop}
@@ -348,13 +338,13 @@ export function MindMapCanvas({
           nodeTypes={nodeTypes}
           nodeOrigin={nodeOrigin}
           fitView
-          deleteKeyCode={['Backspace', 'Delete']}
+          deleteKeyCode={deleteKeyCodes}
           colorMode={colorMode}
         >
           <Background />
           <Controls />
           <MiniMap
-            nodeColor={node => (node.data as MindMapNodeData).branchColor ?? '#94a3b8'}
+            nodeColor={getMiniMapNodeColor}
             maskColor="rgba(0,0,0,0.05)"
           />
         </ReactFlow>
@@ -372,4 +362,4 @@ export function MindMapCanvas({
       </div>
     </MindMapSocketProvider>
   );
-}
+});

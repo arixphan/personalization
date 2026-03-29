@@ -18,11 +18,7 @@ export function SignUpForm() {
 
   const [state, , ] = useActionState(registerAction, initialState);
 
-  useEffect(() => {
-    if (state.success && state.message) {
-      console.log("Registration successful:", state.message);
-    }
-  }, [state.success, state.message]);
+
 
   const handleSocialAuth = (provider: "google" | "facebook") => {
     if (provider === "google") {

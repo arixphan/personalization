@@ -61,7 +61,7 @@ export class MindMapGateway implements OnGatewayConnection, OnGatewayDisconnect 
       });
 
       client.data.user = payload;
-      console.log(`[MindMapGateway] Connected: ${client.id}, User: ${payload.username}`);
+
     } catch (error) {
       console.error('[MindMapGateway] Connection error:', error.message);
       client.disconnect();
@@ -69,7 +69,7 @@ export class MindMapGateway implements OnGatewayConnection, OnGatewayDisconnect 
   }
 
   handleDisconnect(client: Socket) {
-    console.log(`[MindMapGateway] Disconnected: ${client.id}`);
+
   }
 
   @SubscribeMessage('join-room')
@@ -79,7 +79,7 @@ export class MindMapGateway implements OnGatewayConnection, OnGatewayDisconnect 
   ) {
     const room = `mind-map-${String(data.mindMapId)}`;
     client.join(room);
-    console.log(`[MindMapGateway] Client ${client.id} joined room ${room}`);
+
     return { status: 'joined', room };
   }
 

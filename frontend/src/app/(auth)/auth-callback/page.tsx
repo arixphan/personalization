@@ -48,7 +48,7 @@ export default function AuthCallbackPage() {
         // Construct the exchange URL properly
         const url = `${baseUrl}/auth/exchange`;
 
-        console.log("Exchanging code at:", url);
+
 
         const res = await fetch(url, {
           method: "POST",

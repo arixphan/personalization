@@ -100,7 +100,6 @@ const RichTextEditorComponent: React.FC<RichTextEditorProps> = ({
   useEffect(() => {
     if (editor && value !== lastValueRef.current && value !== editor.getHTML()) {
       lastValueRef.current = value;
-      console.log("aaa")
       editor.commands.setContent(value);
     }
   }, [value, editor]);

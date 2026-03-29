@@ -35,9 +35,7 @@ export class RagService {
       embedding,
       metadata,
     } = data;
-    console.log(
-      `[RagService] saveEmbedding for userId: ${userId}, domain: ${domain}`,
-    );
+
     const vectorString = `[${embedding.join(',')}]`;
 
     await this.prisma.$executeRaw`

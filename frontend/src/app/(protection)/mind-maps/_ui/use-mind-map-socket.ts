@@ -57,10 +57,7 @@ export function useMindMapSocket({
     socketRef.current = socket;
 
     socket.on('connect', () => {
-      console.log('[useMindMapSocket] Connected to Mind Map WebSocket:', socket.id);
-      socket.emit('join-room', { mindMapId }, (response: any) => {
-        console.log('[useMindMapSocket] Joined room response:', response);
-      });
+      socket.emit('join-room', { mindMapId });
     });
 
     socket.on('connect_error', (error) => {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Handle, Position, NodeProps, NodeResizer, useReactFlow } from '@xyflow/react';
 import { FileText } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -10,6 +10,9 @@ import { MindMapNodeData, NodeShape, PRIORITY_COLORS } from './mind-map-types';
 import { NodeStyleToolbar } from './node-style-toolbar';
 import { MarkdownEditorModal } from './markdown-editor-modal';
 import { useMindMapSocketContext } from './mind-map-socket-context';
+
+// Constant array to prevent ReactMarkdown from re-parsing on every render
+const markdownPlugins = [remarkGfm];
 
 // ---------------------------------------------------------------------------
 // Shape background rendering
@@ -84,7 +87,7 @@ function ShapeLayer({ shape, borderColor }: ShapeLayerProps) {
 // Component
 // ---------------------------------------------------------------------------
 
-export function MindMapNode({ id, data: rawData, selected }: NodeProps) {
+export const MindMapNode = React.memo(function MindMapNode({ id, data: rawData, selected }: NodeProps) {
   const data = rawData as MindMapNodeData;
   const { updateNodeData } = useReactFlow();
   const { emitNodeUpdate } = useMindMapSocketContext();
@@ -191,13 +194,16 @@ export function MindMapNode({ id, data: rawData, selected }: NodeProps) {
           )}
 
           {/* Markdown preview (not shown for diamond to keep it compact) */}
-          {hasContent && shape !== 'diamond' && (
-            <div className="w-full border-t border-border/40 mt-1 pt-1 max-h-28 overflow-y-auto text-left">
-              <div className="prose prose-xs dark:prose-invert max-w-none text-[11px] leading-snug [&_p]:my-0.5 [&_ul]:my-0.5 [&_h1]:text-xs [&_h2]:text-xs [&_h3]:text-xs">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{data.content!}</ReactMarkdown>
+          {useMemo(() => {
+            if (!hasContent || shape === 'diamond') return null;
+            return (
+              <div className="w-full border-t border-border/40 mt-1 pt-1 max-h-28 overflow-y-auto text-left">
+                <div className="prose prose-xs dark:prose-invert max-w-none text-[11px] leading-snug [&_p]:my-0.5 [&_ul]:my-0.5 [&_h1]:text-xs [&_h2]:text-xs [&_h3]:text-xs">
+                  <ReactMarkdown remarkPlugins={markdownPlugins}>{data.content!}</ReactMarkdown>
+                </div>
               </div>
-            </div>
-          )}
+            );
+          }, [hasContent, shape, data.content])}
         </div>
 
         {/* ── Note icon button ── */}
@@ -233,4 +239,4 @@ export function MindMapNode({ id, data: rawData, selected }: NodeProps) {
       />
     </>
   );
-}
+});
