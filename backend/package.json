@@ -55,6 +55,7 @@
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "catalog:",
     "passport-local": "catalog:",
+    "multer": "^1.4.5-lts.1",
     "pgvector": "^0.2.1",
     "reflect-metadata": "catalog:",
     "rss-parser": "^3.13.0",
