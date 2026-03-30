@@ -8,9 +8,10 @@ import { MarkdownEditor } from "@/components/ui/input";
 import { MonthCalendar } from "./_ui/components/month-calendar";
 import { SentimentSelector } from "./_ui/components/sentiment-selector";
 import { LogStreak } from "./_ui/components/log-streak";
+import { AiMarketAnalysis } from "./_ui/components/ai-market-analysis";
 import { getTradingLogByDate, getTradingLogsByMonth, upsertTradingLog } from "./_actions/trading-log.actions";
 import { toast } from "sonner";
-import { Loader2, Save } from "lucide-react";
+import { Loader2, Save, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function LogsPage() {
@@ -126,10 +127,13 @@ export default function LogsPage() {
         />
 
         {/* Rich Text Editor */}
-        <div className="flex-1 min-h-[300px]">
-           <label className="text-xs font-bold uppercase text-gray-500 tracking-wider mb-2 block">
-            Analysis & Log
-          </label>
+        <div className="flex-1 min-h-[300px] flex flex-col gap-4">
+          <AiMarketAnalysis selectedDate={selectedDate} />
+
+          <div className="flex flex-col flex-1">
+            <label className="text-xs font-bold uppercase text-gray-500 tracking-wider mb-2 block">
+              Analysis & Log
+            </label>
           {isLoading ? (
             <div className="h-[300px] w-full bg-gray-100 dark:bg-gray-800 animate-pulse rounded-lg flex items-center justify-center">
               <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
@@ -143,6 +147,7 @@ export default function LogsPage() {
               placeholder="Write today's market analysis and trade details..." 
             />
           )}
+          </div>
         </div>
       </div>
     </div>

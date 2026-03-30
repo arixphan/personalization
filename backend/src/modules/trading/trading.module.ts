@@ -14,13 +14,19 @@ import { TradingAccountRepository } from './trading-account.repository';
 import { NewsController } from './news.controller';
 import { NewsService } from './news.service';
 
+import { AiModule } from '../ai/ai.module';
+import { MarketDataService } from './market-data.service';
+import { MarketAnalysisService } from './market-analysis.service';
+import { MarketAnalysisController } from './market-analysis.controller';
+
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, AiModule],
   controllers: [
     TradingLogController,
     StrategyController,
     BinanceController,
     NewsController,
+    MarketAnalysisController,
   ],
   providers: [
     TradingLogService,
@@ -31,12 +37,16 @@ import { NewsService } from './news.service';
     CryptoService,
     TradingAccountRepository,
     NewsService,
+    MarketDataService,
+    MarketAnalysisService,
   ],
   exports: [
     TradingLogService,
     StrategyService,
     BinanceAccountService,
     NewsService,
+    MarketDataService,
+    MarketAnalysisService,
   ],
 })
 export class TradingModule {}

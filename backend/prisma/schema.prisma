@@ -24,6 +24,7 @@ model User {
   role           Role            @relation("UserRoles", fields: [roleId], references: [id])
   userProfile    UserProfile?
   tradingLogs    TradingLog[]
+  marketAnalyses MarketAnalysis[]
   strategies     Strategy[]
   tradingAccount TradingAccount?
   wallets        Wallet[]
@@ -157,6 +158,21 @@ model TradingLog {
   user      User     @relation(fields: [userId], references: [id])
 
   @@index([userId, date])
+}
+
+model MarketAnalysis {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  interval  String   // "DAILY" | "WEEKLY" | "MONTHLY"
+  date      DateTime // For daily it's the day, for weekly it's the start of the week.
+  content   String   @db.Text
+  priceData Json?    // Snapshot of price/RSI flow used during generation
+  sentiment String   // "BULLISH" | "BEARISH" | "NEUTRAL"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, interval, date])
 }
 
 model Strategy {
