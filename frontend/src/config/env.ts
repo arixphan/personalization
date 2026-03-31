@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const envSchema = z.object({
-  NEXT_PUBLIC_SERVER_BASE_URL: z.string().url().default("http://localhost:3000/api"),
+  NEXT_PUBLIC_SERVER_BASE_URL: z.string().url(),
 });
 
 // For Next.js to inline NEXT_PUBLIC_ variables, they must be literal process.env.NEXT_PUBLIC_...

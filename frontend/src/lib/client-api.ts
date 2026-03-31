@@ -22,6 +22,8 @@ export class ClientApi extends BaseApi {
   }
 }
 
+import { env } from "@/config/env";
+
 export const ClientApiHandler = new ClientApi(
-  process.env.SERVER_BASE_URL || "http://localhost:3000/api"
+  env.nextPublicServerBaseUrl
 );

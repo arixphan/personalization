@@ -11,6 +11,7 @@ import { EducationList } from "./education-list";
 import { SkillList } from "./skill-list";
 import { updateProfile, uploadAvatar } from "../../../_actions/profile";
 import { useTranslations } from "next-intl";
+import { env } from "@/config/env";
 
 export function ProfileTab({ initialData }: { initialData?: any }) {
   const t = useTranslations("Profile");
@@ -65,7 +66,7 @@ export function ProfileTab({ initialData }: { initialData?: any }) {
         toast.error(result.error);
       } else if (result.data?.url) {
         // Construct full URL since backend returns relative path /uploads/...
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:3000";
+        const baseUrl = env.nextPublicServerBaseUrl.replace("/api", "");
         const fullUrl = `${baseUrl}${result.data.url}`;
         setAvatarUrl(fullUrl);
         

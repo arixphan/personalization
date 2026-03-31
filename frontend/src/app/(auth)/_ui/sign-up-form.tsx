@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { registerAction, RegisterState } from "../actions/register";
 import { useTranslations } from "next-intl";
+import { env } from "@/config/env";
 
 const initialState: RegisterState = {
   success: false,
@@ -22,9 +23,7 @@ export function SignUpForm() {
 
   const handleSocialAuth = (provider: "google" | "facebook") => {
     if (provider === "google") {
-      const backendUrl =
-        process.env.NEXT_PUBLIC_SERVER_BASE_URL?.replace("/api", "") ??
-        "http://localhost:3000";
+      const backendUrl = env.nextPublicServerBaseUrl.replace("/api", "");
       window.location.href = `${backendUrl}/api/auth/google`;
     }
   };

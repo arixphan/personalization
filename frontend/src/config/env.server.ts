@@ -3,7 +3,7 @@ import { z } from "zod";
 
 const serverEnvSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  SERVER_BASE_URL: z.string().url().default("http://localhost:3000/api"),
+  SERVER_BASE_URL: z.string().url(),
   JWT_SECRET: z.string().min(1),
   JWT_ACCESS_EXPIRATION_TIME: z.coerce.number().default(1800),
   JWT_REFRESH_EXPIRATION_TIME: z.coerce.number().default(604800),

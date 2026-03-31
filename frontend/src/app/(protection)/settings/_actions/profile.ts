@@ -6,6 +6,7 @@ import { ServerApiHandler } from "@/lib/server-api";
 import { isSuccessApiResponse } from "@/lib/base-api";
 import { UserEndpoint } from "@/constants/endpoints";
 import { AUTH_CONFIG } from "@personalization/shared";
+import { env } from "@/config/env.server";
 import {
   UserProfileDto,
   UserSettingsDto,
@@ -69,7 +70,7 @@ export async function uploadAvatar(formData: FormData) {
       headers.set("Authorization", `Bearer ${token}`);
     }
 
-    const baseUrl = process.env.SERVER_BASE_URL || "http://localhost:3000/api";
+    const baseUrl = env.serverBaseUrl;
     
     const response = await fetch(`${baseUrl}/upload/avatar`, {
       method: "POST",
