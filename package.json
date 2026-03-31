@@ -21,5 +21,10 @@
   "bugs": {
     "url": "https://github.com/arixphan/personalization/issues"
   },
-  "homepage": "https://github.com/arixphan/personalization#readme"
+  "homepage": "https://github.com/arixphan/personalization#readme",
+  "dependencies": {
+    "next": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  }
 }
