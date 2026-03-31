@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AUTH_CONFIG } from "@personalization/shared";
-import { env } from "@/config/env";
 import { AuthEndpoint } from "@/constants/endpoints";
+import { exchangeCodeAction } from "../actions/exchange";
 
 /**
  * Auth Callback Page
@@ -44,34 +44,18 @@ export default function AuthCallbackPage() {
 
     const exchangeCode = async () => {
       try {
-        const baseUrl = env.serverBaseUrl;
-        const url = `${baseUrl}/auth/exchange`;
-        console.log('[AuthCallback] Exchanging code:', code, 'at URL:', url);
+        console.log('[AuthCallback] Exchanging code via Server Action:', code);
+        const result = await exchangeCodeAction(code);
 
-        const res = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ code }),
-        });
-
-        console.log('[AuthCallback] Exchange response status:', res.status);
-
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          console.error('[AuthCallback] Exchange failed:', data);
-          throw new Error(data.message || `Exchange failed with status ${res.status}`);
+        if (result.error) {
+          throw new Error(result.error);
         }
 
-        const data = await res.json().catch(() => ({}));
-        console.log('[AuthCallback] Exchange success data:', data);
-        console.log('[AuthCallback] Document cookies after exchange:', document.cookie ? 'Present (masked for security)' : 'EMPTY');
-
-        // Cookies are now set by the backend — redirect to home
-        console.log('[AuthCallback] Redirecting to /');
+        // Cookies are now set by the server action on the frontend domain
+        console.log('[AuthCallback] Exchange successful, redirecting to /');
         router.push("/");
       } catch (err) {
-        console.error('[AuthCallback] Runtime error:', err);
+        console.error('[AuthCallback] Exchange error:', err);
         setErrorMessage(
           err instanceof Error ? err.message : "Authentication failed."
         );
