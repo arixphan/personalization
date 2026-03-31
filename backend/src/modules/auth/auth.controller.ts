@@ -33,6 +33,7 @@ export class AuthController {
     @Request() req: LoginRequest,
     @Res({ passthrough: true }) res: Response,
   ) {
+    console.log('[AuthController] Login attempt for user:', req.user?.username);
     const { access_token, refresh_token } = await this.authService.login(
       req.user,
     );
@@ -77,6 +78,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const refreshToken = req.cookies[AUTH_CONFIG.COOKIE_NAMES.REFRESH_TOKEN];
+    console.log('[AuthController] Refresh attempt. Token present:', !!refreshToken);
 
     if (!refreshToken) {
       res.status(HttpStatus.UNAUTHORIZED);
@@ -84,6 +86,7 @@ export class AuthController {
     }
 
     const newAccessToken = await this.authService.refreshToken(refreshToken);
+    console.log('[AuthController] Refresh result. Success:', !!newAccessToken);
 
     if (!newAccessToken) {
       res.status(HttpStatus.UNAUTHORIZED);

@@ -45,6 +45,7 @@ export async function signInAction(
   }
 
   const { username, password } = validatedFields.data;
+  console.log('[SignInAction] Attempting login for:', username, 'to baseUrl:', env.serverBaseUrl);
 
   try {
     const { data, responseHeaders } = await ServerApiHandler.post(
@@ -58,6 +59,7 @@ export async function signInAction(
     if (data) {
       // Get cookies from NestJS response and forward them
       const setCookieHeader = responseHeaders?.get("set-cookie");
+      console.log('[SignInAction] Login successful for:', username, 'Access token present:', !!data.access_token);
       const cookieStore = await cookies();
 
       // Store access token in httpOnly cookie
@@ -110,6 +112,7 @@ export async function signInAction(
       },
     };
   } catch (error) {
+    console.error('[SignInAction] Runtime error:', error);
     const err = error as { digest?: string };
     if (err?.digest?.includes("NEXT_REDIRECT")) {
       throw error;

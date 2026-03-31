@@ -14,13 +14,16 @@ export async function POST() {
 
   try {
     const baseUrl = env.serverBaseUrl;
-    const response = await fetch(`${baseUrl}/${AuthEndpoint.refreshToken}`, {
+    const refreshUrl = `${baseUrl}/${AuthEndpoint.refreshToken}`;
+    console.log('[RefreshRoute] Refreshing token at:', refreshUrl);
+    const response = await fetch(refreshUrl, {
       method: "POST",
       headers: {
         Cookie: `${AUTH_CONFIG.COOKIE_NAMES.REFRESH_TOKEN}=${refreshToken.value}`,
       },
     });
 
+    console.log('[RefreshRoute] Response status:', response.status);
     const data = await response.json();
 
     if (!response.ok) {
