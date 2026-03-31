@@ -16,19 +16,21 @@ export const useRefreshAccessToken = () => {
           credentials: "include",
         });
 
+        console.log("Refresh token response:", res);
+
         if (!res.ok) {
-          router.replace("/signin");
+          // router.replace("/signin");
           return;
         }
 
         const data = await res.json();
 
         if (data.error) {
-          router.replace("/signin");
+          // router.replace("/signin");
         }
       } catch (error) {
         console.error("Failed to refresh token:", error);
-        router.replace("/signin");
+        // router.replace("/signin");
       }
     };
 

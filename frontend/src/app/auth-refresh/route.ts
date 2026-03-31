@@ -15,7 +15,7 @@ export async function POST() {
   try {
     const baseUrl = env.serverBaseUrl;
     const refreshUrl = `${baseUrl}/${AuthEndpoint.refreshToken}`;
-    
+
     // Server-to-server call to the backend
     const response = await fetch(refreshUrl, {
       method: "POST",
@@ -23,6 +23,8 @@ export async function POST() {
         Cookie: `${AUTH_CONFIG.COOKIE_NAMES.REFRESH_TOKEN}=${refreshToken.value}`,
       },
     });
+
+    console.log("Nextjs: Refresh token response:", response);
 
     const data = await response.json();
 
