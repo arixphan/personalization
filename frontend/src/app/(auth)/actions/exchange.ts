@@ -13,7 +13,6 @@ export async function exchangeCodeAction(code: string) {
   try {
     const baseUrl = env.serverBaseUrl;
     const url = `${baseUrl}/auth/exchange`;
-    console.log('[ExchangeAction] Exchanging code at:', url);
 
     const res = await fetch(url, {
       method: "POST",
@@ -52,7 +51,6 @@ export async function exchangeCodeAction(code: string) {
       });
     }
 
-    console.log('[ExchangeAction] Exchange successful, cookies set on frontend domain.');
     return { success: true };
   } catch (error) {
     console.error('[ExchangeAction] Runtime error:', error);

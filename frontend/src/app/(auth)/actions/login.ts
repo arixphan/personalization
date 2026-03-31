@@ -1,11 +1,10 @@
 "use server";
 
 import { cookies } from "next/headers";
-import setCookieParser from "set-cookie-parser";
 import { z } from "zod";
 import { AUTH_CONFIG } from "@personalization/shared";
 import { env } from "@/config/env.server";
-import { AuthEndpoint, REFRESH_TOKEN_ENDPOINT } from "@/constants/endpoints";
+import { AuthEndpoint } from "@/constants/endpoints";
 import { ServerApiHandler } from "@/lib/server-api";
 
 // Define the validation schema
@@ -61,32 +60,6 @@ export async function signInAction(
       const cookieStore = await cookies();
 
       // Store access token in httpOnly cookie
-
-      // TODO: get from env
-      // if (setCookieHeader) {
-      //   const cookiesToSet = setCookieParser.parse(setCookieHeader, {
-      //     map: false,
-      //   });
-
-      //   const refreshTokenCookie = cookiesToSet.find(
-      //     (cookie) => cookie.name === AUTH_CONFIG.COOKIE_NAMES.REFRESH_TOKEN
-      //   );
-
-      //   if (refreshTokenCookie) {
-      //     cookieStore.set(refreshTokenCookie.name, refreshTokenCookie.value, {
-      //       httpOnly: refreshTokenCookie.httpOnly,
-      //       secure: refreshTokenCookie.secure,
-      //       sameSite: refreshTokenCookie.sameSite?.toLowerCase() as
-      //         | "lax"
-      //         | "strict"
-      //         | "none",
-      //       maxAge: refreshTokenCookie.maxAge,
-      //       expires: refreshTokenCookie.expires,
-      //       path: REFRESH_TOKEN_ENDPOINT,
-      //     });
-      //   }
-      // }
-
       if (data.access_token) {
         (await cookies()).set(AUTH_CONFIG.COOKIE_NAMES.ACCESS_TOKEN, data.access_token, {
           httpOnly: true,

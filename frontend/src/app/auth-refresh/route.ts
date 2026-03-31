@@ -24,8 +24,6 @@ export async function POST() {
       },
     });
 
-    console.log("Nextjs: Refresh token response:", response);
-
     const data = await response.json();
 
     if (!response.ok) {

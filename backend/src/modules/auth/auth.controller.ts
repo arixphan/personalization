@@ -143,7 +143,7 @@ export class AuthController {
       return { message: 'Invalid or expired exchange code' };
     }
 
-    // Set both tokens as HttpOnly cookies — no tokens in the response body
+    // Set both tokens as HttpOnly cookies and return them in the body for the frontend server action to forward
     res.cookie(AUTH_CONFIG.COOKIE_NAMES.ACCESS_TOKEN, tokens.access_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

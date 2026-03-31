@@ -11,12 +11,11 @@ export default async function proxy(req: NextRequest) {
 
   try {
     const { isAuth } = await verifyToken();
-    console.log('[Proxy] isAuth:', isAuth);
 
     // Redirect to /signin if the user is not authenticated
-    // if (isProtectedRoute && !isAuth) {
-    //   return NextResponse.redirect(new URL("/signin", req.nextUrl));
-    // }
+    if (isProtectedRoute && !isAuth) {
+      return NextResponse.redirect(new URL("/signin", req.nextUrl));
+    }
   } catch {
     return NextResponse.redirect(new URL("/signin", req.nextUrl));
   }

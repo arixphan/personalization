@@ -44,7 +44,6 @@ export default function AuthCallbackPage() {
 
     const exchangeCode = async () => {
       try {
-        console.log('[AuthCallback] Exchanging code via Server Action:', code);
         const result = await exchangeCodeAction(code);
 
         if (result.error) {
@@ -52,7 +51,6 @@ export default function AuthCallbackPage() {
         }
 
         // Cookies are now set by the server action on the frontend domain
-        console.log('[AuthCallback] Exchange successful, redirecting to /');
         router.push("/");
       } catch (err) {
         console.error('[AuthCallback] Exchange error:', err);
