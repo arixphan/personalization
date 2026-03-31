@@ -16,15 +16,10 @@
     "type": "git",
     "url": "git+https://github.com/arixphan/personalization.git"
   },
-  "author": "", 
+  "author": "",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/arixphan/personalization/issues"
   },
-  "homepage": "https://github.com/arixphan/personalization#readme",
-  "dependencies": {
-    "next": "catalog:",
-    "react": "catalog:",
-    "react-dom": "catalog:"
-  }
+  "homepage": "https://github.com/arixphan/personalization#readme"
 }

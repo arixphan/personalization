@@ -171,9 +171,6 @@ catalogs:
     motion:
       specifier: ^12.23.3
       version: 12.23.24
-    next:
-      specifier: 16.0.10
-      version: 16.0.10
     next-themes:
       specifier: ^0.4.6
       version: 0.4.6
@@ -264,17 +261,7 @@ catalogs:
 
 importers:
 
-  .:
-    dependencies:
-      next:
-        specifier: 'catalog:'
-        version: 16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      react:
-        specifier: 'catalog:'
-        version: 19.2.3
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.2.3(react@19.2.3)
+  .: {}
 
   backend:
     dependencies:
