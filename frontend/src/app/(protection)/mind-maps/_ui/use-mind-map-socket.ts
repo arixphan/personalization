@@ -47,11 +47,11 @@ export function useMindMapSocket({
   useEffect(() => {
     if (!mindMapId) return;
 
-    const socketUrl = env.nextPublicServerBaseUrl.replace('/api', '');
+    const socketUrl = env.nextPublicWsBaseUrl;
 
     const socket = io(`${socketUrl}/mind-maps`, {
       withCredentials: true,
-      transports: ['websocket'],
+      transports: ['polling', 'websocket'],
     });
 
     socketRef.current = socket;
