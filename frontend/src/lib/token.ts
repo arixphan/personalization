@@ -27,23 +27,28 @@ export async function decrypt(session: string | undefined = "") {
 export const verifyToken = cache(async () => {
   try {
     const accessToken = (await cookies()).get(AUTH_CONFIG.COOKIE_NAMES.ACCESS_TOKEN)?.value;
+    console.log('[VerifyToken] Access token cookie present:', !!accessToken);
     if (!accessToken) {
       return { isAuth: false, userId: null };
     }
 
     const session = await decrypt(accessToken);
+    console.log('[VerifyToken] Decryption result:', session ? 'Success' : 'FAILED (Check JWT_SECRET mismatch)');
 
     if (!session) {
       return { isAuth: false, userId: null };
     }
 
     // Check if token is expired
-    if (session.exp && Date.now() >= session.exp * 1000) {
+    const isExpired = session.exp && Date.now() >= session.exp * 1000;
+    console.log('[VerifyToken] Token expired:', isExpired);
+    if (isExpired) {
       return { isAuth: false, userId: null, error: "TOKEN_EXPIRED" };
     }
 
     return { isAuth: true, userId: session?.userId };
-  } catch {
+  } catch (err) {
+    console.error('[VerifyToken] Unexpected error:', err);
     return { isAuth: false, userId: null };
   }
 });

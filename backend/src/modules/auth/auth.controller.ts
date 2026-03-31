@@ -134,12 +134,14 @@ export class AuthController {
     @Body() body: { code: string },
     @Res({ passthrough: true }) res: Response,
   ) {
+    console.log('[AuthController] Exchanging code:', body?.code);
     if (!body?.code) {
       res.status(HttpStatus.BAD_REQUEST);
       return { message: 'Missing exchange code' };
     }
 
     const tokens = await this.authService.consumeExchangeCode(body.code);
+    console.log('[AuthController] Exchange result. Tokens obtained:', !!tokens);
 
     if (!tokens) {
       res.status(HttpStatus.UNAUTHORIZED);

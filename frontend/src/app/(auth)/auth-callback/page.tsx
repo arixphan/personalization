@@ -45,10 +45,8 @@ export default function AuthCallbackPage() {
     const exchangeCode = async () => {
       try {
         const baseUrl = env.serverBaseUrl;
-        // Construct the exchange URL properly
         const url = `${baseUrl}/auth/exchange`;
-
-
+        console.log('[AuthCallback] Exchanging code:', code, 'at URL:', url);
 
         const res = await fetch(url, {
           method: "POST",
@@ -57,14 +55,23 @@ export default function AuthCallbackPage() {
           body: JSON.stringify({ code }),
         });
 
+        console.log('[AuthCallback] Exchange response status:', res.status);
+
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
+          console.error('[AuthCallback] Exchange failed:', data);
           throw new Error(data.message || `Exchange failed with status ${res.status}`);
         }
 
+        const data = await res.json().catch(() => ({}));
+        console.log('[AuthCallback] Exchange success data:', data);
+        console.log('[AuthCallback] Document cookies after exchange:', document.cookie ? 'Present (masked for security)' : 'EMPTY');
+
         // Cookies are now set by the backend — redirect to home
+        console.log('[AuthCallback] Redirecting to /');
         router.push("/");
       } catch (err) {
+        console.error('[AuthCallback] Runtime error:', err);
         setErrorMessage(
           err instanceof Error ? err.message : "Authentication failed."
         );
