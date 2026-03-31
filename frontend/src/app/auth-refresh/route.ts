@@ -1,4 +1,4 @@
-// app/api/refresh/route.ts
+// app/auth-refresh/route.ts
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { AUTH_CONFIG } from "@personalization/shared";
@@ -15,7 +15,8 @@ export async function POST() {
   try {
     const baseUrl = env.serverBaseUrl;
     const refreshUrl = `${baseUrl}/${AuthEndpoint.refreshToken}`;
-    console.log('[RefreshRoute] Refreshing token at:', refreshUrl);
+    
+    // Server-to-server call to the backend
     const response = await fetch(refreshUrl, {
       method: "POST",
       headers: {
@@ -23,7 +24,6 @@ export async function POST() {
       },
     });
 
-    console.log('[RefreshRoute] Response status:', response.status);
     const data = await response.json();
 
     if (!response.ok) {
@@ -38,6 +38,7 @@ export async function POST() {
       access_token: data.access_token,
     });
 
+    // Set the new access token on the frontend domain
     responseWithCookie.cookies.set(AUTH_CONFIG.COOKIE_NAMES.ACCESS_TOKEN, data.access_token, {
       httpOnly: true,
       secure: env.isProduction,

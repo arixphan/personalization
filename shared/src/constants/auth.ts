@@ -4,6 +4,6 @@ export const AUTH_CONFIG = {
     REFRESH_TOKEN: 'refresh_token',
   },
   PATHS: {
-    REFRESH_TOKEN: '/api/auth/refresh',
+    REFRESH_TOKEN: '/auth-refresh',
   },
 };
