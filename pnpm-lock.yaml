@@ -607,7 +607,7 @@ importers:
         specifier: 'catalog:'
         version: 12.23.24(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       next:
-        specifier: 'catalog:'
+        specifier: 16.0.10
         version: 16.0.10(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       next-intl:
         specifier: ^4.8.3
