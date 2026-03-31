@@ -7,6 +7,9 @@ import { AuthEndpoint } from "@/constants/endpoints";
 
 export async function POST() {
   const cookieStore = await cookies();
+  const allCookies = cookieStore.getAll();
+  console.log('[RefreshRoute] All cookie names:', allCookies.map(c => c.name).join(', '));
+  
   const refreshToken = cookieStore.get(AUTH_CONFIG.COOKIE_NAMES.REFRESH_TOKEN);
   if (!refreshToken) {
     return NextResponse.json({ error: "No refresh token" }, { status: 401 });
@@ -49,6 +52,7 @@ export async function POST() {
       path: "/",
     });
 
+    console.log('[RefreshRoute] Successfully refreshed token and set new cookie.');
     return responseWithCookie;
   } catch (error) {
     console.error("Refresh token error:", error);

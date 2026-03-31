@@ -48,7 +48,7 @@ export async function exchangeCodeAction(code: string) {
         secure: env.isProduction,
         sameSite: "strict",
         maxAge: env.jwtRefreshExpirationTime,
-        path: REFRESH_TOKEN_ENDPOINT || "/",
+        path: "/",
       });
     }
 
