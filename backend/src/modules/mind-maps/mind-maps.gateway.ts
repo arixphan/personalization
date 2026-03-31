@@ -105,7 +105,7 @@ export class MindMapGateway implements OnGatewayConnection, OnGatewayDisconnect 
       // Final broadcast to ensures all tabs are perfectly aligned after persistence
       this.server.to(room).emit('node:moved', { nodeId, position });
       
-      await this.mindMapService.updateNodePosition(nodeId, position.x, position.y);
+      await this.mindMapService.updateNodePosition(mindMapId, nodeId, position.x, position.y);
     } catch (err) {
       console.error('[MindMapGateway] Failed to persist node position:', err);
     }
@@ -122,7 +122,7 @@ export class MindMapGateway implements OnGatewayConnection, OnGatewayDisconnect 
       data: data.data,
     });
 
-    this.mindMapService.updateNodeData(data.nodeId, data.data).catch(err => {
+    this.mindMapService.updateNodeData(data.mindMapId, data.nodeId, data.data).catch(err => {
       console.error('[MindMapGateway] Failed to save node data:', err);
     });
   }

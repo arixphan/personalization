@@ -75,12 +75,6 @@ export class TicketsService {
       this.logger.log(`Ticket created successfully: ${ticket.id}`);
       return ticket;
     } catch (error) {
-      if (
-        error instanceof PrismaClientKnownRequestError &&
-        error.code === 'P2002'
-      ) {
-        throw new ConflictException(`Ticket with this title already exists`);
-      }
       this.logger.error('Failed to create ticket', error);
       throw new InternalServerErrorException('Failed to create ticket');
     }

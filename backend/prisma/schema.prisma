@@ -122,7 +122,7 @@ model Phase {
 
 model Ticket {
   id          Int      @id @default(autoincrement())
-  title       String   @unique
+  title       String
   description String?
   projectId   Int
   phaseId     Int?
@@ -374,7 +374,7 @@ model MindMap {
 }
 
 model MindMapNode {
-  id        String   @id // Using String for XYFlow IDs (e.g., "1", "2")
+  id        String
   mindMapId Int
   type      String?  @default("default")
   positionX Float
@@ -383,11 +383,12 @@ model MindMapNode {
   style     Json?
   mindMap   MindMap  @relation(fields: [mindMapId], references: [id], onDelete: Cascade)
 
+  @@id([mindMapId, id])
   @@index([mindMapId])
 }
 
 model MindMapEdge {
-  id            String   @id // XYFlow Edge ID
+  id            String
   mindMapId     Int
   source        String   // Source Node ID
   target        String   // Target Node ID
@@ -399,6 +400,7 @@ model MindMapEdge {
   style         Json?
   mindMap       MindMap  @relation(fields: [mindMapId], references: [id], onDelete: Cascade)
 
+  @@id([mindMapId, id])
   @@index([mindMapId])
 }
 

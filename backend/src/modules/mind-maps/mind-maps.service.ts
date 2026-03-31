@@ -93,7 +93,7 @@ export class MindMapService {
 
       for (const node of nodes) {
         await this.prisma.mindMapNode.upsert({
-          where: { id: node.id },
+          where: { mindMapId_id: { mindMapId: id, id: node.id } },
           update: {
             type: node.type,
             positionX: node.positionX,
@@ -123,7 +123,7 @@ export class MindMapService {
 
       for (const edge of edges) {
         await this.prisma.mindMapEdge.upsert({
-          where: { id: edge.id },
+          where: { mindMapId_id: { mindMapId: id, id: edge.id } },
           update: {
             source: edge.source,
             target: edge.target,
@@ -161,23 +161,23 @@ export class MindMapService {
 
   // --- Real-time WebSocket support ---
 
-  async updateNodePosition(nodeId: string, x: number, y: number) {
+  async updateNodePosition(mindMapId: number, nodeId: string, x: number, y: number) {
     return this.prisma.mindMapNode.update({
-      where: { id: nodeId },
+      where: { mindMapId_id: { mindMapId, id: nodeId } },
       data: { positionX: x, positionY: y },
     });
   }
 
-  async updateNodeData(nodeId: string, data: any) {
+  async updateNodeData(mindMapId: number, nodeId: string, data: any) {
     return this.prisma.mindMapNode.update({
-      where: { id: nodeId },
+      where: { mindMapId_id: { mindMapId, id: nodeId } },
       data: { data },
     });
   }
 
-  async updateEdgeData(edgeId: string, data: any) {
+  async updateEdgeData(mindMapId: number, edgeId: string, data: any) {
     return this.prisma.mindMapEdge.update({
-      where: { id: edgeId },
+      where: { mindMapId_id: { mindMapId, id: edgeId } },
       data: { style: data },
     });
   }
@@ -192,7 +192,7 @@ export class MindMapService {
     };
 
     return this.prisma.mindMapNode.upsert({
-      where: { id: node.id },
+      where: { mindMapId_id: { mindMapId: mindMapId, id: node.id } },
       update: data,
       create: {
         id: node.id,
@@ -215,7 +215,7 @@ export class MindMapService {
     };
 
     return this.prisma.mindMapEdge.upsert({
-      where: { id: edge.id },
+      where: { mindMapId_id: { mindMapId: mindMapId, id: edge.id } },
       update: data,
       create: {
         id: edge.id,
