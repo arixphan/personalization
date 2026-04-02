@@ -9,6 +9,7 @@ interface MindMapSocketContextType {
   emitNodeAdd: (node: any) => void;
   emitEdgeAdd: (edge: any) => void;
   emitNodeRemove: (nodeId: string) => void;
+  emitEdgeRemove: (edgeId: string) => void;
 }
 
 const MindMapSocketContext = createContext<MindMapSocketContextType | null>(null);

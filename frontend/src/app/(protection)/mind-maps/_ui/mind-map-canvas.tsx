@@ -120,13 +120,18 @@ export const MindMapCanvas = React.memo(function MindMapCanvas({
     setEdges(eds => eds.some(e => e.id === edge.id) ? eds : eds.concat(edge));
   }, [setEdges]);
 
-  const { emitNodeMove, emitNodeSave, emitNodeUpdate, emitNodeAdd, emitEdgeAdd, emitNodeRemove } = useMindMapSocket({
+  const handleEdgeRemoved = useCallback(({ edgeId }: { edgeId: string }) => {
+    setEdges(eds => eds.filter(e => e.id !== edgeId));
+  }, [setEdges]);
+
+  const { emitNodeMove, emitNodeSave, emitNodeUpdate, emitNodeAdd, emitEdgeAdd, emitNodeRemove, emitEdgeRemove } = useMindMapSocket({
     mindMapId,
     onNodeMoved: handleNodeMoved,
     onNodeUpdated: handleNodeUpdated,
     onNodeAdded: handleNodeAdded,
     onNodeRemoved: handleNodeRemoved,
     onEdgeAdded: handleEdgeAdded,
+    onEdgeRemoved: handleEdgeRemoved,
   });
 
   const lastEmitTimeRef = useRef(0);
@@ -257,6 +262,15 @@ export const MindMapCanvas = React.memo(function MindMapCanvas({
     [nodes, setEdges, emitNodeRemove],
   );
 
+  const onEdgesDelete = useCallback(
+    (deleted: Edge[]) => {
+      deleted.forEach(edge => {
+        emitEdgeRemove(edge.id);
+      });
+    },
+    [emitEdgeRemove],
+  );
+
   const onNodeContextMenu = useCallback((event: React.MouseEvent, node: Node) => {
     event.preventDefault();
     setContextMenu({ nodeId: node.id, x: event.clientX, y: event.clientY });
@@ -316,9 +330,25 @@ export const MindMapCanvas = React.memo(function MindMapCanvas({
       let modified = false;
       const updated = eds.map(e => {
         const color = nodeColor.get(e.target) ?? nodeColor.get(e.source) ?? '#64748b';
-        if ((e.style as any)?.stroke === color) return e;
+        const isSelected = e.selected;
+        const strokeWidth = isSelected ? 4 : 2;
+        const opacity = isSelected ? 1 : 0.7;
+
+        const currentStyle = e.style as any;
+        if (currentStyle?.stroke === color && currentStyle?.strokeWidth === strokeWidth && currentStyle?.opacity === opacity) {
+          return e;
+        }
+
         modified = true;
-        return { ...e, style: { ...(e.style ?? {}), stroke: color, strokeWidth: 2 } };
+        return {
+          ...e,
+          style: {
+            ...(e.style ?? {}),
+            stroke: color,
+            strokeWidth,
+            opacity,
+          },
+        };
       });
       return modified ? updated : eds;
     });
@@ -327,7 +357,7 @@ export const MindMapCanvas = React.memo(function MindMapCanvas({
   const colorMode = resolvedTheme === 'dark' ? 'dark' : 'light';
 
   return (
-    <MindMapSocketProvider value={{ emitNodeMove, emitNodeSave, emitNodeUpdate, emitNodeAdd, emitEdgeAdd, emitNodeRemove }}>
+    <MindMapSocketProvider value={{ emitNodeMove, emitNodeSave, emitNodeUpdate, emitNodeAdd, emitEdgeAdd, emitNodeRemove, emitEdgeRemove }}>
       <div style={{ width: '100%', height: 'calc(100vh - 120px)' }} className="relative group">
         <ReactFlow
           nodes={nodes}
@@ -336,6 +366,7 @@ export const MindMapCanvas = React.memo(function MindMapCanvas({
           onNodesDelete={onNodesDelete}
           onNodeDragStop={onNodeDragStop}
           onEdgesChange={handleEdgesChange}
+          onEdgesDelete={onEdgesDelete}
           onConnect={onConnect}
           onConnectEnd={onConnectEnd}
           onNodeContextMenu={onNodeContextMenu}

@@ -185,6 +185,12 @@ export class MindMapService {
     });
   }
 
+  async removeEdge(mindMapId: number, id: string) {
+    return this.prisma.mindMapEdge.delete({
+      where: { mindMapId_id: { mindMapId, id } },
+    });
+  }
+
   async updateEdgeData(mindMapId: number, edgeId: string, data: any) {
     return this.prisma.mindMapEdge.update({
       where: { mindMapId_id: { mindMapId, id: edgeId } },

@@ -165,4 +165,19 @@ export class MindMapGateway implements OnGatewayConnection, OnGatewayDisconnect 
     const room = `mind-map-${String(data.mindMapId)}`;
     client.to(room).emit('node:removed', { nodeId: data.nodeId });
   }
+
+  @SubscribeMessage('edge:remove')
+  async handleEdgeRemove(
+    @MessageBody() data: { mindMapId: number; edgeId: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = `mind-map-${String(data.mindMapId)}`;
+    client.to(room).emit('edge:removed', { edgeId: data.edgeId });
+
+    try {
+      await this.mindMapService.removeEdge(data.mindMapId, data.edgeId);
+    } catch (err) {
+      console.error('[MindMapGateway] Failed to persist edge removal:', err);
+    }
+  }
 }
