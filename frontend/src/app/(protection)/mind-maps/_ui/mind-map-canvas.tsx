@@ -98,8 +98,13 @@ export const MindMapCanvas = React.memo(function MindMapCanvas({
     setNodes(nds => nds.map(n => n.id === nodeId ? { ...n, position } : n));
   }, [setNodes]);
 
-  const handleNodeUpdated = useCallback(({ nodeId, data }: { nodeId: string; data: any }) => {
-    setNodes(nds => nds.map(n => n.id === nodeId ? { ...n, data: { ...n.data, ...data } } : n));
+  const handleNodeUpdated = useCallback(({ nodeId, data: updateData }: { nodeId: string; data: any }) => {
+    setNodes(nds => nds.map(n => n.id === nodeId ? {
+      ...n,
+      data: { ...n.data, ...updateData },
+      width: updateData.width ?? n.width,
+      height: updateData.height ?? n.height
+    } : n));
   }, [setNodes]);
 
   const handleNodeAdded = useCallback((node: any) => {
@@ -189,7 +194,7 @@ export const MindMapCanvas = React.memo(function MindMapCanvas({
           id,
           type: 'mindmap',
           position: screenToFlowPosition({ x: clientX, y: clientY }),
-          data: { label: 'New Idea' },
+          data: { label: 'New Idea', width: 150, height: 50 },
           width: 150,
           height: 50,
           origin: [0.5, 0.0],
@@ -280,7 +285,7 @@ export const MindMapCanvas = React.memo(function MindMapCanvas({
         id,
         type: 'mindmap',
         position: screenToFlowPosition({ x: event.clientX, y: event.clientY }),
-        data: { label: 'New Idea' },
+        data: { label: 'New Idea', width: 150, height: 50 },
         width: 150,
         height: 50,
         origin: [0.5, 0.0],

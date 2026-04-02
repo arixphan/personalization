@@ -163,7 +163,9 @@ export const MindMapNode = React.memo(function MindMapNode({ id, data: rawData, 
           minHeight={40}
           isVisible={selected}
           onResizeEnd={(_, params) => {
-            updateNodeData(id, { ...data, width: params.width, height: params.height });
+            const updatedData = { ...data, width: params.width, height: params.height };
+            updateNodeData(id, updatedData);
+            emitNodeUpdate(id, { width: params.width, height: params.height });
           }}
         />
 
@@ -192,7 +194,7 @@ export const MindMapNode = React.memo(function MindMapNode({ id, data: rawData, 
               onClick={e => e.stopPropagation()}
             />
           ) : (
-            <div className="text-sm font-semibold text-center leading-tight">{label}</div>
+            <div className="text-sm font-semibold text-center leading-tight break-words whitespace-normal w-full">{label}</div>
           )}
 
           {/* Markdown preview (not shown for diamond to keep it compact) */}
@@ -200,7 +202,7 @@ export const MindMapNode = React.memo(function MindMapNode({ id, data: rawData, 
             if (!hasContent || shape === 'diamond') return null;
             return (
               <div className="w-full border-t border-border/40 mt-1 pt-1 max-h-28 overflow-y-auto text-left">
-                <div className="prose prose-xs dark:prose-invert max-w-none text-[11px] leading-snug [&_p]:my-0.5 [&_ul]:my-0.5 [&_h1]:text-xs [&_h2]:text-xs [&_h3]:text-xs">
+                <div className="prose prose-xs dark:prose-invert max-w-none text-[11px] leading-snug break-words whitespace-normal [&_p]:my-0.5 [&_ul]:my-0.5 [&_h1]:text-xs [&_h2]:text-xs [&_h3]:text-xs">
                   <ReactMarkdown remarkPlugins={markdownPlugins}>{data.content!}</ReactMarkdown>
                 </div>
               </div>
