@@ -125,9 +125,11 @@ export const MindMapNode = React.memo(function MindMapNode({ id, data: rawData, 
     }
   };
 
-  const handleSaveMarkdown = (content: string) => {
-    updateNodeData(id, { ...data, content });
-    emitNodeUpdate(id, { content });
+  const handleSaveMarkdown = (label: string, content: string) => {
+    const updatedData = { ...data, label, content };
+    updateNodeData(id, updatedData);
+    emitNodeUpdate(id, { label, content });
+    setLabel(label);
   };
 
   // ── Derived values ────────────────────────────────────────────────────────
