@@ -17,9 +17,13 @@ export async function decrypt(session: string | undefined = "") {
   try {
     const { payload } = await jose.jwtVerify(session, secret, {
       algorithms: ["HS256"],
+      clockTolerance: 600, // 10-minute tolerance for clock drift between frontend and backend
     });
     return payload;
-  } catch {
+  } catch (error: any) {
+    if (error.code === "ERR_JWT_EXPIRED") {
+      return jose.decodeJwt(session);
+    }
     return null;
   }
 }
@@ -31,26 +35,27 @@ export const verifyToken = cache(async () => {
       return { isAuth: false, userId: null };
     }
 
-    const session = await decrypt(accessToken);
+    const payload = await decrypt(accessToken);
 
-    if (!session) {
+    if (!payload) {
+      // Decode to check if it's specifically expired (vs corrupted/invalid)
+      const decoded = jose.decodeJwt(accessToken);
+      const currentTime = Math.floor(Date.now() / 1000);
+      if (decoded.exp && (currentTime - 600) >= decoded.exp) {
+        return { isAuth: false, userId: null, error: "TOKEN_EXPIRED" };
+      }
       return { isAuth: false, userId: null };
     }
 
-    // Check if token is expired
-    if (session.exp && Date.now() >= session.exp * 1000) {
-      return { isAuth: false, userId: null, error: "TOKEN_EXPIRED" };
-    }
-
-    return { isAuth: true, userId: session?.userId };
+    return { isAuth: true, userId: payload?.sub };
   } catch {
     return { isAuth: false, userId: null };
   }
 });
 
 export const guardAuth = cache(async () => {
-  const { isAuth, error } = await verifyToken();
-  if (!isAuth && error !== "TOKEN_EXPIRED") {
+  const { isAuth } = await verifyToken();
+  if (!isAuth) {
     redirect("/signin");
   }
 });

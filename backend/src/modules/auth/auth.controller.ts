@@ -38,9 +38,9 @@ export class AuthController {
     );
 
     res.cookie(AUTH_CONFIG.COOKIE_NAMES.REFRESH_TOKEN, refresh_token, {
-      httpOnly: true, // Ensures the cookie is not accessible via JavaScript
-      secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-      sameSite: 'strict', // Helps prevent CSRF attacks
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
       path: '/',
       maxAge: this.authService.getRefreshExpiresInMs(),
     });
@@ -57,9 +57,9 @@ export class AuthController {
     await this.authService.logout(req.user.sub);
 
     res.clearCookie(AUTH_CONFIG.COOKIE_NAMES.REFRESH_TOKEN, {
-      path: AUTH_CONFIG.PATHS.REFRESH_TOKEN,
+      path: '/',
       httpOnly: true,
-      sameSite: 'strict',
+      sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
     });
 
@@ -79,19 +79,28 @@ export class AuthController {
     const refreshToken = req.cookies[AUTH_CONFIG.COOKIE_NAMES.REFRESH_TOKEN];
 
     if (!refreshToken) {
+      console.error('[AuthController/refresh] No refresh token cookie found');
       res.status(HttpStatus.UNAUTHORIZED);
       return { message: 'No refresh token provided' };
     }
 
-    const newAccessToken = await this.authService.refreshToken(refreshToken);
+    try {
+      const newAccessToken = await this.authService.refreshToken(refreshToken);
 
-    if (!newAccessToken) {
+      if (!newAccessToken) {
+        console.error('[AuthController/refresh] authService.refreshToken returned null');
+        res.status(HttpStatus.UNAUTHORIZED);
+        return { message: 'Invalid refresh token' };
+      }
+
+      console.log('[AuthController/refresh] Successfully refreshed token');
+      res.status(HttpStatus.OK);
+      return { access_token: newAccessToken };
+    } catch (error: any) {
+      console.error('[AuthController/refresh] Error during token refresh:', error.message);
       res.status(HttpStatus.UNAUTHORIZED);
-      return { message: 'Invalid refresh token' };
+      return { message: error.message || 'Token is expired' };
     }
-
-    res.status(HttpStatus.OK);
-    return { access_token: newAccessToken };
   }
 
   // ---- Google OAuth ----
@@ -147,7 +156,7 @@ export class AuthController {
     res.cookie(AUTH_CONFIG.COOKIE_NAMES.ACCESS_TOKEN, tokens.access_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       path: '/',
       maxAge: this.authService.getAccessExpiresInMs()
     });
@@ -155,13 +164,13 @@ export class AuthController {
     res.cookie(AUTH_CONFIG.COOKIE_NAMES.REFRESH_TOKEN, tokens.refresh_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: AUTH_CONFIG.PATHS.REFRESH_TOKEN,
+      sameSite: 'lax',
+      path: '/',
       maxAge: this.authService.getRefreshExpiresInMs(),
     });
 
     res.status(HttpStatus.OK);
-    return { 
+    return {
       success: true,
       access_token: tokens.access_token,
       refresh_token: tokens.refresh_token

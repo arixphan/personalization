@@ -1,26 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
-import { env } from "./config/env.server";
 import { verifyToken } from "./lib/token";
 
-const protectedRoutes = ["/"];
+const PUBLIC_PATHS = ["/signin", "/signup", "/auth-refresh", "/internal-api"];
 
 export default async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
-  const baseUrl = env.serverBaseUrl;
-  const isProtectedRoute = protectedRoutes.includes(path);
+
+  // Allow auth routes and internal APIs through without session checks
+  if (PUBLIC_PATHS.some((p) => path.startsWith(p))) {
+    return NextResponse.next();
+  }
 
   try {
-    const { isAuth } = await verifyToken();
+    const { isAuth, error } = await verifyToken();
 
-    // Redirect to /signin if the user is not authenticated
-    if (isProtectedRoute && !isAuth) {
-      return NextResponse.redirect(new URL("/signin", req.nextUrl));
+    if (isAuth) {
+      return NextResponse.next();
     }
+
+    // Session expired — send to dedicated repair page with callback
+    if (error === "TOKEN_EXPIRED") {
+      const callbackUrl = encodeURIComponent(req.nextUrl.pathname + req.nextUrl.search);
+      return NextResponse.redirect(new URL(`/auth-refresh?callbackUrl=${callbackUrl}`, req.nextUrl));
+    }
+
+    // No valid session — redirect to sign-in
+    return NextResponse.redirect(new URL("/signin", req.nextUrl));
   } catch {
     return NextResponse.redirect(new URL("/signin", req.nextUrl));
   }
-
-  return NextResponse.next();
 }
 
 export const config = {

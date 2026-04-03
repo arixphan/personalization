@@ -40,11 +40,11 @@ export async function findProjects(
 
   if (isFailureApiResponse(response)) {
     const status = response.status;
-
+  
     if (status === 401) {
       redirect("/signin?callbackUrl=/projects");
     }
-
+  
     if (status === 404) {
       notFound();
     }

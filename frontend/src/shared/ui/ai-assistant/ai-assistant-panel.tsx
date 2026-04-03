@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
+import Link from 'next/link';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import ReactMarkdown from 'react-markdown';
@@ -121,7 +122,7 @@ export const AiAssistantPanel = () => {
               </p>
             </div>
             <Button asChild variant="default" className="w-full">
-              <a href="/ai">Configure AI Assistant</a>
+              <Link href="/ai">Configure AI Assistant</Link>
             </Button>
           </div>
         ) : isConfigured === null ? (

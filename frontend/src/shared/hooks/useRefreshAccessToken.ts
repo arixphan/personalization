@@ -3,38 +3,45 @@
 
 import { REFRESH_TOKEN_ENDPOINT } from "@/constants/endpoints";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 
 export const useRefreshAccessToken = () => {
   const router = useRouter();
 
-  useEffect(() => {
-    const refresh = async () => {
-      try {
-        const res = await fetch(REFRESH_TOKEN_ENDPOINT, {
-          method: "POST",
-          credentials: "include",
-        });
+  const refresh = useCallback(async (): Promise<boolean> => {
+    try {
+      const res = await fetch(REFRESH_TOKEN_ENDPOINT, {
+        method: "POST",
+        credentials: "include",
+      });
 
-        if (!res.ok) {
-          router.replace("/signin");
-          return;
-        }
-
-        const data = await res.json();
-
-        if (data.error) {
-          router.replace("/signin");
-        }
-      } catch (error) {
-        router.replace("/signin");
+      if (!res.ok) {
+        console.error("[useRefreshAccessToken] Refresh response not OK", res.status);
+        return false;
       }
-    };
 
-    // Initial check/refresh if needed
-    refresh();
+      const data = await res.json();
 
-    const timer = setInterval(refresh, 25 * 60 * 1000); // 25 minutes
+      if (data.error) {
+        console.error("[useRefreshAccessToken] Refresh data error", data.error);
+        return false;
+      }
+
+      console.log("[useRefreshAccessToken] Token successfully refreshed");
+      return true;
+    } catch (error) {
+      console.error("[useRefreshAccessToken] Refresh catch error", error);
+      return false;
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      refresh();
+    }, 5 * 60 * 1000); // 5 minutes
     return () => clearInterval(timer);
-  }, [router]);
+  }, [refresh]);
+
+  return { refresh };
 };
+
