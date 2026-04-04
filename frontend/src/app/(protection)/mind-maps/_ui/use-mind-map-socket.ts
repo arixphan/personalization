@@ -12,6 +12,7 @@ interface UseMindMapSocketProps {
   onNodeAdded?: (node: any) => void;
   onNodeRemoved?: (data: { nodeId: string }) => void;
   onEdgeAdded?: (edge: any) => void;
+  onEdgeRemoved?: (data: { edgeId: string }) => void;
 }
 
 export function useMindMapSocket({
@@ -21,17 +22,26 @@ export function useMindMapSocket({
   onNodeAdded,
   onNodeRemoved,
   onEdgeAdded,
+  onEdgeRemoved,
 }: UseMindMapSocketProps) {
   const socketRef = useRef<Socket | null>(null);
-  
+
   // Use refs for callbacks to prevent re-triggering the connection effect
   // when handlers are redefined in the parent component.
-  const handlersRef = useRef({
+  const handlersRef = useRef<{
+    onNodeMoved?: (data: { nodeId: string; position: { x: number; y: number } }) => void;
+    onNodeUpdated?: (data: { nodeId: string; data: any }) => void;
+    onNodeAdded?: (node: any) => void;
+    onNodeRemoved?: (data: { nodeId: string }) => void;
+    onEdgeAdded?: (edge: any) => void;
+    onEdgeRemoved?: (data: { edgeId: string }) => void;
+  }>({
     onNodeMoved,
     onNodeUpdated,
     onNodeAdded,
     onNodeRemoved,
     onEdgeAdded,
+    onEdgeRemoved,
   });
 
   // Always keep the handlers ref fresh
@@ -42,8 +52,9 @@ export function useMindMapSocket({
       onNodeAdded,
       onNodeRemoved,
       onEdgeAdded,
+      onEdgeRemoved,
     };
-  }, [onNodeMoved, onNodeUpdated, onNodeAdded, onNodeRemoved, onEdgeAdded]);
+  }, [onNodeMoved, onNodeUpdated, onNodeAdded, onNodeRemoved, onEdgeAdded, onEdgeRemoved]);
 
   useEffect(() => {
     if (!mindMapId) return;
@@ -91,6 +102,10 @@ export function useMindMapSocket({
       socket.on('edge:added', (edge) => {
         handlersRef.current.onEdgeAdded?.(edge);
       });
+
+      socket.on('edge:removed', (data) => {
+        handlersRef.current.onEdgeRemoved?.(data);
+      });
     };
 
     connectSocket();
@@ -124,6 +139,10 @@ export function useMindMapSocket({
     socketRef.current?.emit('node:remove', { mindMapId, nodeId });
   }, [mindMapId]);
 
+  const emitEdgeRemove = useCallback((edgeId: string) => {
+    socketRef.current?.emit('edge:remove', { mindMapId, edgeId });
+  }, [mindMapId]);
+
   return {
     emitNodeMove,
     emitNodeSave,
@@ -131,5 +150,6 @@ export function useMindMapSocket({
     emitNodeAdd,
     emitEdgeAdd,
     emitNodeRemove,
+    emitEdgeRemove,
   };
 }

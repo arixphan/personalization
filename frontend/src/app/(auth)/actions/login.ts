@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { z } from "zod";
 import { AUTH_CONFIG } from "@personalization/shared";
 import { env } from "@/config/env.server";
-import { AuthEndpoint } from "@/constants/endpoints";
+import { AuthEndpoint, REFRESH_TOKEN_ENDPOINT } from "@/constants/endpoints";
 import { ServerApiHandler } from "@/lib/server-api";
 
 // Define the validation schema
@@ -46,22 +46,17 @@ export async function signInAction(
   const { username, password } = validatedFields.data;
 
   try {
-    const { data, responseHeaders } = await ServerApiHandler.post(
+    const { data } = await ServerApiHandler.post(
       AuthEndpoint.signIn,
-      {
-        username,
-        password,
-      }
+      { username, password }
     );
 
     if (data) {
-      // Get cookies from NestJS response and forward them
-      const setCookieHeader = responseHeaders?.get("set-cookie");
       const cookieStore = await cookies();
 
       // Store access token in httpOnly cookie
       if (data.access_token) {
-        (await cookies()).set(AUTH_CONFIG.COOKIE_NAMES.ACCESS_TOKEN, data.access_token, {
+        cookieStore.set(AUTH_CONFIG.COOKIE_NAMES.ACCESS_TOKEN, data.access_token, {
           httpOnly: true,
           secure: env.isProduction,
           sameSite: "strict",
@@ -70,17 +65,22 @@ export async function signInAction(
         });
       }
 
-      return {
-        success: true,
-      };
+      // Store refresh token in httpOnly cookie
+      if (data.refresh_token) {
+        cookieStore.set(AUTH_CONFIG.COOKIE_NAMES.REFRESH_TOKEN, data.refresh_token, {
+          httpOnly: true,
+          secure: env.isProduction,
+          sameSite: "strict",
+          maxAge: env.jwtRefreshExpirationTime,
+          path: REFRESH_TOKEN_ENDPOINT,
+        });
+      }
+
+      return { success: true };
     }
 
-
-
     return {
-      errors: {
-        _form: ["Username or password are incorrect"],
-      },
+      errors: { _form: ["Username or password are incorrect"] },
     };
   } catch (error) {
     const err = error as { digest?: string };

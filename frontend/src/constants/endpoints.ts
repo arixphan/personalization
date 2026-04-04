@@ -8,7 +8,7 @@ export enum AuthEndpoint {
   logout = "auth/logout",
   refreshToken = "auth/refresh",
 }
-export const REFRESH_TOKEN_ENDPOINT = AUTH_CONFIG.PATHS.REFRESH_TOKEN;
+export const REFRESH_TOKEN_ENDPOINT = "/internal-api/auth-refresh";
 
 export const ProjectEndpoint = {
   list: createRoute({ path: "projects" }),

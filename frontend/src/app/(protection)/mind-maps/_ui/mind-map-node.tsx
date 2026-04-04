@@ -125,9 +125,11 @@ export const MindMapNode = React.memo(function MindMapNode({ id, data: rawData, 
     }
   };
 
-  const handleSaveMarkdown = (content: string) => {
-    updateNodeData(id, { ...data, content });
-    emitNodeUpdate(id, { content });
+  const handleSaveMarkdown = (label: string, content: string) => {
+    const updatedData = { ...data, label, content };
+    updateNodeData(id, updatedData);
+    emitNodeUpdate(id, { label, content });
+    setLabel(label);
   };
 
   // ── Derived values ────────────────────────────────────────────────────────
@@ -161,7 +163,9 @@ export const MindMapNode = React.memo(function MindMapNode({ id, data: rawData, 
           minHeight={40}
           isVisible={selected}
           onResizeEnd={(_, params) => {
-            updateNodeData(id, { ...data, width: params.width, height: params.height });
+            const updatedData = { ...data, width: params.width, height: params.height };
+            updateNodeData(id, updatedData);
+            emitNodeUpdate(id, { width: params.width, height: params.height });
           }}
         />
 
@@ -177,28 +181,36 @@ export const MindMapNode = React.memo(function MindMapNode({ id, data: rawData, 
         <Handle type="source"  position={Position.Top}    id="source-top"    style={{ ...handleStyle, opacity: 0.5 }} className="w-2 h-2 !border-0 z-10" />
 
         {/* ── Node content (always upright, above the shape layer) ── */}
-        <div className="relative z-10 flex flex-col items-center gap-1 px-3 py-2 w-full max-h-full overflow-hidden">
-          {/* Label */}
-          {editing ? (
-            <input
-              ref={inputRef}
-              value={label}
-              onChange={e => setLabel(e.target.value)}
-              onBlur={commitLabel}
-              onKeyDown={handleKeyDown}
-              className="text-sm font-semibold w-full text-center bg-transparent border-none outline-none focus:ring-0 p-0"
-              onClick={e => e.stopPropagation()}
-            />
-          ) : (
-            <div className="text-sm font-semibold text-center leading-tight">{label}</div>
-          )}
+        <div className={cn(
+          "relative z-10 flex flex-col w-full h-full min-h-0 overflow-hidden",
+          !hasContent ? "items-center justify-center" : "items-start"
+        )}>
+          {/* Label / Title Area */}
+          <div className={cn(
+            "w-full px-3 py-2 flex flex-col items-center justify-center min-h-0 shrink-0",
+            !hasContent ? "h-full" : "border-b border-border/40"
+          )}>
+            {editing ? (
+              <input
+                ref={inputRef}
+                value={label}
+                onChange={e => setLabel(e.target.value)}
+                onBlur={commitLabel}
+                onKeyDown={handleKeyDown}
+                className="text-sm font-semibold w-full text-center bg-transparent border-none outline-none focus:ring-0 p-0"
+                onClick={e => e.stopPropagation()}
+              />
+            ) : (
+              <div className="text-sm font-semibold text-center leading-tight break-words whitespace-normal w-full">{label}</div>
+            )}
+          </div>
 
-          {/* Markdown preview (not shown for diamond to keep it compact) */}
+          {/* Description Area (Markdown preview) */}
           {useMemo(() => {
             if (!hasContent || shape === 'diamond') return null;
             return (
-              <div className="w-full border-t border-border/40 mt-1 pt-1 max-h-28 overflow-y-auto text-left">
-                <div className="prose prose-xs dark:prose-invert max-w-none text-[11px] leading-snug [&_p]:my-0.5 [&_ul]:my-0.5 [&_h1]:text-xs [&_h2]:text-xs [&_h3]:text-xs">
+              <div className="flex-1 w-full p-2 overflow-y-auto min-h-0 text-left">
+                <div className="prose prose-xs dark:prose-invert max-w-none text-[11px] leading-snug break-words whitespace-normal [&_p]:my-0.5 [&_ul]:my-0.5 [&_h1]:text-xs [&_h2]:text-xs [&_h3]:text-xs">
                   <ReactMarkdown remarkPlugins={markdownPlugins}>{data.content!}</ReactMarkdown>
                 </div>
               </div>
@@ -213,10 +225,10 @@ export const MindMapNode = React.memo(function MindMapNode({ id, data: rawData, 
             onClick={e => { e.stopPropagation(); setMarkdownOpen(true); }}
             onMouseDown={e => e.stopPropagation()}
             className={cn(
-              'absolute bottom-1 right-1 z-10 p-0.5 rounded transition-colors',
+              'absolute bottom-1 right-1 z-20 p-0.5 rounded transition-colors',
               hasContent
                 ? 'text-primary opacity-80 hover:opacity-100'
-                : 'text-muted-foreground opacity-0 hover:opacity-100',
+                : 'text-muted-foreground opacity-20 hover:opacity-100',
             )}
           >
             <FileText className="h-3 w-3" />

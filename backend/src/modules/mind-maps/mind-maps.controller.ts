@@ -29,8 +29,21 @@ export class MindMapController {
     @Param('id', ParseIntPipe) id: number,
     @Body('nodeId') nodeId: string,
     @Body('context') context: any,
+    @Body('userContext') userContext?: string,
   ) {
-    return this.aiService.expandNode(userId, context, nodeId);
+    return this.aiService.expandNode(userId, context, nodeId, userContext);
+  }
+
+  @Post(':id/refine-preview')
+  refinePreview(
+    @CurrentUserId() userId: number,
+    @Param('id', ParseIntPipe) _id: number,
+    @Body('currentTree') currentTree: any[],
+    @Body('chatHistory') chatHistory: Array<{ role: string; content: string }>,
+    @Body('userMessage') userMessage: string,
+    @Body('parentNodeLabel') parentNodeLabel: string,
+  ) {
+    return this.aiService.refinePreview(userId, currentTree, chatHistory, userMessage, parentNodeLabel);
   }
 
   @Get()

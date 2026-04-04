@@ -2,31 +2,12 @@
 
 import { Chrome } from "lucide-react";
 import SocialButton from "./social-button";
-import { useActionState, useEffect } from "react";
-import { motion } from "motion/react";
 import Link from "next/link";
-import { signInAction } from "../actions/login";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { env } from "@/config/env";
 
-interface SignInState {
-  errors?: {
-    username?: string[];
-    password?: string[];
-    _form?: string[];
-  };
-  success?: boolean;
-}
-
 export const SignInForm = () => {
   const t = useTranslations("Auth");
-  const router = useRouter();
-
-  const [state, , ] = useActionState<SignInState, FormData>(
-    signInAction,
-    { errors: {} }
-  );
 
   const handleSocialAuth = (provider: "google" | "facebook") => {
     if (provider === "google") {
@@ -35,40 +16,9 @@ export const SignInForm = () => {
     }
   };
 
-  useEffect(() => {
-    if (state.success) {
-      router.push("/");
-    }
-  }, [router, state.success]);
 
   return (
     <div className="space-y-6">
-      {/* Form-level errors */}
-      {state.errors?._form && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-red-50 border border-red-200 rounded-lg p-3"
-        >
-          <p className="text-red-600 text-sm" role="alert">
-            {state.errors._form[0]}
-          </p>
-        </motion.div>
-      )}
-
-      {/* Success message */}
-      {state.success && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-green-50 border border-green-200 rounded-lg p-3"
-        >
-          <p className="text-green-600 text-sm" role="alert">
-            {t("signIn.success")}
-          </p>
-        </motion.div>
-      )}
-
       {/* Social Authentication */}
       <div className="space-y-3">
         <SocialButton

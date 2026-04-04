@@ -2,7 +2,10 @@
 
 import { z } from "zod";
 
-import { AuthEndpoint } from "@/constants/endpoints";
+import { cookies } from "next/headers";
+import { AUTH_CONFIG } from "@personalization/shared";
+import { env } from "@/config/env.server";
+import { AuthEndpoint, REFRESH_TOKEN_ENDPOINT } from "@/constants/endpoints";
 import { ServerApiHandler } from "@/lib/server-api";
 import { FailureApiResponse, isSuccessApiResponse } from "@/lib/base-api";
 
@@ -95,16 +98,40 @@ const makeApiRequest = async (
   password: string
 ): Promise<RegisterState> => {
   try {
-    const response = await ServerApiHandler.post(AuthEndpoint.signIn, {
+    const { data } = await ServerApiHandler.post(AuthEndpoint.signUp, {
       username,
       password,
     });
 
+    if (data) {
+      const cookieStore = await cookies();
 
-    if (isSuccessApiResponse(response)) {
+      // Store access token
+      if (data.access_token) {
+        cookieStore.set(AUTH_CONFIG.COOKIE_NAMES.ACCESS_TOKEN, data.access_token, {
+          httpOnly: true,
+          secure: env.isProduction,
+          sameSite: "strict",
+          maxAge: env.jwtAccessExpirationTime,
+          path: "/",
+        });
+      }
+
+      // Store refresh token
+      if (data.refresh_token) {
+        cookieStore.set(AUTH_CONFIG.COOKIE_NAMES.REFRESH_TOKEN, data.refresh_token, {
+          httpOnly: true,
+          secure: env.isProduction,
+          sameSite: "strict",
+          maxAge: env.jwtRefreshExpirationTime,
+          path: REFRESH_TOKEN_ENDPOINT || "/",
+        });
+      }
+
       return createSuccessState("Account created successfully!");
     }
-    return await handleApiError(response);
+    
+    return createErrorState("Registration failed");
   } catch (error) {
     // Handle specific network errors
     if (error instanceof TypeError && error.message.includes("fetch")) {

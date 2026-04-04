@@ -169,9 +169,25 @@ export class MindMapService {
   }
 
   async updateNodeData(mindMapId: number, nodeId: string, data: any) {
+    const node = await this.prisma.mindMapNode.findUnique({
+      where: { mindMapId_id: { mindMapId, id: nodeId } },
+    });
+    if (!node) return;
+
     return this.prisma.mindMapNode.update({
       where: { mindMapId_id: { mindMapId, id: nodeId } },
-      data: { data },
+      data: {
+        data: {
+          ...(node.data as any),
+          ...data,
+        },
+      },
+    });
+  }
+
+  async removeEdge(mindMapId: number, id: string) {
+    return this.prisma.mindMapEdge.delete({
+      where: { mindMapId_id: { mindMapId, id } },
     });
   }
 
