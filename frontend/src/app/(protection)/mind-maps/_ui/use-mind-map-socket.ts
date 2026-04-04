@@ -3,6 +3,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { env } from '@/config/env';
+import { getSocketToken } from '../_actions/socket';
 
 interface UseMindMapSocketProps {
   mindMapId: number;
@@ -24,7 +25,7 @@ export function useMindMapSocket({
   onEdgeRemoved,
 }: UseMindMapSocketProps) {
   const socketRef = useRef<Socket | null>(null);
-  
+
   // Use refs for callbacks to prevent re-triggering the connection effect
   // when handlers are redefined in the parent component.
   const handlersRef = useRef<{
@@ -58,53 +59,59 @@ export function useMindMapSocket({
   useEffect(() => {
     if (!mindMapId) return;
 
-    const socketUrl = env.nextPublicWsBaseUrl;
+    const connectSocket = async () => {
+      const socketUrl = env.nextPublicWsBaseUrl;
+      const token = await getSocketToken();
 
-    const socket = io(`${socketUrl}/mind-maps`, {
-      withCredentials: true,
-      transports: ['polling', 'websocket'],
-    });
+      const socket = io(`${socketUrl}/mind-maps`, {
+        auth: { token },
+        withCredentials: true,
+        transports: ['polling', 'websocket'],
+      });
 
-    socketRef.current = socket;
+      socketRef.current = socket;
 
-    socket.on('connect', () => {
-      socket.emit('join-room', { mindMapId });
-    });
+      socket.on('connect', () => {
+        socket.emit('join-room', { mindMapId });
+      });
 
-    socket.on('connect_error', (error) => {
-      console.error('[useMindMapSocket] Connection error:', error.message);
-    });
+      socket.on('connect_error', (error) => {
+        console.error('[useMindMapSocket] Connection error:', error.message);
+      });
 
-    socket.on('disconnect', (reason) => {
-      console.warn('[useMindMapSocket] Disconnected from WebSocket:', reason);
-    });
+      socket.on('disconnect', (reason) => {
+        console.warn('[useMindMapSocket] Disconnected from WebSocket:', reason);
+      });
 
-    socket.on('node:moved', (data) => {
-      handlersRef.current.onNodeMoved?.(data);
-    });
+      socket.on('node:moved', (data) => {
+        handlersRef.current.onNodeMoved?.(data);
+      });
 
-    socket.on('node:updated', (data) => {
-      handlersRef.current.onNodeUpdated?.(data);
-    });
+      socket.on('node:updated', (data) => {
+        handlersRef.current.onNodeUpdated?.(data);
+      });
 
-    socket.on('node:added', (node) => {
-      handlersRef.current.onNodeAdded?.(node);
-    });
+      socket.on('node:added', (node) => {
+        handlersRef.current.onNodeAdded?.(node);
+      });
 
-    socket.on('node:removed', (data) => {
-      handlersRef.current.onNodeRemoved?.(data);
-    });
+      socket.on('node:removed', (data) => {
+        handlersRef.current.onNodeRemoved?.(data);
+      });
 
-    socket.on('edge:added', (edge) => {
-      handlersRef.current.onEdgeAdded?.(edge);
-    });
-    
-    socket.on('edge:removed', (data) => {
-      handlersRef.current.onEdgeRemoved?.(data);
-    });
+      socket.on('edge:added', (edge) => {
+        handlersRef.current.onEdgeAdded?.(edge);
+      });
+
+      socket.on('edge:removed', (data) => {
+        handlersRef.current.onEdgeRemoved?.(data);
+      });
+    };
+
+    connectSocket();
 
     return () => {
-      socket.disconnect();
+      socketRef.current?.disconnect();
     };
   }, [mindMapId]); // ONLY depend on mindMapId to ensure connection stability
 
