@@ -10,6 +10,7 @@
     "frontend:build": "pnpm -C frontend build",
     "backend:build": "pnpm -C backend build",
     "shared:build": "pnpm -C shared build",
+    "backend:seed": "pnpm -C backend seed",
     "build": "pnpm -C shared build && pnpm -C frontend build && pnpm -C backend build"
   },
   "repository": {
