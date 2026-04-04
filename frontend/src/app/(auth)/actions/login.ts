@@ -59,7 +59,7 @@ export async function signInAction(
         cookieStore.set(AUTH_CONFIG.COOKIE_NAMES.ACCESS_TOKEN, data.access_token, {
           httpOnly: true,
           secure: env.isProduction,
-          sameSite: "strict",
+          sameSite: "lax",
           maxAge: env.jwtAccessExpirationTime,
           path: "/",
         });
@@ -70,7 +70,7 @@ export async function signInAction(
         cookieStore.set(AUTH_CONFIG.COOKIE_NAMES.REFRESH_TOKEN, data.refresh_token, {
           httpOnly: true,
           secure: env.isProduction,
-          sameSite: "strict",
+          sameSite: "lax",
           maxAge: env.jwtRefreshExpirationTime,
           path: REFRESH_TOKEN_ENDPOINT,
         });
