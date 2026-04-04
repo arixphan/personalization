@@ -53,6 +53,8 @@ export abstract class BaseApi {
 
   protected abstract getAccessToken(): Promise<string | null> | string | null;
 
+  protected abstract onUnauthorized(): Promise<boolean> | boolean;
+
   protected async buildHeaders(
     customHeaders?: HeadersInit
   ): Promise<HeadersInit> {
@@ -81,7 +83,8 @@ export abstract class BaseApi {
     method: string,
     endpoint: string,
     body?: any,
-    options?: ApiRequestOptions
+    options?: ApiRequestOptions,
+    _isRetry = false
   ): Promise<ApiResponse<T>> {
     try {
       const headers = await this.buildHeaders(options?.headers);
@@ -94,6 +97,12 @@ export abstract class BaseApi {
         credentials: "include",
       });
 
+      if (response.status === 401 && !_isRetry) {
+          const canRetry = await this.onUnauthorized();
+          if (canRetry) {
+            return this.request<T>(method, endpoint, body, options, true);
+          }
+      }
 
       const contentType = response.headers.get("Content-Type");
       const isJson = contentType?.includes("application/json");

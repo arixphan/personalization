@@ -19,10 +19,13 @@ export class ServerApi extends BaseApi {
       const cookieStore = await cookies();
       const tokenCookie = cookieStore.get(this.tokenCookieName);
       return tokenCookie?.value || null;
-    } catch (error) {
-      console.warn("Failed to get token from cookies:", error);
+    } catch {
       return null;
     }
+  }
+
+  protected onUnauthorized(): boolean {
+    return false; // Server-side refresh is typically handled by middleware
   }
 
   // Additional method to pass cookies manually if needed

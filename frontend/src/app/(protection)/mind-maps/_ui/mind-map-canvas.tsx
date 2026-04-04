@@ -23,6 +23,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import { MindMapNode } from './mind-map-node';
 import { MindMapContextMenu } from './mind-map-context-menu';
+import { AiExpandDialog } from './ai-expand-dialog';
 import { BRANCH_COLORS, MindMapNodeData } from './mind-map-types';
 import { useMindMapSocket } from './use-mind-map-socket';
 import { MindMapSocketProvider } from './mind-map-socket-context';
@@ -81,6 +82,11 @@ interface ContextMenuState {
   y: number;
 }
 
+interface AiExpandState {
+  nodeId: string;
+  nodeLabel: string;
+}
+
 export const MindMapCanvas = React.memo(function MindMapCanvas({
   mindMapId,
   initialNodes = [],
@@ -91,6 +97,7 @@ export const MindMapCanvas = React.memo(function MindMapCanvas({
   const { theme, resolvedTheme } = useTheme();
   const { screenToFlowPosition, deleteElements } = useReactFlow();
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
+  const [aiExpandState, setAiExpandState] = useState<AiExpandState | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   // --- WebSocket Integration ---
@@ -286,6 +293,56 @@ export const MindMapCanvas = React.memo(function MindMapCanvas({
     [nodes, deleteElements],
   );
 
+  const handleAiExpand = useCallback(
+    (nodeId: string) => {
+      const node = nodes.find(n => n.id === nodeId);
+      const nodeLabel = (node?.data as MindMapNodeData)?.label ?? 'Node';
+      setAiExpandState({ nodeId, nodeLabel });
+    },
+    [nodes],
+  );
+
+  const handleAiAccept = useCallback(
+    (newNodes: any[], newEdges: any[]) => {
+      // Find the source node's current position to offset the AI positions
+      const sourceNode = nodes.find(n => n.id === aiExpandState?.nodeId);
+      const offsetX = sourceNode?.position?.x ?? 0;
+      const offsetY = (sourceNode?.position?.y ?? 0) + ((sourceNode?.height as number) ?? 50) + 30;
+
+      // Stamp correct type, origin, and offset positions onto each AI node
+      const stampedNodes = newNodes.map(n => ({
+        ...n,
+        type: 'mindmap',
+        origin: [0.5, 0.0] as [number, number],
+        width: 150,
+        height: n.data?.content ? 100 : 50,
+        position: {
+          x: (n.position?.x ?? 0) + offsetX,
+          y: (n.position?.y ?? 0) + offsetY,
+        },
+        // Preserve label + content from AI; content is the node's markdown description
+        data: {
+          label: n.data?.label ?? 'New Idea',
+          content: n.data?.content ?? undefined,
+          width: 150,
+          height: n.data?.content ? 100 : 50,
+        },
+      }));
+
+      const stampedEdges = newEdges.map(e => ({
+        ...e,
+        sourceHandle: e.sourceHandle ?? 'source-bottom',
+        targetHandle: e.targetHandle ?? 'target-top',
+      }));
+
+      setNodes(nds => [...nds, ...stampedNodes]);
+      setEdges(eds => [...eds, ...stampedEdges]);
+      stampedNodes.forEach(n => emitNodeAdd(n));
+      stampedEdges.forEach(e => emitEdgeAdd(e));
+    },
+    [nodes, aiExpandState, setNodes, setEdges, emitNodeAdd, emitEdgeAdd],
+  );
+
   const onPaneClick = useCallback((event: React.MouseEvent) => {
     setContextMenu(null);
 
@@ -392,7 +449,21 @@ export const MindMapCanvas = React.memo(function MindMapCanvas({
             y={contextMenu.y}
             nodeId={contextMenu.nodeId}
             onDelete={handleDeleteNode}
+            onAiExpand={handleAiExpand}
             onClose={() => setContextMenu(null)}
+          />
+        )}
+
+        {/* AI expand dialog */}
+        {aiExpandState && (
+          <AiExpandDialog
+            mindMapId={mindMapId}
+            nodeId={aiExpandState.nodeId}
+            nodeLabel={aiExpandState.nodeLabel}
+            nodes={nodes}
+            edges={edges}
+            onAccept={handleAiAccept}
+            onClose={() => setAiExpandState(null)}
           />
         )}
       </div>
