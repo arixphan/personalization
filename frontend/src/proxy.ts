@@ -93,10 +93,11 @@ export const config = {
   matcher: [
     /*
      * Match all request paths EXCEPT:
+     * - api (API proxy endpoints)
      * - _next/static (static files)
      * - _next/image (image optimization)
      * - favicon.ico and other static assets with file extensions
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)",
   ],
 };

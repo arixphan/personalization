@@ -54,8 +54,4 @@ export class ClientApi extends BaseApi {
   }
 }
 
-import { env } from "@/config/env";
-
-export const ClientApiHandler = new ClientApi(
-  env.nextPublicServerBaseUrl
-);
+export const ClientApiHandler = new ClientApi("/api");
