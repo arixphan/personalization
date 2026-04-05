@@ -305,6 +305,26 @@ export const MindMapCanvas = React.memo(function MindMapCanvas({
     [nodes, deleteElements],
   );
 
+  const getDescendants = useCallback((nodeId: string, currentEdges: Edge[]): string[] => {
+    const children = currentEdges.filter(e => e.source === nodeId).map(e => e.target);
+    let descendants = [...children];
+    for (const child of children) {
+      descendants.push(...getDescendants(child, currentEdges));
+    }
+    return Array.from(new Set(descendants));
+  }, []);
+
+  const handleDeleteNodeWithChildren = useCallback(
+    (nodeId: string) => {
+      const descendants = getDescendants(nodeId, edges);
+      const nodesToDelete = nodes.filter(n => n.id === nodeId || descendants.includes(n.id));
+      if (nodesToDelete.length > 0) {
+        deleteElements({ nodes: nodesToDelete });
+      }
+    },
+    [nodes, edges, getDescendants, deleteElements],
+  );
+
   const handleAiExpand = useCallback(
     (nodeId: string) => {
       const node = nodes.find(n => n.id === nodeId);
@@ -465,6 +485,7 @@ export const MindMapCanvas = React.memo(function MindMapCanvas({
             y={contextMenu.y}
             nodeId={contextMenu.nodeId}
             onDelete={handleDeleteNode}
+            onDeleteWithChildren={handleDeleteNodeWithChildren}
             onAiExpand={handleAiExpand}
             onClose={() => setContextMenu(null)}
           />

@@ -337,7 +337,7 @@ export const MindMapNode = React.memo(function MindMapNode({ id, data: rawData, 
           title="Move with children"
           onPointerDown={onGroupDragPointerDown}
           className={cn(
-            'absolute -top-4 -right-4 z-30 p-1.5 rounded-full bg-background border border-border/40 text-muted-foreground shadow-sm hover:text-foreground transition-colors cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100',
+            'nodrag nopan absolute -top-4 -right-4 z-30 p-1.5 rounded-full bg-background border border-border/40 text-muted-foreground shadow-sm hover:text-foreground transition-colors cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100',
             selected && 'opacity-100'
           )}
         >

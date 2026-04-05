@@ -8,13 +8,19 @@ interface MindMapContextMenuProps {
   y: number;
   nodeId: string;
   onDelete: (nodeId: string) => void;
+  onDeleteWithChildren: (nodeId: string) => void;
   onAiExpand: (nodeId: string) => void;
   onClose: () => void;
 }
 
-export function MindMapContextMenu({ x, y, nodeId, onDelete, onAiExpand, onClose }: MindMapContextMenuProps) {
+export function MindMapContextMenu({ x, y, nodeId, onDelete, onDeleteWithChildren, onAiExpand, onClose }: MindMapContextMenuProps) {
   const handleDelete = () => {
     onDelete(nodeId);
+    onClose();
+  };
+
+  const handleDeleteWithChildren = () => {
+    onDeleteWithChildren(nodeId);
     onClose();
   };
 
@@ -45,6 +51,13 @@ export function MindMapContextMenu({ x, y, nodeId, onDelete, onAiExpand, onClose
         >
           <Trash2 className="h-3.5 w-3.5" />
           Delete node
+        </button>
+        <button
+          onClick={handleDeleteWithChildren}
+          className="flex items-center gap-2 w-full px-3 py-1.5 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+          Delete with children
         </button>
       </div>
     </>
