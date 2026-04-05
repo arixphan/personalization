@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Handle, Position, NodeProps, NodeResizer, useReactFlow } from '@xyflow/react';
-import { FileText } from 'lucide-react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { Handle, Position, NodeProps, NodeResizer, useReactFlow, Edge } from '@xyflow/react';
+import { FileText, Network } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/utils';
@@ -89,8 +89,8 @@ function ShapeLayer({ shape, borderColor }: ShapeLayerProps) {
 
 export const MindMapNode = React.memo(function MindMapNode({ id, data: rawData, selected }: NodeProps) {
   const data = rawData as MindMapNodeData;
-  const { updateNodeData } = useReactFlow();
-  const { emitNodeUpdate } = useMindMapSocketContext();
+  const { updateNodeData, getNodes, setNodes, getEdges, getViewport } = useReactFlow();
+  const { emitNodeUpdate, emitNodeMove, emitNodeSave, emitNodesMove, emitNodesSave } = useMindMapSocketContext();
 
   const [editing, setEditing] = useState(false);
   const [label, setLabel] = useState(data.label || 'New Idea');
@@ -132,6 +132,103 @@ export const MindMapNode = React.memo(function MindMapNode({ id, data: rawData, 
     setLabel(label);
   };
 
+  // ── Group Dragging Logic ──────────────────────────────────────────────────
+  const getDescendants = useCallback((nodeId: string, edges: Edge[]): string[] => {
+    const children = edges.filter(e => e.source === nodeId).map(e => e.target);
+    let descendants = [...children];
+    for (const child of children) {
+      descendants.push(...getDescendants(child, edges));
+    }
+    return Array.from(new Set(descendants));
+  }, []);
+
+  const lastEmitTimeRef = useRef(0);
+
+  const onGroupDragPointerDown = useCallback((e: React.PointerEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    const target = e.target as HTMLElement;
+    target.setPointerCapture(e.pointerId);
+
+    const edges = getEdges();
+    const descendants = getDescendants(id, edges);
+    const nodesToMove = [id, ...descendants];
+    
+    const nodes = getNodes();
+    const initialPositions: Record<string, {x: number, y: number}> = {};
+    nodes.forEach(n => {
+      if (nodesToMove.includes(n.id)) {
+        initialPositions[n.id] = { ...n.position };
+      }
+    });
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    
+    let animationFrameId: number;
+
+    const onPointerMove = (evt: PointerEvent) => {
+      const zoom = getViewport().zoom;
+      const dx = (evt.clientX - startX) / zoom;
+      const dy = (evt.clientY - startY) / zoom;
+
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      
+      animationFrameId = requestAnimationFrame(() => {
+          const now = Date.now();
+          const shouldEmit = now - lastEmitTimeRef.current > 32;
+          
+          const bulkMoves: { nodeId: string; position: { x: number; y: number } }[] = [];
+
+          setNodes(nds => nds.map(n => {
+            if (nodesToMove.includes(n.id)) {
+              const newPos = {
+                x: initialPositions[n.id].x + dx,
+                y: initialPositions[n.id].y + dy,
+              };
+              if (shouldEmit) {
+                bulkMoves.push({ nodeId: n.id, position: newPos });
+              }
+              return { ...n, position: newPos };
+            }
+            return n;
+          }));
+
+          if (shouldEmit) {
+            if (bulkMoves.length > 0) emitNodesMove(bulkMoves);
+            lastEmitTimeRef.current = now;
+          }
+      });
+    };
+
+    const onPointerUp = (evt: PointerEvent) => {
+      target.releasePointerCapture(evt.pointerId);
+      target.removeEventListener('pointermove', onPointerMove);
+      target.removeEventListener('pointerup', onPointerUp);
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
+      const zoom = getViewport().zoom;
+      const dx = (evt.clientX - startX) / zoom;
+      const dy = (evt.clientY - startY) / zoom;
+      
+      const bulkSaves: { nodeId: string; position: { x: number; y: number } }[] = [];
+
+      nodesToMove.forEach(nid => {
+        const finalPos = {
+          x: initialPositions[nid].x + dx,
+          y: initialPositions[nid].y + dy,
+        };
+        bulkSaves.push({ nodeId: nid, position: finalPos });
+      });
+
+      if (bulkSaves.length > 0) emitNodesSave(bulkSaves);
+    };
+
+    target.addEventListener('pointermove', onPointerMove);
+    target.addEventListener('pointerup', onPointerUp);
+  }, [id, getDescendants, getNodes, setNodes, getEdges, getViewport, emitNodesMove, emitNodesSave]);
+
   // ── Derived values ────────────────────────────────────────────────────────
   const shape: NodeShape = data.shape ?? 'rectangle';
   const branchColor: string = data.branchColor ?? '#64748b';
@@ -149,7 +246,7 @@ export const MindMapNode = React.memo(function MindMapNode({ id, data: rawData, 
       */}
       <div
         className={cn(
-          'relative w-full h-full flex flex-col items-center justify-center',
+          'relative w-full h-full flex flex-col items-center justify-center group',
           'select-none outline-none',
         )}
         onDoubleClick={() => setEditing(true)}
@@ -234,6 +331,18 @@ export const MindMapNode = React.memo(function MindMapNode({ id, data: rawData, 
             <FileText className="h-3 w-3" />
           </button>
         )}
+
+        {/* ── Group drag icon button ── */}
+        <button
+          title="Move with children"
+          onPointerDown={onGroupDragPointerDown}
+          className={cn(
+            'absolute -top-4 -right-4 z-30 p-1.5 rounded-full bg-background border border-border/40 text-muted-foreground shadow-sm hover:text-foreground transition-colors cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100',
+            selected && 'opacity-100'
+          )}
+        >
+          <Network className="h-3.5 w-3.5" />
+        </button>
       </div>
 
       {/* ── Style toolbar (when selected) ── */}

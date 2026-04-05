@@ -168,6 +168,17 @@ export class MindMapService {
     });
   }
 
+  async updateNodesPositions(mindMapId: number, nodes: { nodeId: string; position: { x: number; y: number } }[]) {
+    return this.prisma.$transaction(
+      nodes.map(node =>
+        this.prisma.mindMapNode.update({
+          where: { mindMapId_id: { mindMapId, id: node.nodeId } },
+          data: { positionX: node.position.x, positionY: node.position.y },
+        })
+      )
+    );
+  }
+
   async updateNodeData(mindMapId: number, nodeId: string, data: any) {
     const node = await this.prisma.mindMapNode.findUnique({
       where: { mindMapId_id: { mindMapId, id: nodeId } },
@@ -182,6 +193,23 @@ export class MindMapService {
           ...data,
         },
       },
+    });
+  }
+
+  async removeNode(mindMapId: number, id: string) {
+    // Clean up edges connected to this node first (if cascade delete is not set)
+    await this.prisma.mindMapEdge.deleteMany({
+      where: {
+        mindMapId: mindMapId,
+        OR: [
+          { source: id },
+          { target: id },
+        ],
+      },
+    });
+
+    return this.prisma.mindMapNode.delete({
+      where: { mindMapId_id: { mindMapId, id } },
     });
   }
 

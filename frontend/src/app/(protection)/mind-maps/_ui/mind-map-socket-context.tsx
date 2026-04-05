@@ -4,7 +4,9 @@ import React, { createContext, useContext } from 'react';
 
 interface MindMapSocketContextType {
   emitNodeMove: (nodeId: string, position: { x: number; y: number }) => void;
+  emitNodesMove: (nodes: { nodeId: string; position: { x: number; y: number } }[]) => void;
   emitNodeSave: (nodeId: string, position: { x: number; y: number }) => void;
+  emitNodesSave: (nodes: { nodeId: string; position: { x: number; y: number } }[]) => void;
   emitNodeUpdate: (nodeId: string, data: any) => void;
   emitNodeAdd: (node: any) => void;
   emitEdgeAdd: (edge: any) => void;

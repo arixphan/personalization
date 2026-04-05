@@ -105,6 +105,13 @@ export const MindMapCanvas = React.memo(function MindMapCanvas({
     setNodes(nds => nds.map(n => n.id === nodeId ? { ...n, position } : n));
   }, [setNodes]);
 
+  const handleNodesMoved = useCallback(({ nodes: updatedNodes }: { nodes: { nodeId: string; position: { x: number; y: number } }[] }) => {
+    setNodes(nds => nds.map(n => {
+      const update = updatedNodes.find(un => un.nodeId === n.id);
+      return update ? { ...n, position: update.position } : n;
+    }));
+  }, [setNodes]);
+
   const handleNodeUpdated = useCallback(({ nodeId, data: updateData }: { nodeId: string; data: any }) => {
     setNodes(nds => nds.map(n => n.id === nodeId ? {
       ...n,
@@ -131,9 +138,14 @@ export const MindMapCanvas = React.memo(function MindMapCanvas({
     setEdges(eds => eds.filter(e => e.id !== edgeId));
   }, [setEdges]);
 
-  const { emitNodeMove, emitNodeSave, emitNodeUpdate, emitNodeAdd, emitEdgeAdd, emitNodeRemove, emitEdgeRemove } = useMindMapSocket({
+  const {
+    emitNodeMove, emitNodesMove,
+    emitNodeSave, emitNodesSave,
+    emitNodeUpdate, emitNodeAdd, emitEdgeAdd, emitNodeRemove, emitEdgeRemove 
+  } = useMindMapSocket({
     mindMapId,
     onNodeMoved: handleNodeMoved,
+    onNodesMoved: handleNodesMoved,
     onNodeUpdated: handleNodeUpdated,
     onNodeAdded: handleNodeAdded,
     onNodeRemoved: handleNodeRemoved,
@@ -414,7 +426,11 @@ export const MindMapCanvas = React.memo(function MindMapCanvas({
   const colorMode = resolvedTheme === 'dark' ? 'dark' : 'light';
 
   return (
-    <MindMapSocketProvider value={{ emitNodeMove, emitNodeSave, emitNodeUpdate, emitNodeAdd, emitEdgeAdd, emitNodeRemove, emitEdgeRemove }}>
+    <MindMapSocketProvider value={{ 
+      emitNodeMove, emitNodesMove, 
+      emitNodeSave, emitNodesSave, 
+      emitNodeUpdate, emitNodeAdd, emitEdgeAdd, emitNodeRemove, emitEdgeRemove 
+    }}>
       <div style={{ width: '100%', height: 'calc(100vh - 120px)' }} className="relative group">
         <ReactFlow
           nodes={nodes}

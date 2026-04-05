@@ -111,6 +111,32 @@ export class MindMapGateway implements OnGatewayConnection, OnGatewayDisconnect 
     }
   }
 
+  @SubscribeMessage('nodes:move')
+  handleNodesMove(
+    @MessageBody() data: { mindMapId: number; nodes: { nodeId: string; position: { x: number; y: number } }[] },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = `mind-map-${String(data.mindMapId)}`;
+    client.to(room).emit('nodes:moved', { nodes: data.nodes });
+  }
+
+  @SubscribeMessage('nodes:save-position')
+  async handleNodesSavePosition(
+    @MessageBody() data: { mindMapId: number; nodes: { nodeId: string; position: { x: number; y: number } }[] },
+  ) {
+    try {
+      const { nodes, mindMapId } = data;
+      if (!nodes || nodes.length === 0) return;
+      
+      const room = `mind-map-${String(mindMapId)}`;
+      this.server.to(room).emit('nodes:moved', { nodes });
+      
+      await this.mindMapService.updateNodesPositions(mindMapId, nodes);
+    } catch (err) {
+      console.error('[MindMapGateway] Failed to persist nodes positions:', err);
+    }
+  }
+
   @SubscribeMessage('node:update')
   handleNodeUpdate(
     @MessageBody() data: { mindMapId: number; nodeId: string; data: any },
@@ -164,6 +190,12 @@ export class MindMapGateway implements OnGatewayConnection, OnGatewayDisconnect 
   ) {
     const room = `mind-map-${String(data.mindMapId)}`;
     client.to(room).emit('node:removed', { nodeId: data.nodeId });
+
+    try {
+      await this.mindMapService.removeNode(data.mindMapId, data.nodeId);
+    } catch (err) {
+      console.error('[MindMapGateway] Failed to persist node removal:', err);
+    }
   }
 
   @SubscribeMessage('edge:remove')

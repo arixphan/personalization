@@ -8,6 +8,7 @@ import { getSocketToken } from '../_actions/socket';
 interface UseMindMapSocketProps {
   mindMapId: number;
   onNodeMoved?: (data: { nodeId: string; position: { x: number; y: number } }) => void;
+  onNodesMoved?: (data: { nodes: { nodeId: string; position: { x: number; y: number } }[] }) => void;
   onNodeUpdated?: (data: { nodeId: string; data: any }) => void;
   onNodeAdded?: (node: any) => void;
   onNodeRemoved?: (data: { nodeId: string }) => void;
@@ -30,6 +31,7 @@ export function useMindMapSocket({
   // when handlers are redefined in the parent component.
   const handlersRef = useRef<{
     onNodeMoved?: (data: { nodeId: string; position: { x: number; y: number } }) => void;
+    onNodesMoved?: (data: { nodes: { nodeId: string; position: { x: number; y: number } }[] }) => void;
     onNodeUpdated?: (data: { nodeId: string; data: any }) => void;
     onNodeAdded?: (node: any) => void;
     onNodeRemoved?: (data: { nodeId: string }) => void;
@@ -37,6 +39,7 @@ export function useMindMapSocket({
     onEdgeRemoved?: (data: { edgeId: string }) => void;
   }>({
     onNodeMoved,
+    onNodesMoved: undefined,
     onNodeUpdated,
     onNodeAdded,
     onNodeRemoved,
@@ -48,6 +51,7 @@ export function useMindMapSocket({
   useEffect(() => {
     handlersRef.current = {
       onNodeMoved,
+      onNodesMoved: handlersRef.current.onNodesMoved, // preserve if passed in later, though we might want to add to props
       onNodeUpdated,
       onNodeAdded,
       onNodeRemoved,
@@ -87,6 +91,10 @@ export function useMindMapSocket({
         handlersRef.current.onNodeMoved?.(data);
       });
 
+      socket.on('nodes:moved', (data) => {
+        handlersRef.current.onNodesMoved?.(data);
+      });
+
       socket.on('node:updated', (data) => {
         handlersRef.current.onNodeUpdated?.(data);
       });
@@ -119,8 +127,16 @@ export function useMindMapSocket({
     socketRef.current?.emit('node:move', { mindMapId, nodeId, position });
   }, [mindMapId]);
 
+  const emitNodesMove = useCallback((nodes: { nodeId: string; position: { x: number; y: number } }[]) => {
+    socketRef.current?.emit('nodes:move', { mindMapId, nodes });
+  }, [mindMapId]);
+
   const emitNodeSave = useCallback((nodeId: string, position: { x: number; y: number }) => {
     socketRef.current?.emit('node:save-position', { mindMapId, nodeId, position });
+  }, [mindMapId]);
+
+  const emitNodesSave = useCallback((nodes: { nodeId: string; position: { x: number; y: number } }[]) => {
+    socketRef.current?.emit('nodes:save-position', { mindMapId, nodes });
   }, [mindMapId]);
 
   const emitNodeUpdate = useCallback((nodeId: string, data: any) => {
@@ -145,7 +161,9 @@ export function useMindMapSocket({
 
   return {
     emitNodeMove,
+    emitNodesMove,
     emitNodeSave,
+    emitNodesSave,
     emitNodeUpdate,
     emitNodeAdd,
     emitEdgeAdd,
