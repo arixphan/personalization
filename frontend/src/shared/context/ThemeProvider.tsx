@@ -3,13 +3,14 @@ import { ReactNode } from "react";
 
 interface ThemeProviderProps {
   children: ReactNode;
+  initialTheme?: string;
 }
 
-export const ThemeProvider = ({ children }: ThemeProviderProps) => {
+export const ThemeProvider = ({ children, initialTheme }: ThemeProviderProps) => {
   return (
     <NextThemesProvider
       attribute="class"
-      defaultTheme="dark"
+      defaultTheme={initialTheme || "dark"}
       value={{ light: "light", dark: "dark" }}
       themes={["light", "dark"]}
       enableSystem={true}

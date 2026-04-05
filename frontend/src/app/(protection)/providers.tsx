@@ -6,13 +6,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 export const Providers: React.FC<{
   children: React.ReactNode;
-}> = ({ children }) => {
+  initialTheme?: string;
+}> = ({ children, initialTheme }) => {
   const [queryClient] = React.useState(() => new QueryClient());
 
   return (
     <ApplicationContext>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider initialTheme={initialTheme}>{children}</ThemeProvider>
       </QueryClientProvider>
     </ApplicationContext>
   );

@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
-import { ThemeProvider } from "@/shared/context/ThemeProvider";
 import { AppLayout } from "@/shared/ui/layout/AppLayout";
-import { ApplicationContext } from "@/shared/context/ApplicationContext";
 import { Toaster } from "@/components/ui/sonner";
 import "../globals.css";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Providers } from "./providers";
+import { ServerApiHandler } from "@/lib/server-api";
+import { UserEndpoint } from "@/constants/endpoints";
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -39,13 +38,23 @@ export default async function RootLayout({
   const locale = await getLocale();
   const messages = await getMessages();
 
+  let preferredTheme = "dark"; // Default
+  try {
+    const response = await ServerApiHandler.get(UserEndpoint.profile());
+    if (response.data?.theme) {
+      preferredTheme = response.data.theme;
+    }
+  } catch (e) {
+    console.error("[RootLayout] Failed to fetch user theme:", e);
+  }
+
   return (
     <html lang={locale} suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <NextIntlClientProvider messages={messages} locale={locale}>
-          <Providers>
+          <Providers initialTheme={preferredTheme}>
             <Toaster position="top-center" duration={3000} />
             <AppLayout>{children}</AppLayout>
           </Providers>

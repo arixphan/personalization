@@ -39,8 +39,13 @@ export default function AuthCallbackPage() {
     }
 
     // Clear the code and stale localStorage data (security hygiene)
+    // We preserve the 'theme' key as it's a UI preference that should persist across sessions.
+    const theme = localStorage.getItem("theme");
     window.history.replaceState({}, document.title, "/auth-callback");
     localStorage.clear();
+    if (theme) {
+      localStorage.setItem("theme", theme);
+    }
 
     const exchangeCode = async () => {
       try {
