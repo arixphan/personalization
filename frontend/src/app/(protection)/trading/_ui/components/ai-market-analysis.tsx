@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { format, startOfWeek, startOfMonth } from "date-fns";
+import { format, startOfWeek, startOfMonth, isToday } from "date-fns";
 import { Loader2, Sparkles, TrendingUp, TrendingDown, Minus, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -150,7 +150,12 @@ export function AiMarketAnalysis({ selectedDate }: AiMarketAnalysisProps) {
         ) : (
           <div className="flex flex-col items-center justify-center py-4 text-center gap-2">
             <span className="text-sm text-gray-500">No {interval.toLowerCase()} analysis for this date.</span>
-            <Button size="sm" onClick={handleGenerate} className="gap-2">
+            <Button 
+              size="sm" 
+              onClick={handleGenerate} 
+              className="gap-2"
+              disabled={interval === "DAILY" && !isToday(selectedDate)}
+            >
               <Sparkles className="w-4 h-4" />
               Generate {interval} Analysis
             </Button>

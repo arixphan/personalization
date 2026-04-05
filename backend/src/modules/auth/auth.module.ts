@@ -5,7 +5,7 @@ import { ShareModule } from 'src/modules/shared/share.module';
 import { AuthController } from './auth.controller';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AppConfigService } from '../config';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { PermissionModule } from 'src/modules/permission/permission.module';
@@ -16,12 +16,11 @@ import { PermissionModule } from 'src/modules/permission/permission.module';
     ShareModule,
     PermissionModule,
     JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
+      inject: [AppConfigService],
+      useFactory: (appConfigService: AppConfigService) => ({
+        secret: appConfigService.auth.jwtSecret,
         signOptions: {
-          expiresIn: configService.get<number>('JWT_REFRESH_EXPIRATION_TIME'),
+          expiresIn: appConfigService.auth.refreshExpiration,
         },
       }),
     }),
@@ -29,4 +28,4 @@ import { PermissionModule } from 'src/modules/permission/permission.module';
   providers: [AuthService, LocalStrategy, JwtStrategy, GoogleStrategy],
   controllers: [AuthController],
 })
-export class AuthModule {}
+export class AuthModule { }
