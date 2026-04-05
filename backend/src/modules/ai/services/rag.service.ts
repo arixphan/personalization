@@ -1,17 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma';
-import { google } from '@ai-sdk/google';
 import { embed, embedMany } from 'ai';
+import { AiSettingsService } from './ai-settings.service';
+import { ModelFactoryService } from './model-factory.service';
 
 @Injectable()
 export class RagService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly aiSettings: AiSettingsService,
+    private readonly modelFactory: ModelFactoryService,
   ) {}
 
-  async embedText(text: string): Promise<number[]> {
+  async embedText(text: string, userId: number): Promise<number[]> {
+    const settings = await this.aiSettings.getSettings(userId, true);
+    if (!settings || !settings.apiKey || !settings.provider) {
+      throw new Error('AI Assistant is not configured. Please go to /ai to set up your provider and API key.');
+    }
+
+    const model = this.modelFactory.createEmbeddingModel(settings.provider, settings.apiKey);
+
     const { embedding } = await embed({
-      model: google.embedding('gemini-embedding-001'),
+      model,
       value: text,
     });
     return embedding;

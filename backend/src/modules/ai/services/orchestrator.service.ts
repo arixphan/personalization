@@ -42,6 +42,7 @@ export class OrchestratorService {
       // 1. Embed query and retrieve context
       const queryEmbedding = await this.rag.embedText(
         userQuery || 'finance summary',
+        userId,
       );
       const contextChunks = await this.rag.retrieveContext(
         userId,

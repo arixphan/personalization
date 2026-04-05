@@ -12,8 +12,6 @@ export const envSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   BACKEND_URL: z.string().url().optional(),
   FRONTEND_URL: z.string().url().optional(),
-  OPENAI_API_KEY: z.string().optional(),
-  GOOGLE_GENERATIVE_AI_API_KEY: z.string().optional(),
   ENCRYPTION_KEY: z.string().min(32),
 });
 

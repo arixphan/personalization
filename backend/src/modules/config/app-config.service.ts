@@ -35,11 +35,4 @@ export class AppConfigService {
       url: this.configService.getOrThrow<string>('database.url'),
     };
   }
-
-  get ai() {
-    return {
-      openaiApiKey: this.configService.get<string>('OPENAI_API_KEY'),
-      googleGenerativeAiApiKey: this.configService.get<string>('GOOGLE_GENERATIVE_AI_API_KEY'),
-    };
-  }
 }

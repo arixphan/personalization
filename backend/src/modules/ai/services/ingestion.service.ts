@@ -14,7 +14,7 @@ export class IngestionService {
     const wallets = await this.prisma.wallet.findMany({ where: { userId } });
     for (const wallet of wallets) {
       const content = `Wallet '${wallet.name}': current balance is ${wallet.balance} ${wallet.currency}. Created on ${wallet.createdAt.toDateString()}.`;
-      const embedding = await this.rag.embedText(content);
+      const embedding = await this.rag.embedText(content, userId);
       await this.rag.saveEmbedding({
         userId,
         domain: 'finance',
@@ -39,7 +39,7 @@ export class IngestionService {
       if (tx.toWallet)
         content += ` Transferred to wallet '${tx.toWallet.name}'.`;
 
-      const embedding = await this.rag.embedText(content);
+      const embedding = await this.rag.embedText(content, userId);
       await this.rag.saveEmbedding({
         userId,
         domain: 'finance',
@@ -54,7 +54,7 @@ export class IngestionService {
     const assets = await this.prisma.asset.findMany({ where: { userId } });
     for (const asset of assets) {
       const content = `Asset '${asset.name}' (type: ${asset.type}): current value is ${asset.value}. Description: ${asset.description || 'N/A'}.`;
-      const embedding = await this.rag.embedText(content);
+      const embedding = await this.rag.embedText(content, userId);
       await this.rag.saveEmbedding({
         userId,
         domain: 'finance',
@@ -69,7 +69,7 @@ export class IngestionService {
     const loans = await this.prisma.loan.findMany({ where: { userId } });
     for (const loan of loans) {
       const content = `Loan (${loan.type}) from/to ${loan.counterparty}: principal ${loan.principal}, remaining ${loan.remaining}. Status: ${loan.status}. Due date: ${loan.dueDate?.toDateString() || 'N/A'}.`;
-      const embedding = await this.rag.embedText(content);
+      const embedding = await this.rag.embedText(content, userId);
       await this.rag.saveEmbedding({
         userId,
         domain: 'finance',
@@ -88,7 +88,7 @@ export class IngestionService {
     for (const budget of budgets) {
       for (const cat of budget.categories) {
         const content = `Budget for ${budget.month}/${budget.year}: Category '${cat.name}' has a limit of ${cat.limitAmount} and spent ${cat.spentAmount}. Automation enabled: ${cat.isAutomationEnabled}.`;
-        const embedding = await this.rag.embedText(content);
+        const embedding = await this.rag.embedText(content, userId);
         await this.rag.saveEmbedding({
           userId,
           domain: 'finance',
@@ -104,7 +104,7 @@ export class IngestionService {
 
   async ingestSingleWallet(userId: number, wallet: any) {
     const content = `Wallet '${wallet.name}': current balance is ${wallet.balance} ${wallet.currency}. Created on ${wallet.createdAt.toDateString()}.`;
-    const embedding = await this.rag.embedText(content);
+    const embedding = await this.rag.embedText(content, userId);
     await this.rag.saveEmbedding({
       userId,
       domain: 'finance',
@@ -121,7 +121,7 @@ export class IngestionService {
     if (tx.note) content += ` Note: ${tx.note}.`;
     if (tx.toWallet) content += ` Transferred to wallet '${tx.toWallet.name}'.`;
 
-    const embedding = await this.rag.embedText(content);
+    const embedding = await this.rag.embedText(content, userId);
     await this.rag.saveEmbedding({
       userId,
       domain: 'finance',
@@ -134,7 +134,7 @@ export class IngestionService {
 
   async ingestSingleAsset(userId: number, asset: any) {
     const content = `Asset '${asset.name}' (type: ${asset.type}): current value is ${asset.value}. Description: ${asset.description || 'N/A'}.`;
-    const embedding = await this.rag.embedText(content);
+    const embedding = await this.rag.embedText(content, userId);
     await this.rag.saveEmbedding({
       userId,
       domain: 'finance',
@@ -147,7 +147,7 @@ export class IngestionService {
 
   async ingestSingleLoan(userId: number, loan: any) {
     const content = `Loan (${loan.type}) from/to ${loan.counterparty}: principal ${loan.principal}, remaining ${loan.remaining}. Status: ${loan.status}. Due date: ${loan.dueDate ? new Date(loan.dueDate).toDateString() : 'N/A'}.`;
-    const embedding = await this.rag.embedText(content);
+    const embedding = await this.rag.embedText(content, userId);
     await this.rag.saveEmbedding({
       userId,
       domain: 'finance',
@@ -160,7 +160,7 @@ export class IngestionService {
 
   async ingestSingleBudgetCategory(userId: number, budget: any, cat: any) {
     const content = `Budget for ${budget.month}/${budget.year}: Category '${cat.name}' has a limit of ${cat.limitAmount} and spent ${cat.spentAmount}. Automation enabled: ${cat.isAutomationEnabled}.`;
-    const embedding = await this.rag.embedText(content);
+    const embedding = await this.rag.embedText(content, userId);
     await this.rag.saveEmbedding({
       userId,
       domain: 'finance',

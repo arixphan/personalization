@@ -78,7 +78,7 @@ export class SearchFinanceHistoryTool implements AiTool {
     userId: number,
     input: { query: string },
   ): Promise<AiToolResult> {
-    const queryEmbedding = await this.rag.embedText(input.query);
+    const queryEmbedding = await this.rag.embedText(input.query, userId);
     const context = await this.rag.retrieveContext(
       userId,
       queryEmbedding,
