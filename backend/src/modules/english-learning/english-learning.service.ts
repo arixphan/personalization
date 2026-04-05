@@ -15,23 +15,69 @@ export class EnglishLearningService {
     private readonly modelFactory: ModelFactoryService,
   ) {}
 
-  async findAll(userId: number, filters: { type?: string; search?: string }) {
-    return this.prisma.englishRecord.findMany({
-      where: {
-        userId,
-        ...(filters.type ? { type: filters.type as any } : {}),
-        ...(filters.search
-          ? {
-              OR: [
-                { content: { contains: filters.search, mode: 'insensitive' } },
-                { translation: { contains: filters.search, mode: 'insensitive' } },
-                { tags: { has: filters.search } },
-              ],
-            }
-          : {}),
-      },
-      orderBy: { createdAt: 'desc' },
+  async getSettings(userId: number) {
+    const mem = await this.prisma.userMemory.findUnique({
+      where: { userId_key: { userId, key: 'ENGLISH_SETTINGS' } }
     });
+    const defaultSettings = { masteryThreshold: 5, wrongOptionAction: 'DECREASE' };
+    if (!mem) return defaultSettings;
+    try {
+      return { ...defaultSettings, ...JSON.parse(mem.value) };
+    } catch {
+      return defaultSettings;
+    }
+  }
+
+  async updateSettings(userId: number, settings: { masteryThreshold?: number; wrongOptionAction?: 'RESET' | 'DECREASE' }) {
+    const current = await this.getSettings(userId);
+    const newSettings = { ...current, ...settings };
+    await this.prisma.userMemory.upsert({
+      where: { userId_key: { userId, key: 'ENGLISH_SETTINGS' } },
+      update: { value: JSON.stringify(newSettings), source: 'english_settings' },
+      create: { userId, key: 'ENGLISH_SETTINGS', value: JSON.stringify(newSettings), source: 'english_settings' }
+    });
+    return newSettings;
+  }
+
+  async findAll(userId: number, filters: { type?: string; search?: string, status?: string, page?: number, limit?: number }) {
+    const page = filters.page || 1;
+    const limit = filters.limit || 50;
+    const skip = (page - 1) * limit;
+
+    const settings = await this.getSettings(userId);
+    const threshold = settings.masteryThreshold;
+
+    let masteryFilter = {};
+    if (filters.status === 'mastered') {
+      masteryFilter = { masteryLevel: { gte: threshold } };
+    } else if (filters.status === 'learning') {
+      masteryFilter = { masteryLevel: { lt: threshold } };
+    }
+
+    const where = {
+      userId,
+      ...(filters.type ? { type: filters.type as any } : {}),
+      ...(filters.search
+        ? {
+            OR: [
+              { content: { contains: filters.search, mode: 'insensitive' as any } },
+              { translation: { contains: filters.search, mode: 'insensitive' as any } },
+              { tags: { has: filters.search } },
+            ],
+          }
+        : {}),
+      ...masteryFilter,
+    };
+
+    const total = await this.prisma.englishRecord.count({ where });
+    const records = await this.prisma.englishRecord.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit,
+    });
+
+    return { data: records, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   async findOne(userId: number, id: number) {
@@ -66,18 +112,65 @@ export class EnglishLearningService {
     });
   }
 
-  async getRandom(userId: number, type?: string) {
+  async getRandom(userId: number, type?: string, excludeIds?: string) {
+    const settings = await this.getSettings(userId);
+    const skipIds = excludeIds ? excludeIds.split(',').map(id => parseInt(id, 10)).filter(id => !isNaN(id)) : [];
+    
+    // Filter condition:
+    // - match userId
+    // - match type if provided
+    // - exclude skipIds from this session
+    // - only include records that are not fully mastered (masteryLevel < threshold)
+    const condition: any = {
+      userId,
+      ...(type ? { type: type as any } : {}),
+      ...(skipIds.length > 0 ? { id: { notIn: skipIds } } : {}),
+      masteryLevel: { lt: settings.masteryThreshold }
+    };
+
     const count = await this.prisma.englishRecord.count({
-      where: { userId, ...(type ? { type: type as any } : {}) },
+      where: condition,
     });
 
     if (count === 0) return null;
 
     const skip = Math.floor(Math.random() * count);
     return this.prisma.englishRecord.findFirst({
-      where: { userId, ...(type ? { type: type as any } : {}) },
+      where: condition,
       skip,
     });
+  }
+
+  async getRandomBatch(userId: number, limit: number, excludeIds?: string) {
+    const settings = await this.getSettings(userId);
+    const skipIds = excludeIds ? excludeIds.split(',').map(id => parseInt(id, 10)).filter(id => !isNaN(id)) : [];
+    
+    const condition: any = {
+      userId,
+      ...(skipIds.length > 0 ? { id: { notIn: skipIds } } : {}),
+      masteryLevel: { lt: settings.masteryThreshold }
+    };
+
+    // Since we need random elements, and Postgres random sorting is slow for huge DBs but fine for small ones
+    // Or we can just fetch all IDs and pick N random. Since it's personal app, this is very fast.
+    const validRecords = await this.prisma.englishRecord.findMany({
+      where: condition,
+      select: { id: true }
+    });
+
+    if (validRecords.length === 0) return [];
+
+    // Shuffle and take N
+    const shuffled = validRecords.sort(() => 0.5 - Math.random());
+    const selectedIds = shuffled.slice(0, limit).map(r => r.id);
+
+    // Fetch full records for selected IDs
+    const records = await this.prisma.englishRecord.findMany({
+      where: { id: { in: selectedIds } }
+    });
+
+    // Return in shuffled order
+    return records.sort(() => 0.5 - Math.random());
   }
 
   async generateAiContent(userId: number, dto: GenerateAiContentDto) {

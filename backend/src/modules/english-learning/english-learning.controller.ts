@@ -11,18 +11,40 @@ import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 export class EnglishLearningController {
   constructor(private readonly service: EnglishLearningService) {}
 
+  @Get('settings')
+  getSettings(@Req() req) {
+    return this.service.getSettings(req.user.id);
+  }
+
+  @Post('settings')
+  updateSettings(@Req() req, @Body() dto: { masteryThreshold?: number; wrongOptionAction?: 'RESET' | 'DECREASE' }) {
+    return this.service.updateSettings(req.user.id, dto);
+  }
+
   @Get()
   findAll(
     @Req() req,
     @Query('type') type?: string,
     @Query('search') search?: string,
+    @Query('status') status?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ) {
-    return this.service.findAll(req.user.id, { type, search });
+    return this.service.findAll(req.user.id, { 
+      type, search, status, 
+      page: page ? parseInt(page, 10) : 1, 
+      limit: limit ? parseInt(limit, 10) : 50 
+    });
   }
 
   @Get('random')
-  getRandom(@Req() req, @Query('type') type?: string) {
-    return this.service.getRandom(req.user.id, type);
+  getRandom(@Req() req, @Query('type') type?: string, @Query('excludeIds') excludeIds?: string) {
+    return this.service.getRandom(req.user.id, type, excludeIds);
+  }
+
+  @Get('random-batch')
+  getRandomBatch(@Req() req, @Query('limit', ParseIntPipe) limit: number, @Query('excludeIds') excludeIds?: string) {
+    return this.service.getRandomBatch(req.user.id, limit, excludeIds);
   }
 
   @Post()

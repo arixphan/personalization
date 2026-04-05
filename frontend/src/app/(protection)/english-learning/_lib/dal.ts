@@ -2,15 +2,34 @@ import { EnglishLearningEndpoint } from "@/constants/endpoints";
 import { ClientApiHandler } from "@/lib/client-api";
 import { EnglishRecord, CreateEnglishRecordDto, EnglishRecordType, EnglishWriting } from "../_types/english";
 
+export interface EnglishSettings {
+  masteryThreshold: number;
+  wrongOptionAction: 'RESET' | 'DECREASE';
+}
+
 export interface EnglishFilter {
   type?: string;
   search?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
 }
 
-export async function fetchEnglishRecords(filter: EnglishFilter = {}): Promise<EnglishRecord[]> {
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export async function fetchEnglishRecords(filter: EnglishFilter = {}): Promise<PaginatedResponse<EnglishRecord>> {
   const params = new URLSearchParams();
   if (filter.type) params.append("type", filter.type);
   if (filter.search) params.append("search", filter.search);
+  if (filter.status) params.append("status", filter.status);
+  if (filter.page) params.append("page", String(filter.page));
+  if (filter.limit) params.append("limit", String(filter.limit));
 
   const url = EnglishLearningEndpoint.list() + (params.toString() ? `?${params.toString()}` : "");
   const { data, error } = await ClientApiHandler.get(url);
@@ -19,12 +38,35 @@ export async function fetchEnglishRecords(filter: EnglishFilter = {}): Promise<E
   return data;
 }
 
-export async function fetchRandomRecord(type?: string): Promise<EnglishRecord | null> {
+export async function fetchEnglishSettings(): Promise<EnglishSettings> {
+  const { data, error } = await ClientApiHandler.get(EnglishLearningEndpoint.list() + "/settings");
+  if (error) throw new Error(error || "Failed to fetch settings");
+  return data;
+}
+
+export async function updateEnglishSettings(settings: Partial<EnglishSettings>): Promise<EnglishSettings> {
+  const { data, error } = await ClientApiHandler.post(EnglishLearningEndpoint.list() + "/settings", settings);
+  if (error) throw new Error(error || "Failed to update settings");
+  return data;
+}
+
+export async function fetchRandomRecord(type?: string, excludeIds?: number[]): Promise<EnglishRecord | null> {
   const params = new URLSearchParams();
   if (type) params.append("type", type);
+  if (excludeIds && excludeIds.length > 0) params.append("excludeIds", excludeIds.join(","));
   const url = EnglishLearningEndpoint.random() + (params.toString() ? `?${params.toString()}` : "");
   const { data, error } = await ClientApiHandler.get(url);
   if (error) throw new Error(error || "Failed to fetch random record");
+  return data;
+}
+
+export async function fetchRandomBatch(limit: number = 5, excludeIds?: number[]): Promise<EnglishRecord[]> {
+  const params = new URLSearchParams();
+  params.append("limit", String(limit));
+  if (excludeIds && excludeIds.length > 0) params.append("excludeIds", excludeIds.join(","));
+  const url = EnglishLearningEndpoint.list() + "/random-batch?" + params.toString();
+  const { data, error } = await ClientApiHandler.get(url);
+  if (error) throw new Error(error || "Failed to fetch random batch");
   return data;
 }
 
