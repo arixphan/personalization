@@ -52,15 +52,17 @@ export default function PracticePage() {
   };
 
   const setupNextChallenge = async () => {
+    if (loading) return;
     try {
       setLoading(true);
+      setCurrentChallengeData(null);
+      
       let available = records;
       if (available.length < 5) {
         available = await loadMoreRecords(available);
       }
 
       if (available.length === 0) {
-        setCurrentChallengeData(null);
         return;
       }
 
@@ -75,30 +77,39 @@ export default function PracticePage() {
 
       setMode(newMode);
 
+      let nextChallenge: any = null;
+      let newRecords = available;
+
       if (newMode === "flashcard") {
         const item = available[0];
         seenIdsRef.current.push(item.id);
-        setCurrentChallengeData({ target: item, all: [item] });
-        setRecords(available.slice(1));
+        nextChallenge = { target: item, all: [item] };
+        newRecords = available.slice(1);
       } 
       else if (newMode === "multiple-choice") {
         const target = available[0];
         const others = available.slice(1, 4);
         seenIdsRef.current.push(target.id);
-        
         const options = [target, ...others].sort(() => 0.5 - Math.random());
-        setCurrentChallengeData({ target, options, all: [target] });
-        setRecords(available.slice(1)); // only consume target from queue, keep others for next time
+        nextChallenge = { target, options, all: [target] };
+        newRecords = available.slice(1);
       }
       else if (newMode === "matching") {
         const targets = available.slice(0, 4);
         targets.forEach(t => seenIdsRef.current.push(t.id));
         const words = [...targets].sort(() => 0.5 - Math.random());
         const meanings = [...targets].sort(() => 0.5 - Math.random());
-        setCurrentChallengeData({ words, meanings, targets, all: targets });
-        setRecords(available.slice(4));
+        nextChallenge = { words, meanings, targets, all: targets };
+        newRecords = available.slice(4);
       }
 
+      // Update everything together to ensure animation key matches data
+      setRecords(newRecords);
+      setCurrentChallengeData(nextChallenge);
+      setCompleted(p => p + 1);
+
+    } catch (e) {
+      toast.error("Failed to prepare next challenge");
     } finally {
       setLoading(false);
     }
@@ -135,9 +146,8 @@ export default function PracticePage() {
     }
 
     setTimeout(() => {
-      setCompleted(p => p + 1);
       setupNextChallenge();
-    }, 600);
+    }, 400); 
   };
 
   if (!settings) return null;
