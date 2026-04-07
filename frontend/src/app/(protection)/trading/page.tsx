@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { format } from "date-fns";
+import { format, isToday } from "date-fns";
 import { TradingLogSentiment } from "@personalization/shared";
 import { TradingViewChart } from "./_ui/components/tradingview-chart";
 import { MarkdownEditor } from "@/components/ui/input";
@@ -11,8 +11,7 @@ import { LogStreak } from "./_ui/components/log-streak";
 import { AiMarketAnalysis } from "./_ui/components/ai-market-analysis";
 import { getTradingLogByDate, getTradingLogsByMonth, upsertTradingLog } from "./_actions/trading-log.actions";
 import { toast } from "sonner";
-import { Loader2, Save, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 export default function LogsPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -28,7 +27,7 @@ export default function LogsPage() {
       const monthStr = format(selectedDate, "yyyy-MM");
       const data = await getTradingLogsByMonth(monthStr);
       setLogs(data || []);
-      
+
       // Calculate streak (simplified version for now)
       setStreak(data?.length || 0);
     } catch (error) {
@@ -80,9 +79,12 @@ export default function LogsPage() {
   };
 
   const handleSentimentChange = (newSentiment: TradingLogSentiment) => {
+    if (!isToday(selectedDate)) return;
     setSentiment(newSentiment);
     handleSave(newSentiment);
   };
+
+  const isDateToday = isToday(selectedDate);
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 h-full overflow-hidden">
@@ -102,7 +104,7 @@ export default function LogsPage() {
             <LogStreak streak={streak} />
           </div>
           <div className="flex items-center text-sm text-gray-500 font-medium h-10">
-            {isSaving && (
+            {isSaving && isDateToday && (
               <>
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
                 Saving...
@@ -116,7 +118,11 @@ export default function LogsPage() {
           <label className="text-xs font-bold uppercase text-gray-500 tracking-wider">
             Market Sentiment
           </label>
-          <SentimentSelector value={sentiment} onChange={handleSentimentChange} />
+          <SentimentSelector
+            value={sentiment}
+            onChange={handleSentimentChange}
+            disabled={!isDateToday}
+          />
         </div>
 
         {/* Calendar Picker */}
@@ -134,19 +140,20 @@ export default function LogsPage() {
             <label className="text-xs font-bold uppercase text-gray-500 tracking-wider mb-2 block">
               Analysis & Log
             </label>
-          {isLoading ? (
-            <div className="h-[300px] w-full bg-gray-100 dark:bg-gray-800 animate-pulse rounded-lg flex items-center justify-center">
-              <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-            </div>
-          ) : (
-            <MarkdownEditor 
-              id="trading-log-editor"
-              value={content} 
-              onChange={setContent}
-              onBlur={() => handleSave()}
-              placeholder="Write today's market analysis and trade details..." 
-            />
-          )}
+            {isLoading ? (
+              <div className="h-[300px] w-full bg-gray-100 dark:bg-gray-800 animate-pulse rounded-lg flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+              </div>
+            ) : (
+              <MarkdownEditor
+                id="trading-log-editor"
+                value={content}
+                onChange={setContent}
+                onBlur={() => isDateToday && handleSave()}
+                placeholder={isDateToday ? "Write today's market analysis and trade details..." : "No log entry for this date."}
+                readOnly={!isDateToday}
+              />
+            )}
           </div>
         </div>
       </div>

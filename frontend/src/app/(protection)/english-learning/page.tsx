@@ -4,14 +4,12 @@ import { useEffect, useState } from "react";
 import { fetchEnglishRecords, deleteEnglishRecord, resetMastery } from "./_lib/dal";
 import { EnglishRecord, EnglishRecordType } from "./_types/english";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, Brain, Volume2, Trash2, LayoutGrid, List, PenLine, RotateCcw } from "lucide-react";
+import { Plus, Search, Brain, LayoutGrid, List, PenLine } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { AddRecordModal } from "./_ui/AddRecordModal";
 import { SettingsModal } from "./_ui/SettingsModal";
 import { RecordList } from "./_ui/RecordList";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -214,18 +212,18 @@ export default function EnglishLearningPage() {
           Showing <span className="font-medium text-foreground">{records.length}</span> of <span className="font-medium text-foreground">{totalRecords}</span> words
         </div>
         <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
           >
             Previous
           </Button>
           <span className="text-sm px-2 font-medium">Page {page} of {totalPages}</span>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
           >

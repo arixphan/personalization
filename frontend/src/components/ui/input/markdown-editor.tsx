@@ -26,6 +26,7 @@ interface MarkdownEditorProps {
   required?: boolean;
   error?: string;
   className?: string;
+  readOnly?: boolean;
 }
 
 export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
@@ -38,8 +39,9 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   required = false,
   error,
   className,
+  readOnly = false,
 }) => {
-  const [isPreview, setIsPreview] = useState(false);
+  const [isPreview, setIsPreview] = useState(readOnly);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const errorId = `${id}-error`;
 
@@ -158,49 +160,51 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
   return (
     <div className={cn("space-y-2", className)}>
-      <div className="flex items-center justify-between">
-        {label && (
-          <label htmlFor={id} className="text-sm font-medium">
-            {label} {required && "*"}
-          </label>
-        )}
-        <div className="flex items-center bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
-          <button
-            type="button"
-            onClick={() => setIsPreview(false)}
-            className={cn(
-              "px-3 py-1 text-xs font-medium rounded-md transition-all",
-              !isPreview 
-                ? "bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400" 
-                : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-            )}
-          >
-            <div className="flex items-center space-x-1">
-              <Type size={14} />
-              <span>Write</span>
-            </div>
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsPreview(true)}
-            className={cn(
-              "px-3 py-1 text-xs font-medium rounded-md transition-all",
-              isPreview 
-                ? "bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400" 
-                : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-            )}
-          >
-            <div className="flex items-center space-x-1">
-              <Eye size={14} />
-              <span>Preview</span>
-            </div>
-          </button>
+      {!readOnly && (
+        <div className="flex items-center justify-between">
+          {label && (
+            <label htmlFor={id} className="text-sm font-medium">
+              {label} {required && "*"}
+            </label>
+          )}
+          <div className="flex items-center bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+            <button
+              type="button"
+              onClick={() => setIsPreview(false)}
+              className={cn(
+                "px-3 py-1 text-xs font-medium rounded-md transition-all",
+                !isPreview 
+                  ? "bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400" 
+                  : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              )}
+            >
+              <div className="flex items-center space-x-1">
+                <Type size={14} />
+                <span>Write</span>
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsPreview(true)}
+              className={cn(
+                "px-3 py-1 text-xs font-medium rounded-md transition-all",
+                isPreview 
+                  ? "bg-white dark:bg-gray-700 shadow-sm text-blue-600 dark:text-blue-400" 
+                  : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              )}
+            >
+              <div className="flex items-center space-x-1">
+                <Eye size={14} />
+                <span>Preview</span>
+              </div>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-gray-900 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500/50 transition-all">
         {/* Toolbar */}
-        {!isPreview && (
+        {!isPreview && !readOnly && (
           <div className="flex items-center space-x-1 p-2 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
             {[
               { icon: Bold, action: 'bold', label: 'Bold' },

@@ -7,9 +7,10 @@ import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 interface SentimentSelectorProps {
   value: TradingLogSentiment;
   onChange: (value: TradingLogSentiment) => void;
+  disabled?: boolean;
 }
 
-export function SentimentSelector({ value, onChange }: SentimentSelectorProps) {
+export function SentimentSelector({ value, onChange, disabled }: SentimentSelectorProps) {
   const options = [
     {
       label: "Bullish",
@@ -38,12 +39,13 @@ export function SentimentSelector({ value, onChange }: SentimentSelectorProps) {
           key={opt.value}
           variant="outline"
           size="sm"
-          onClick={() => onChange(opt.value)}
+          onClick={() => !disabled && onChange(opt.value)}
+          disabled={disabled}
           className={`flex items-center gap-2 px-4 h-9 border-2 transition-all duration-200 ${
             value === opt.value
               ? opt.activeClass
               : "border-transparent bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-500"
-          }`}
+          } ${disabled ? "opacity-50 cursor-not-allowed grayscale" : ""}`}
         >
           <opt.icon className="w-4 h-4" />
           <span className="font-semibold">{opt.label}</span>

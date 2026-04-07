@@ -19,7 +19,7 @@ export function AiMarketAnalysis({ selectedDate }: AiMarketAnalysisProps) {
   const [interval, setInterval] = useState<Interval>("DAILY");
   const [isLoading, setIsLoading] = useState(false);
   const [analysis, setAnalysis] = useState<any>(null);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const fetchAnalysis = async (currentInterval: Interval) => {
     setIsLoading(true);
