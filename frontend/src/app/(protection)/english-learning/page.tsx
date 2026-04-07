@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchEnglishRecords, deleteEnglishRecord } from "./_lib/dal";
+import { fetchEnglishRecords, deleteEnglishRecord, resetMastery } from "./_lib/dal";
 import { EnglishRecord, EnglishRecordType } from "./_types/english";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, Brain, Volume2, Trash2, LayoutGrid, List, PenLine } from "lucide-react";
+import { Plus, Search, Brain, Volume2, Trash2, LayoutGrid, List, PenLine, RotateCcw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { AddRecordModal } from "./_ui/AddRecordModal";
 import { SettingsModal } from "./_ui/SettingsModal";
@@ -61,6 +61,16 @@ export default function EnglishLearningPage() {
       loadRecords();
     } catch (error) {
       toast.error("Delete failed");
+    }
+  };
+
+  const handleResetMastery = async (id: number) => {
+    try {
+      await resetMastery(id);
+      toast.success("Moved back to learning list");
+      loadRecords();
+    } catch (error) {
+      toast.error("Reset failed");
     }
   };
 
@@ -217,14 +227,25 @@ export default function EnglishLearningPage() {
                         </Button>
                       </CardTitle>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10"
-                      onClick={() => handleDelete(record.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity translate-x-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-primary hover:bg-primary/10 h-8 w-8"
+                        title="Re-learn"
+                        onClick={() => handleResetMastery(record.id)}
+                      >
+                        <RotateCcw className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:bg-destructive/10 h-8 w-8"
+                        onClick={() => handleDelete(record.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </CardHeader>
                   <CardContent className="space-y-3 flex-grow">
                     {record.translation && (
@@ -276,6 +297,15 @@ export default function EnglishLearningPage() {
                           <span key={tag} className="text-[9px] px-1.5 py-0.5 rounded-md bg-primary/5 text-primary lowercase">#{tag}</span>
                         ))}
                       </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-primary hover:bg-primary/10 h-8 w-8"
+                        title="Re-learn"
+                        onClick={() => handleResetMastery(record.id)}
+                      >
+                        <RotateCcw className="w-4 h-4" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"

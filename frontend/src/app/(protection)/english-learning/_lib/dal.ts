@@ -95,6 +95,15 @@ export async function deleteEnglishRecord(id: number) {
   if (error) throw new Error(error || "Failed to delete record");
 }
 
+export async function resetMastery(id: number) {
+  const { data: result, error } = await ClientApiHandler.patch(
+    EnglishLearningEndpoint.update({ id: String(id) }),
+    { masteryLevel: 0 }
+  );
+  if (error) throw new Error(error || "Failed to reset mastery");
+  return result;
+}
+
 export async function generateAiAssist(content: string, type: EnglishRecordType) {
   const { data, error } = await ClientApiHandler.post(
     EnglishLearningEndpoint.aiAssist(),
