@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Search, Brain, LayoutGrid, List, PenLine } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { AddRecordModal } from "./_ui/AddRecordModal";
+import { RecordDetailModal } from "./_ui/RecordDetailModal";
 import { SettingsModal } from "./_ui/SettingsModal";
 import { RecordList } from "./_ui/RecordList";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
@@ -23,6 +24,8 @@ export default function EnglishLearningPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<EnglishRecord | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [recordToDelete, setRecordToDelete] = useState<number | null>(null);
@@ -81,6 +84,16 @@ export default function EnglishLearningPage() {
     }
   };
 
+  const handleEdit = (record: EnglishRecord) => {
+    setEditingRecord(record);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleAddOpen = () => {
+    setEditingRecord(null);
+    setIsAddModalOpen(true);
+  };
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-6xl space-y-8">
       {/* Header section */}
@@ -110,7 +123,7 @@ export default function EnglishLearningPage() {
             <Brain className="w-4 h-4" />
             Settings
           </Button>
-          <Button onClick={() => setIsAddModalOpen(true)} className="gap-2 shadow-lg shadow-primary/20">
+          <Button onClick={handleAddOpen} className="gap-2 shadow-lg shadow-primary/20">
             <Plus className="w-4 h-4" />
             Add New
           </Button>
@@ -204,6 +217,7 @@ export default function EnglishLearningPage() {
           onSpeak={speak}
           onResetMastery={handleResetMastery}
           onDelete={handleDelete}
+          onEdit={handleEdit}
         />
       )}
 
@@ -236,6 +250,15 @@ export default function EnglishLearningPage() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSuccess={loadRecords}
+      />
+      <RecordDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setEditingRecord(null);
+        }}
+        onSuccess={loadRecords}
+        record={editingRecord}
       />
       <SettingsModal
         isOpen={isSettingsOpen}

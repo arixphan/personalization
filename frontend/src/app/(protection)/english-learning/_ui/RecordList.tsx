@@ -13,6 +13,7 @@ interface RecordListProps {
   onSpeak: (content: string) => void;
   onResetMastery: (id: number) => void;
   onDelete: (id: number) => void;
+  onEdit: (record: EnglishRecord) => void;
 }
 
 export const RecordList = memo(({
@@ -21,6 +22,7 @@ export const RecordList = memo(({
   onSpeak,
   onResetMastery,
   onDelete,
+  onEdit,
 }: RecordListProps) => {
   const getTypeColor = (type: EnglishRecordType) => {
     switch (type) {
@@ -38,7 +40,7 @@ export const RecordList = memo(({
       : "space-y-3"
     }>
       {records.map((record) => (
-        <div key={record.id}>
+        <div key={record.id} onClick={() => onEdit(record)} className="cursor-pointer">
           {viewMode === "grid" ? (
             <Card className="group relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 border-primary/5 h-full flex flex-col">
               <div className="absolute top-0 left-0 w-1 h-full bg-primary/20 group-hover:bg-primary transition-colors" />
@@ -65,7 +67,7 @@ export const RecordList = memo(({
                     size="icon"
                     className="text-primary hover:bg-primary/10 h-8 w-8"
                     title="Re-learn"
-                    onClick={() => onResetMastery(record.id)}
+                    onClick={(e) => { e.stopPropagation(); onResetMastery(record.id); }}
                   >
                     <RotateCcw className="w-4 h-4" />
                   </Button>
@@ -73,7 +75,7 @@ export const RecordList = memo(({
                     variant="ghost"
                     size="icon"
                     className="text-destructive hover:bg-destructive/10 h-8 w-8"
-                    onClick={() => onDelete(record.id)}
+                    onClick={(e) => { e.stopPropagation(); onDelete(record.id); }}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -134,7 +136,7 @@ export const RecordList = memo(({
                     size="icon"
                     className="text-primary hover:bg-primary/10 h-8 w-8"
                     title="Re-learn"
-                    onClick={() => onResetMastery(record.id)}
+                    onClick={(e) => { e.stopPropagation(); onResetMastery(record.id); }}
                   >
                     <RotateCcw className="w-4 h-4" />
                   </Button>
@@ -142,7 +144,7 @@ export const RecordList = memo(({
                     variant="ghost"
                     size="icon"
                     className="text-destructive hover:bg-destructive/10 h-8 w-8"
-                    onClick={() => onDelete(record.id)}
+                    onClick={(e) => { e.stopPropagation(); onDelete(record.id); }}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
