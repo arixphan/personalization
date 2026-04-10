@@ -22,6 +22,13 @@ export enum TransactionType {
   INCOME = 'INCOME',
   EXPENSE = 'EXPENSE',
   TRANSFER = 'TRANSFER',
+  ADJUSTMENT = 'ADJUSTMENT',
+}
+
+export enum AllocationType {
+  INCOME = 'INCOME',
+  EXPENSE = 'EXPENSE',
+  SUB_WALLET = 'SUB_WALLET',
 }
 
 // Wallet DTOs
@@ -72,7 +79,8 @@ export const BudgetCategorySchema = z.object({
   spentAmount: z.number().optional(),
   affectsBalance: z.boolean().default(true),
   isAutomationEnabled: z.boolean().default(true),
-  type: z.nativeEnum(TransactionType).default(TransactionType.EXPENSE),
+  type: z.nativeEnum(AllocationType).default(AllocationType.EXPENSE),
+  parentId: z.number().optional().nullable(),
   automationDay: z.number().min(1).max(31).optional().nullable(),
   targetWalletId: z.number().optional().nullable(),
   automationProcessed: z.boolean().optional(),
@@ -96,9 +104,9 @@ export const CreateTransactionSchema = z.object({
   toWalletId: z.number().optional().nullable(),
   amount: z.number(),
   type: z.nativeEnum(TransactionType),
-  category: z.string().optional(),
-  date: z.string().datetime().optional(),
+  allocationId: z.number().nullable().optional(),
+  date: z.string().optional(),
   note: z.string().optional(),
-  loanId: z.number().optional().nullable(),
+  loanId: z.number().nullable().optional(),
 });
 export type CreateTransactionDto = z.infer<typeof CreateTransactionSchema>;

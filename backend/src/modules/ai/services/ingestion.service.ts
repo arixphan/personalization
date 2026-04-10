@@ -30,11 +30,11 @@ export class IngestionService {
       where: { wallet: { userId } },
       orderBy: { date: 'desc' },
       take: 100,
-      include: { wallet: true, toWallet: true },
+      include: { wallet: true, toWallet: true, allocation: true },
     });
     for (const tx of transactions) {
       let content = `Transaction on ${tx.date.toDateString()}: ${tx.type} of ${tx.amount} in wallet '${tx.wallet.name}'.`;
-      if (tx.category) content += ` Category: ${tx.category}.`;
+      if (tx.allocation?.name) content += ` Category: ${tx.allocation.name}.`;
       if (tx.note) content += ` Note: ${tx.note}.`;
       if (tx.toWallet)
         content += ` Transferred to wallet '${tx.toWallet.name}'.`;
@@ -117,7 +117,7 @@ export class IngestionService {
 
   async ingestSingleTransaction(userId: number, tx: any) {
     let content = `Transaction on ${new Date(tx.date).toDateString()}: ${tx.type} of ${tx.amount} in wallet '${tx.wallet?.name || 'Unknown'}'.`;
-    if (tx.category) content += ` Category: ${tx.category}.`;
+    if (tx.allocation?.name) content += ` Category: ${tx.allocation.name}.`;
     if (tx.note) content += ` Note: ${tx.note}.`;
     if (tx.toWallet) content += ` Transferred to wallet '${tx.toWallet.name}'.`;
 

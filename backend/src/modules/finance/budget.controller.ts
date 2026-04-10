@@ -62,4 +62,12 @@ export class BudgetController {
   ) {
     return this.budgetService.remove(id, userId);
   }
+
+  @Post('categories/:id/apply')
+  applyCategory(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUserId() userId: number,
+  ) {
+    return this.budgetService.applyCategory(id, userId);
+  }
 }

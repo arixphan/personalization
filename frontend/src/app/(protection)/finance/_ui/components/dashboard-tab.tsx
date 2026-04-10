@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { motion } from "motion/react";
 import { format } from "date-fns";
 import { useTranslations } from "next-intl";
-import { getNetWorth, getWallets, getCashFlow, getTransactions } from "../../_actions/finance.actions";
+import { getNetWorth, getWallets, getCashFlow, getTransactions, getBudget } from "../../_actions/finance.actions";
+import { AllocationType } from "@personalization/shared";
 
 interface DashboardTabProps {
   formatCurrency: (amount: number) => string;
@@ -22,22 +23,26 @@ export function DashboardTab({
   const t = useTranslations("Finance");
   const [netWorthData, setNetWorthData] = useState<any>(null);
   const [wallets, setWallets] = useState<any[]>([]);
+  const [budget, setBudget] = useState<any>(null);
   const [cashFlowData, setCashFlowData] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchData = async () => {
     try {
-      const [nw, w, cf, t_data] = await Promise.all([
+      const now = new Date();
+      const [nw, w, cf, t_data, b_data] = await Promise.all([
         getNetWorth(),
         getWallets(),
         getCashFlow(),
-        getTransactions()
+        getTransactions(),
+        getBudget(now.getMonth() + 1, now.getFullYear())
       ]);
       setNetWorthData(nw);
       setWallets(w);
       setCashFlowData(cf);
       setTransactions(t_data);
+      setBudget(b_data);
     } catch (error) {
       console.error("Failed to fetch dashboard data", error);
     } finally {
@@ -99,15 +104,46 @@ export function DashboardTab({
                     <h3 className="font-black text-lg dark:text-white uppercase tracking-tighter">{t("wallets")}</h3>
                     <Wallet className="w-5 h-5 text-gray-400" />
                   </div>
-                  <div className="flex flex-col gap-3 overflow-y-auto max-h-[300px] pr-2 custom-scrollbar">
+                  <div className="flex flex-col gap-4 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
                     {wallets.length === 0 ? (
                       <p className="text-sm text-gray-500 py-4">{t("noWallets")}</p>
-                    ) : wallets.map((w_item: any) => (
-                      <div key={w_item.id} className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
-                        <span className="font-bold text-sm dark:text-gray-200">{w_item.name}</span>
-                        <span className="font-black dark:text-white">{formatCurrency(w_item.balance)}</span>
-                      </div>
-                    ))}
+                    ) : wallets.map((w_item: any) => {
+                      const subWallets = budget?.categories?.filter((c: any) => c.type === AllocationType.SUB_WALLET && c.targetWalletId === w_item.id);
+                      return (
+                        <div key={w_item.id} className="space-y-2">
+                          <div className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm">
+                            <span className="font-black text-sm dark:text-gray-200 uppercase tracking-tighter">{w_item.name}</span>
+                            <span className="font-black dark:text-white">{formatCurrency(w_item.balance)}</span>
+                          </div>
+                          {subWallets?.length > 0 && (
+                            <div className="pl-6 space-y-2 border-l-2 border-primary/20 ml-4 pb-2">
+                              {subWallets.map((sw: any) => {
+                                const isOverLimit = (sw.spentAmount || 0) > sw.limitAmount;
+                                return (
+                                  <div key={sw.id} className="flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-gray-950 border border-gray-50 dark:border-gray-900 shadow-sm relative overflow-hidden group">
+                                    {isOverLimit && <div className="absolute inset-y-0 left-0 w-1 bg-red-500" />}
+                                    <div className="flex flex-col">
+                                      <span className="text-xs font-bold dark:text-gray-400 uppercase tracking-tight">{sw.name}</span>
+                                      <span className={`text-[10px] font-black tracking-widest ${isOverLimit ? 'text-red-500' : 'text-gray-400'}`}>
+                                        {formatCurrency(sw.spentAmount || 0)} / {formatCurrency(sw.limitAmount)}
+                                      </span>
+                                    </div>
+                                    <div className="flex flex-col items-end">
+                                      <div className="w-16 h-1.5 bg-gray-100 dark:bg-gray-900 rounded-full overflow-hidden">
+                                        <div 
+                                          className={`h-full ${isOverLimit ? 'bg-red-500' : 'bg-primary'}`} 
+                                          style={{ width: `${Math.min(100, ((sw.spentAmount || 0) / sw.limitAmount) * 100)}%` }}
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                   <Button 
                     variant="outline" 

@@ -202,6 +202,12 @@
     "totalDebt": "Total Debt",
     "wallets": "Wallets",
     "manageWallets": "Manage Wallets",
+    "common": {
+      "income": "Income",
+      "expense": "Expense",
+      "transfer": "Transfer",
+      "adjustment": "Adjust"
+    },
     "cashFlow": {
       "title": "Cash Flow",
       "income": "Income",
@@ -286,7 +292,6 @@
       "type": "Transaction Type",
       "income": "Income",
       "expense": "Expense",
-      "category": "Category",
       "selectCategory": "Select a category",
       "date": "Date",
       "note": "Note (Optional)",

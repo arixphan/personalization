@@ -144,7 +144,7 @@ export class GetTransactionsTool implements AiTool {
       where,
       take: limit,
       orderBy: { date: 'desc' },
-      include: { wallet: true },
+      include: { wallet: true, allocation: true },
     });
 
     return {
@@ -153,7 +153,7 @@ export class GetTransactionsTool implements AiTool {
         id: t.id,
         amount: t.amount,
         type: t.type,
-        category: t.category,
+        category: t.allocation?.name || (t.type === 'TRANSFER' ? 'Transfer' : 'Uncategorized'),
         date: t.date,
         wallet: t.wallet.name,
         note: t.note,
@@ -188,6 +188,7 @@ export class GetSpendingStatsTool implements AiTool {
           lte: new Date(endDate),
         },
       },
+      include: { allocation: true },
     });
 
     const income = transactions
@@ -201,7 +202,7 @@ export class GetSpendingStatsTool implements AiTool {
     transactions
       .filter((t) => t.type === 'EXPENSE')
       .forEach((t) => {
-        const cat = t.category || 'Uncategorized';
+        const cat = t.allocation?.name || 'Uncategorized';
         categories[cat] = (categories[cat] || 0) + t.amount;
       });
 
@@ -226,7 +227,7 @@ export class CreateTransactionTool implements AiTool {
     type: z.enum(['INCOME', 'EXPENSE', 'TRANSFER']).describe('The type of transaction'),
     walletId: z.number().describe('The ID of the source wallet'),
     toWalletId: z.number().optional().describe('The ID of the target wallet (required for TRANSFER)'),
-    category: z.string().optional().describe('The budget category (e.g., "Food", "Salary")'),
+    allocationId: z.number().optional().describe('The ID of the target allocation/sub-wallet'),
     date: z.string().optional().describe('ISO-8601 date string. Defaults to now.'),
     note: z.string().optional().describe('Optional description or note'),
   });

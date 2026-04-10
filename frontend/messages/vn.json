@@ -202,6 +202,12 @@
     "totalDebt": "Tổng Nợ",
     "wallets": "Ví",
     "manageWallets": "Quản lý Ví",
+    "common": {
+      "income": "Thu nhập",
+      "expense": "Chi tiền",
+      "transfer": "Chuyển tiền",
+      "adjustment": "Điều chỉnh"
+    },
     "cashFlow": {
       "title": "Dòng tiền",
       "income": "Thu nhập",
@@ -271,7 +277,6 @@
       "title": "Lịch sử Giao dịch",
       "date": "Ngày",
       "wallet": "Ví",
-      "category": "Danh mục",
       "note": "Ghi chú",
       "amount": "Số tiền",
       "actions": "Thao tác"
@@ -286,8 +291,6 @@
       "type": "Loại giao dịch",
       "income": "Thu nhập",
       "expense": "Chi tiêu",
-      "category": "Danh mục",
-      "selectCategory": "Chọn danh mục",
       "date": "Ngày",
       "note": "Ghi chú (Tùy chọn)",
       "notePlaceholder": "Nội dung ghi chép...",

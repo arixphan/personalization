@@ -228,6 +228,13 @@ enum TransactionType {
   INCOME
   EXPENSE
   TRANSFER
+  ADJUSTMENT
+}
+
+enum AllocationType {
+  INCOME
+  EXPENSE
+  SUB_WALLET
 }
 
 // Finance Module Models
@@ -295,31 +302,38 @@ model BudgetCategory {
   spentAmount     Float         @default(0) // How much actually spent
   affectsBalance  Boolean       @default(true) // Whether transactions in this category deduct from wallet balance
   
-  // Automation settings
-  isAutomationEnabled Boolean @default(true)
-  type                TransactionType @default(EXPENSE)
-  automationDay       Int? // 1-31
+  // New Allocation Logic
+  type                AllocationType @default(EXPENSE)
+  parentId            Int?
   targetWalletId      Int?
+  
+  // Automation settings (Keep for backward compatibility)
+  isAutomationEnabled Boolean @default(true)
+  automationDay       Int? // 1-31
   automationProcessed Boolean @default(false)
   lastRunAt           DateTime?
 
   monthlyBudget   MonthlyBudget @relation(fields: [monthlyBudgetId], references: [id], onDelete: Cascade)
+  parent          BudgetCategory?  @relation("SubAllocations", fields: [parentId], references: [id])
+  children        BudgetCategory[] @relation("SubAllocations")
+  transactions    Transaction[]
 }
 
 model Transaction {
-  id         Int             @id @default(autoincrement())
-  walletId   Int
-  toWalletId Int?
-  amount     Float
-  type       TransactionType
-  category   String?
-  date       DateTime        @default(now())
-  note       String?
-  loanId     Int?
-  createdAt  DateTime        @default(now())
-  wallet     Wallet          @relation("SourceWallet", fields: [walletId], references: [id])
-  toWallet   Wallet?         @relation("TargetWallet", fields: [toWalletId], references: [id])
-  loan       Loan?           @relation(fields: [loanId], references: [id])
+  id           Int             @id @default(autoincrement())
+  walletId     Int
+  toWalletId   Int?
+  amount       Float
+  type         TransactionType
+  allocationId Int?
+  date         DateTime        @default(now())
+  note         String?
+  loanId       Int?
+  createdAt    DateTime        @default(now())
+  wallet       Wallet          @relation("SourceWallet", fields: [walletId], references: [id])
+  toWallet     Wallet?         @relation("TargetWallet", fields: [toWalletId], references: [id])
+  loan         Loan?           @relation(fields: [loanId], references: [id])
+  allocation   BudgetCategory? @relation(fields: [allocationId], references: [id])
 }
 
 model AiEmbedding {

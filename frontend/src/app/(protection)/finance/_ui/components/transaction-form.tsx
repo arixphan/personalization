@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Save, Loader2, Plus, ArrowUpRight, ArrowDownLeft, ArrowRightLeft } from "lucide-react";
+import { X, Save, Loader2, Plus, ArrowUpRight, ArrowDownLeft, ArrowRightLeft, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CustomInput } from "@/components/ui/input";
-import { CustomSelect } from "@/components/ui/input/custom-select";
+import { CustomSelect, CustomTextarea } from "@/components/ui/input";
 import { DatePicker } from "@/components/ui/date-picker";
 import { motion, AnimatePresence } from "motion/react";
 import { TransactionType } from "@personalization/shared";
@@ -26,22 +26,27 @@ export function TransactionForm({
   onSubmit,
 }: TransactionFormProps) {
   const t = useTranslations("Finance.transactionForm");
+  const t_ = useTranslations("Finance.common");
   const [wallets, setWallets] = useState<any[]>([]);
   const [loans, setLoans] = useState<any[]>([]);
   const [budget, setBudget] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const [type, setType] = useState<TransactionType>(TransactionType.EXPENSE);
+  const [type, setType] = useState<TransactionType | "ADJUSTMENT">(TransactionType.EXPENSE);
   const [amount, setAmount] = useState("");
   const [walletId, setWalletId] = useState("");
   const [toWalletId, setToWalletId] = useState("");
-  const [category, setCategory] = useState("");
   const [sourceType, setSourceType] = useState<"GENERAL" | "LOAN">("GENERAL");
   const [loanId, setLoanId] = useState("");
+  const [allocationId, setAllocationId] = useState<string>("");
   const [note, setNote] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [newBalance, setNewBalance] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const currentWallet = wallets.find(w => w.id.toString() === walletId);
+  const adjustmentDiff = parseFloat(newBalance) - (currentWallet?.balance || 0);
 
   useEffect(() => {
     if (isOpen) {
@@ -59,11 +64,6 @@ export function TransactionForm({
           setBudget(b);
           
           if (w && w.length > 0 && !walletId) setWalletId(w[0].id.toString());
-          
-          const incomeCats = b?.categories?.filter((c: any) => c.type === "INCOME").map((c: any) => c.name) || [];
-          const expenseCats = b?.categories?.filter((c: any) => c.type === "EXPENSE").map((c: any) => c.name) || [];
-          const currentCats = type === TransactionType.INCOME ? incomeCats : expenseCats;
-          if (currentCats.length > 0 && !category) setCategory(currentCats[0]);
         } catch (error) {
           console.error("Failed to fetch form data", error);
         } finally {
@@ -80,13 +80,12 @@ export function TransactionForm({
     e.preventDefault();
     
     const newErrors: Record<string, string> = {};
-    if (!amount) newErrors.amount = "Required";
+    if (type !== TransactionType.ADJUSTMENT && !amount) newErrors.amount = "Required";
+    if (type === TransactionType.ADJUSTMENT && !newBalance) newErrors.amount = "Required";
     if (!walletId) newErrors.wallet = "Required";
     if (type === TransactionType.TRANSFER) {
       if (!toWalletId) newErrors.toWallet = "Required";
       if (toWalletId === walletId) newErrors.toWallet = "Must be a different wallet";
-    } else {
-      if (!category) newErrors.category = "Required";
     }
     if (!date) newErrors.date = "Required";
 
@@ -98,13 +97,25 @@ export function TransactionForm({
     setIsSubmitting(true);
     
     try {
+      let finalAmount = parseFloat(amount);
+      let finalType = type;
+
+      if (type === TransactionType.ADJUSTMENT) {
+        const selectedWallet = wallets.find(w => w.id.toString() === walletId);
+        if (!selectedWallet) return;
+        const target = parseFloat(newBalance);
+        if (isNaN(target)) return;
+        finalAmount = target - selectedWallet.balance;
+        finalType = TransactionType.ADJUSTMENT;
+      }
+
       const result = await onSubmit({
-        type,
-        amount: parseFloat(amount),
         walletId: parseInt(walletId),
         toWalletId: type === TransactionType.TRANSFER ? parseInt(toWalletId) : null,
-        category: type === TransactionType.TRANSFER ? undefined : category,
+        allocationId: allocationId && allocationId !== "none" ? parseInt(allocationId) : null,
         loanId: sourceType === "LOAN" && loanId ? parseInt(loanId) : null,
+        amount: finalAmount,
+        type: finalType,
         note,
         date: new Date(date).toISOString(),
       });
@@ -115,11 +126,12 @@ export function TransactionForm({
       }
 
       onClose();
-      // Reset
       setAmount("");
+      setNewBalance("");
       setNote("");
       setToWalletId("");
       setLoanId("");
+      setAllocationId("");
       setSourceType("GENERAL");
       setErrors({});
     } catch (error: any) {
@@ -130,21 +142,11 @@ export function TransactionForm({
     }
   };
 
-  const incomeCategories = budget?.categories
-    ?.filter((c: any) => c.type === "INCOME")
-    ?.map((c: any) => c.name) || ["Salary", "Bonus", "Gift", "Interest", "Dividend", "Other"];
-
-  const expenseCategories = budget?.categories
-    ?.filter((c: any) => c.type === "EXPENSE")
-    ?.map((c: any) => c.name) || ["Food", "Chill", "Saving", "Investment", "Other"];
-
-  const currentCategories = type === TransactionType.INCOME ? incomeCategories : expenseCategories;
   const activeReceivableLoans = loans.filter(l => l.type === 'RECEIVABLE' && l.status === 'ACTIVE');
 
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        {/* Backdrop */}
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -153,7 +155,6 @@ export function TransactionForm({
           onClick={onClose}
         />
         
-        {/* Modal */}
         <motion.div 
           initial={{ scale: 0.9, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -185,60 +186,60 @@ export function TransactionForm({
                </div>
             ) : (
             <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-              {/* Type Switcher */}
-              <div className="flex p-1 bg-gray-100 dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => { setType(TransactionType.EXPENSE); setCategory(expenseCategories[0]); }}
-                  className={cn(
-                    "flex-1 flex items-center justify-center gap-2 py-6 rounded-xl font-bold text-sm transition-all",
-                    type === TransactionType.EXPENSE 
-                      ? "bg-white dark:bg-gray-800 shadow-sm text-red-500 hover:text-red-500 hover:bg-white dark:hover:bg-gray-800" 
-                      : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-transparent"
-                  )}
-                >
-                  <ArrowDownLeft className="w-4 h-4" /> {t("expense")}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => { setType(TransactionType.INCOME); setCategory(incomeCategories[0]); }}
-                  className={cn(
-                    "flex-1 flex items-center justify-center gap-2 py-6 rounded-xl font-bold text-sm transition-all",
-                    type === TransactionType.INCOME 
-                      ? "bg-white dark:bg-gray-800 shadow-sm text-green-500 hover:text-green-500 hover:bg-white dark:hover:bg-gray-800" 
-                      : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-transparent"
-                  )}
-                >
-                   <ArrowUpRight className="w-4 h-4" /> {t("income")}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setType(TransactionType.TRANSFER)}
-                  className={cn(
-                    "flex-1 flex items-center justify-center gap-2 py-6 rounded-xl font-bold text-sm transition-all",
-                    type === TransactionType.TRANSFER 
-                      ? "bg-white dark:bg-gray-800 shadow-sm text-blue-500 hover:text-blue-500 hover:bg-white dark:hover:bg-gray-800" 
-                      : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-transparent"
-                  )}
-                >
-                   <ArrowRightLeft className="w-4 h-4" /> {t("transfer")}
-                </Button>
+              <div className="flex bg-gray-100 dark:bg-gray-900 p-1 rounded-2xl border border-gray-200 dark:border-gray-800">
+                {[TransactionType.EXPENSE, TransactionType.INCOME, TransactionType.TRANSFER, TransactionType.ADJUSTMENT].map((t_type) => (
+                  <button
+                    key={t_type}
+                    type="button"
+                    onClick={() => setType(t_type as any)}
+                    className={cn(
+                      "flex-1 py-3 px-2 rounded-xl text-[11px] font-black transition-all uppercase tracking-tight flex items-center justify-center gap-2",
+                      type === t_type
+                        ? "bg-white dark:bg-gray-800 shadow-md text-primary scale-[1.02]"
+                        : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                    )}
+                  >
+                    {t_type === TransactionType.ADJUSTMENT ? <Settings2 className="w-3 h-3" /> : null}
+                    {t_type === TransactionType.ADJUSTMENT ? "Adjust" : t_.raw(t_type.toLowerCase())}
+                  </button>
+                ))}
               </div>
 
-              {/* Amount */}
               <div className="relative">
-                <CustomInput
-                  id="tx-amount"
-                  label={`${t("amount")} (VND)`}
-                  isCurrency={true}
-                  value={amount}
-                  onChange={setAmount}
-                  placeholder={t("amountPlaceholder")}
-                  error={errors.amount}
-                />
+                  {type !== TransactionType.ADJUSTMENT ? (
+                    <CustomInput
+                      id="amount"
+                      label={t("amount")}
+                      isCurrency={true}
+                      value={amount}
+                      onChange={setAmount}
+                      placeholder={t("amountPlaceholder")}
+                      error={errors.amount}
+                    />
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 flex justify-between items-center">
+                        <span className="text-sm font-bold text-primary/60 uppercase tracking-wider">Current Balance</span>
+                        <span className="text-lg font-black">{currentWallet ? new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(currentWallet.balance) : "---"}</span>
+                      </div>
+                      <CustomInput
+                        id="new-balance"
+                        label="New Balance"
+                        isCurrency={true}
+                        value={newBalance}
+                        onChange={setNewBalance}
+                        placeholder="Enter target balance"
+                      />
+                      {newBalance && (
+                        <div className={cn(
+                          "text-center font-bold text-sm transition-colors",
+                          adjustmentDiff > 0 ? "text-green-500" : adjustmentDiff < 0 ? "text-red-500" : "text-gray-500"
+                        )}>
+                          Adjustment: {adjustmentDiff > 0 ? "+" : ""}{new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(adjustmentDiff)}
+                        </div>
+                      )}
+                    </div>
+                  )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -253,7 +254,6 @@ export function TransactionForm({
                   />
                 </div>
 
-                {/* Category or Target Wallet Select */}
                 <div className="space-y-2">
                   {type === TransactionType.TRANSFER ? (
                     <CustomSelect
@@ -264,24 +264,30 @@ export function TransactionForm({
                       options={wallets.map(w => ({ value: w.id.toString(), label: w.name }))}
                       error={errors.toWallet}
                     />
-                  ) : (
-                    <CustomSelect
-                      id="category-select"
-                      label={t("category")}
-                      value={category}
-                      onChange={(val) => setCategory(val)}
-                      options={(() => {
-                        const baseOptions = currentCategories.length > 0 ? currentCategories : [];
-                        const uniqueOptions = Array.from(new Set([...baseOptions, "Other"]));
-                        return uniqueOptions;
-                      })()}
-                      error={errors.category}
-                    />
-                  )}
+                  ) : type === TransactionType.EXPENSE ? (
+                    <div className="space-y-4">
+                      {walletId && (
+                        <CustomSelect
+                          id="allocation-select"
+                          label="Sub Wallet (Optional)"
+                          value={allocationId}
+                          onChange={(val) => {
+                            setAllocationId(val);
+                          }}
+                          options={[
+                            { value: "none", label: "None" },
+                            ...(budget?.categories
+                              ?.filter((c: any) => c.targetWalletId === parseInt(walletId) && c.type === "SUB_WALLET")
+                              ?.map((c: any) => ({ value: c.id.toString(), label: c.name })) || [])
+                          ]}
+                          placeholder="Select Sub Wallet"
+                        />
+                      )}
+                    </div>
+                  ) : null}
                 </div>
               </div>
 
-              {/* Income Source Toggle */}
               {type === TransactionType.INCOME && (
                 <div className="space-y-4">
                    <div className="flex p-1 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-100 dark:border-gray-800">
@@ -327,7 +333,7 @@ export function TransactionForm({
               )}
 
               {/* Date & Note */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-6">
                  <DatePicker
                    id="tx-date"
                    label={t("date")}
@@ -335,10 +341,11 @@ export function TransactionForm({
                    onChange={setDate}
                    error={errors.date}
                  />
-                 <CustomInput
+                 <CustomTextarea
                    id="tx-note"
                    label={t("note")}
                    value={note}
+                   rows={3}
                    onChange={setNote}
                    placeholder={t("notePlaceholder")}
                  />
@@ -346,7 +353,7 @@ export function TransactionForm({
 
               <Button
                 type="submit"
-                disabled={isSubmitting || !amount}
+                disabled={isSubmitting || (type === TransactionType.ADJUSTMENT ? !newBalance : !amount)}
                 className="w-full h-14 text-lg font-bold rounded-2xl shadow-xl mt-4"
               >
                 {isSubmitting ? (

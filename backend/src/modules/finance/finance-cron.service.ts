@@ -52,7 +52,7 @@ export class FinanceCronService {
             walletId: category.targetWalletId!,
             amount: category.limitAmount,
             type: category.type as any,
-            category: category.name,
+            allocationId: category.id,
             note: `Automated bucket ${category.type.toLowerCase()}: ${category.name}`,
             date: new Date().toISOString(),
           },

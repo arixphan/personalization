@@ -18,46 +18,38 @@ export class TransactionService {
 
   async create(dto: CreateTransactionDto, userId: number, externalTx?: Prisma.TransactionClient) {
     const logic = async (tx: Prisma.TransactionClient) => {
-      // 1. Create the transaction record
       const transaction = await tx.transaction.create({
         data: {
           ...dto,
           date: dto.date ? new Date(dto.date) : new Date(),
         },
-        include: { wallet: true, toWallet: true },
+        include: { wallet: true, toWallet: true, allocation: true },
       });
 
       // 2. Adjust wallet balance based on transaction type and budget category rules
       let shouldAffectBalance = true;
 
-      if (dto.type === TransactionType.EXPENSE && dto.category) {
-        // Find the budget category for the current month/year to check affectsBalance
-        const date = dto.date ? new Date(dto.date) : new Date();
-        const month = date.getMonth() + 1;
-        const year = date.getFullYear();
-
-        const budgetCategory = await tx.budgetCategory.findFirst({
-          where: {
-            name: dto.category,
-            monthlyBudget: {
-              userId,
-              month,
-              year,
-            },
-          },
+      // Find the budget category for tracking spentAmount
+      let budgetCategory: any = null;
+      if (dto.allocationId) {
+        budgetCategory = await tx.budgetCategory.findUnique({
+          where: { id: dto.allocationId },
         });
+      }
 
-        if (budgetCategory && budgetCategory.affectsBalance === false) {
+      if (budgetCategory) {
+        if (dto.type === TransactionType.EXPENSE && budgetCategory.affectsBalance === false) {
           shouldAffectBalance = false;
         }
 
         // Update spentAmount in the budget category regardless of wallet impact
-        if (budgetCategory) {
-          await tx.budgetCategory.update({
-            where: { id: budgetCategory.id },
-            data: { spentAmount: { increment: dto.amount } },
-          });
-        }
+        // For INCOME type allocations, we might want to track "received" vs "target" too?
+        // But usually, spentAmount is for EXPENSE. 
+        // If type is INCOME, maybe we should still increment spentAmount (acting as "collectedAmount")
+        await tx.budgetCategory.update({
+          where: { id: budgetCategory.id },
+          data: { spentAmount: { increment: dto.amount } },
+        });
       }
 
       if (shouldAffectBalance) {
@@ -99,6 +91,11 @@ export class TransactionService {
             });
           }
         } else if (dto.type === TransactionType.INCOME) {
+          await tx.wallet.update({
+            where: { id: dto.walletId },
+            data: { balance: { increment: dto.amount } },
+          });
+        } else if (dto.type === TransactionType.ADJUSTMENT) {
           await tx.wallet.update({
             where: { id: dto.walletId },
             data: { balance: { increment: dto.amount } },
@@ -155,7 +152,7 @@ export class TransactionService {
         walletId: walletId || undefined,
       },
       orderBy: { date: 'desc' },
-      include: { wallet: true },
+      include: { wallet: true, allocation: true },
     });
   }
 
@@ -174,31 +171,6 @@ export class TransactionService {
           where: { id: transaction.walletId },
           data: { balance: { increment: transaction.amount } },
         });
-
-        // Also reverse budget category spentAmount if applicable
-        const date = new Date(transaction.date);
-        const month = date.getMonth() + 1;
-        const year = date.getFullYear();
-
-        if (!transaction.category) return;
-
-        const budgetCategory = await tx.budgetCategory.findFirst({
-          where: {
-            name: transaction.category,
-            monthlyBudget: {
-              userId,
-              month,
-              year,
-            },
-          },
-        });
-
-        if (budgetCategory) {
-          await tx.budgetCategory.update({
-            where: { id: budgetCategory.id },
-            data: { spentAmount: { decrement: transaction.amount } },
-          });
-        }
       } else if (transaction.type === TransactionType.INCOME) {
         await tx.wallet.update({
           where: { id: transaction.walletId },
@@ -216,6 +188,27 @@ export class TransactionService {
         await tx.wallet.update({
           where: { id: transaction.toWalletId },
           data: { balance: { decrement: transaction.amount } },
+        });
+      } else if (transaction.type === TransactionType.ADJUSTMENT) {
+        // Reverse adjustment: decrement the amount that was added
+        await tx.wallet.update({
+          where: { id: transaction.walletId },
+          data: { balance: { decrement: transaction.amount } },
+        });
+      }
+
+      // Reverse budget category spentAmount if applicable
+      let budgetCategory: any = null;
+      if (transaction.allocationId) {
+        budgetCategory = await tx.budgetCategory.findUnique({
+          where: { id: transaction.allocationId },
+        });
+      }
+
+      if (budgetCategory) {
+        await tx.budgetCategory.update({
+          where: { id: budgetCategory.id },
+          data: { spentAmount: { decrement: transaction.amount } },
         });
       }
 

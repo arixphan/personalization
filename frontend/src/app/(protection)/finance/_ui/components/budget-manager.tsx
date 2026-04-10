@@ -15,7 +15,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { format } from "date-fns";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { TransactionType } from "@personalization/shared";
+import { TransactionType, AllocationType } from "@personalization/shared";
+import { applyAllocation } from "../../_actions/finance.actions";
 
 export function BudgetManager({ refreshKey }: { refreshKey?: number }) {
   const t = useTranslations("Finance.budget");
@@ -29,9 +30,8 @@ export function BudgetManager({ refreshKey }: { refreshKey?: number }) {
 
   const [bucketName, setBucketName] = useState("");
   const [bucketLimit, setBucketLimit] = useState("");
-  const [bucketAutomationDay, setBucketAutomationDay] = useState("");
   const [bucketTargetWalletId, setBucketTargetWalletId] = useState("");
-  const [bucketType, setBucketType] = useState("EXPENSE");
+  const [bucketType, setBucketType] = useState<AllocationType>(AllocationType.EXPENSE);
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -63,11 +63,6 @@ export function BudgetManager({ refreshKey }: { refreshKey?: number }) {
     if (!bucketName.trim()) newErrors.name = "Required";
     if (!bucketLimit) newErrors.limit = "Required";
 
-    const day = parseInt(bucketAutomationDay);
-    if (isNaN(day) || day < 1 || day > 31) {
-      newErrors.day = "1 to 31";
-    }
-
     if (!bucketTargetWalletId) {
       newErrors.wallet = "Please select a wallet";
     }
@@ -84,10 +79,10 @@ export function BudgetManager({ refreshKey }: { refreshKey?: number }) {
         name: bucketName,
         limitAmount: parseFloat(bucketLimit),
         affectsBalance: true, // Defaulting to true as requested to remove toggle
-        isAutomationEnabled: true, // Required as requested
-        automationDay: parseInt(bucketAutomationDay),
-        targetWalletId: parseInt(bucketTargetWalletId),
-        type: bucketType as TransactionType,
+        isAutomationEnabled: bucketType !== AllocationType.SUB_WALLET, // Automated only for non-subwallets? Or as requested
+        automationDay: null,
+        targetWalletId: bucketTargetWalletId ? parseInt(bucketTargetWalletId) : null,
+        type: bucketType,
       };
 
       let updatedCategories;
@@ -106,7 +101,7 @@ export function BudgetManager({ refreshKey }: { refreshKey?: number }) {
         await createBudget({
           month: now.getMonth() + 1,
           year: now.getFullYear(),
-          categories: [categoryData]
+          categories: updatedCategories,
         });
       }
 
@@ -125,10 +120,22 @@ export function BudgetManager({ refreshKey }: { refreshKey?: number }) {
     setEditingCategory(category);
     setBucketName(category.name);
     setBucketLimit(category.limitAmount.toString());
-    setBucketAutomationDay(category.automationDay?.toString() || "");
     setBucketTargetWalletId(category.targetWalletId?.toString() || "");
-    setBucketType(category.type || "EXPENSE");
+    setBucketType(category.type || AllocationType.EXPENSE);
     setIsBucketModalOpen(true);
+  };
+
+  const handleApplyAllocation = async (id: number) => {
+    setIsSubmitting(true);
+    try {
+      await applyAllocation(id);
+      toast.success("Allocation applied successfully");
+      fetchData();
+    } catch (error) {
+      toast.error("Failed to apply allocation");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleDeleteBucket = async (categoryId: number | string, categoryName: string) => {
@@ -156,9 +163,8 @@ export function BudgetManager({ refreshKey }: { refreshKey?: number }) {
     setEditingCategory(null);
     setBucketName("");
     setBucketLimit("");
-    setBucketAutomationDay("");
     setBucketTargetWalletId("");
-    setBucketType("EXPENSE");
+    setBucketType(AllocationType.EXPENSE);
     setErrors({});
   };
 
@@ -189,29 +195,49 @@ export function BudgetManager({ refreshKey }: { refreshKey?: number }) {
       {/* Categories */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {budget?.categories?.map((c_item: any) => {
+          const isOverLimit = (c_item.spentAmount || 0) > c_item.limitAmount;
           return (
             <motion.div
               key={c_item.id || c_item.name}
               whileHover={{ y: -5 }}
-              className="p-6 bg-white dark:bg-gray-950 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm relative group"
+              className="p-6 bg-white dark:bg-gray-950 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm relative group overflow-hidden"
             >
+              {isOverLimit && <div className="absolute top-0 right-0 left-0 h-1 bg-red-500" />}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-2xl text-primary shadow-inner">
-                    {c_item.name === "Saving" ? <PiggyBank className="w-5 h-5" /> :
-                      c_item.name === "Investment" ? <Briefcase className="w-5 h-5" /> :
-                        <Zap className="w-5 h-5" />}
+                  <div className={`p-3 rounded-2xl shadow-inner ${isOverLimit ? 'bg-red-50 dark:bg-red-900/10 text-red-500' : 'bg-gray-50 dark:bg-gray-900 text-primary'}`}>
+                    {c_item.type === AllocationType.SUB_WALLET ? <PiggyBank className="w-5 h-5" /> :
+                      c_item.type === AllocationType.INCOME ? <TrendingUp className="w-5 h-5" /> :
+                        <TrendingDown className="w-5 h-5" />}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-black text-sm dark:text-white uppercase tracking-tighter">{c_item.name}</span>
-                    {c_item.type === "INCOME" ? (
-                      <TrendingUp className="w-3.5 h-3.5 text-green-500" />
-                    ) : (
-                      <TrendingDown className="w-3.5 h-3.5 text-red-500" />
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                      <span className="font-black text-sm dark:text-white uppercase tracking-tighter">{c_item.name}</span>
+                      {c_item.type === AllocationType.INCOME ? (
+                        <TrendingUp className="w-3.5 h-3.5 text-green-500" />
+                      ) : (
+                        <TrendingDown className={`w-3.5 h-3.5 ${isOverLimit ? 'text-red-500' : 'text-gray-400'}`} />
+                      )}
+                    </div>
+                    {c_item.parentId && (
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+                        Child of ID: {c_item.parentId}
+                      </span>
                     )}
                   </div>
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {c_item.type !== AllocationType.SUB_WALLET && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleApplyAllocation(c_item.id)}
+                      className="rounded-full hover:bg-green-50 dark:hover:bg-green-900/20"
+                      title="Apply now"
+                    >
+                      <Zap className="w-4 h-4 text-green-500" />
+                    </Button>
+                  )}
                   <Button
                     variant="ghost"
                     size="icon"
@@ -231,26 +257,38 @@ export function BudgetManager({ refreshKey }: { refreshKey?: number }) {
                 </div>
               </div>
 
-              <div className="space-y-5">
+              <div className="space-y-4">
                 <div className="flex justify-between items-end">
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     <div>
-                      <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">{t("configDay")}</p>
-                      <p className="text-xs font-bold dark:text-gray-400 tracking-tight">{t("configDayValue", { day: c_item.automationDay })}</p>
+                      <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">{t("budget")}</p>
+                      <p className="text-xl font-black text-primary tracking-tighter">{formatCurrency(c_item.limitAmount)}</p>
                     </div>
-                    <div>
-                      <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">{t("lastRun")}</p>
-                      <p className="text-xs font-bold dark:text-gray-400 tracking-tight">
-                        {c_item.lastRunAt ? format(new Date(c_item.lastRunAt), "dd/MM/yyyy HH:mm") : t("noRun")}
-                      </p>
-                    </div>
+                    {c_item.spentAmount !== undefined && (
+                      <div>
+                        <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isOverLimit ? 'text-red-500' : 'text-gray-400'}`}>Used</p>
+                        <p className={`text-lg font-black tracking-tighter ${isOverLimit ? 'text-red-500' : 'dark:text-white'}`}>
+                          {formatCurrency(c_item.spentAmount)}
+                        </p>
+                      </div>
+                    )}
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">{t("budget")}</p>
-                    <p className="text-xl font-black text-primary tracking-tighter">{formatCurrency(c_item.limitAmount)}</p>
+                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">{t("lastRun")}</p>
+                    <p className="text-xs font-bold dark:text-gray-400 tracking-tight">
+                      {c_item.lastRunAt ? format(new Date(c_item.lastRunAt), "dd/MM") : "Never"}
+                    </p>
                   </div>
                 </div>
 
+                {/* Progress Bar */}
+                <div className="w-full h-2 bg-gray-100 dark:bg-gray-900 rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min(100, (c_item.spentAmount / c_item.limitAmount) * 100)}%` }}
+                    className={`h-full ${isOverLimit ? 'bg-red-500' : 'bg-primary'}`}
+                  />
+                </div>
               </div>
             </motion.div>
           );
@@ -297,45 +335,35 @@ export function BudgetManager({ refreshKey }: { refreshKey?: number }) {
                 <div className="p-6 bg-blue-500/5 border border-blue-500/10 rounded-3xl space-y-6">
                   <div className="flex items-center gap-3">
                     <div className="p-2.5 bg-blue-500/10 rounded-xl text-blue-600">
-                      <Calendar className="w-5 h-5" />
+                      <Zap className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-xs font-black uppercase tracking-widest dark:text-white leading-tight">{t("form.automationSettings")}</p>
-                      <p className="text-[10px] text-blue-600 font-medium uppercase tracking-tight">Required for automated tracking</p>
+                      <p className="text-xs font-black uppercase tracking-widest dark:text-white leading-tight">Allocation Logic</p>
+                      <p className="text-[10px] text-blue-600 font-medium uppercase tracking-tight">Define how this money is tracked</p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4">
                     <CustomSelect
                       id="bucket-type"
-                      label={t("form.automationType")}
+                      label="Type"
                       value={bucketType}
-                      onChange={setBucketType}
+                      onChange={(val) => setBucketType(val as AllocationType)}
                       options={[
-                        { value: "EXPENSE", label: t("form.deductAmount") },
-                        { value: "INCOME", label: t("form.addAmount") },
+                        { value: AllocationType.EXPENSE, label: "Expense" },
+                        { value: AllocationType.INCOME, label: "Income" },
+                        { value: AllocationType.SUB_WALLET, label: "Sub Wallet" },
                       ]}
-                    />
-                    <CustomInput
-                      id="bucket-day"
-                      label={t("form.automationDay")}
-                      type="number"
-                      min="1"
-                      max="31"
-                      value={bucketAutomationDay}
-                      onChange={setBucketAutomationDay}
-                      placeholder="1-31"
-                      error={errors.day}
                     />
                   </div>
 
                   <CustomSelect
                     id="bucket-target-wallet"
-                    label={t("form.targetWallet")}
+                    label={bucketType === AllocationType.SUB_WALLET ? "Parent Wallet" : t("form.targetWallet")}
                     value={bucketTargetWalletId}
                     onChange={setBucketTargetWalletId}
                     options={wallets.map(w => ({ value: w.id.toString(), label: w.name }))}
-                    placeholder="Select Target Wallet"
+                    placeholder="Select Wallet"
                     error={errors.wallet}
                   />
                 </div>

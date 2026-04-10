@@ -1,40 +1,52 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateBudgetDto, UpdateBudgetDto } from '@personalization/shared';
+import { CreateBudgetDto, UpdateBudgetDto, AllocationType, TransactionType } from '@personalization/shared';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { FINANCE_EVENT } from '../ai/events/finance.events';
+import { TransactionService } from './transaction.service';
 
 @Injectable()
 export class BudgetService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+    @Inject(forwardRef(() => TransactionService))
+    private readonly transactionService: TransactionService,
+  ) { }
 
   async create(dto: CreateBudgetDto, userId: number) {
     const { categories, ...rest } = dto;
+    
+    // Create budget first
     const budget = await this.prisma.monthlyBudget.create({
       data: {
         ...rest,
         userId,
-        categories: {
-          create: categories.map(({ id, monthlyBudgetId, ...cat }: any) => cat),
-        },
-      },
-      include: {
-        categories: true,
       },
     });
 
-    budget.categories.forEach((cat) => {
+    // Create categories
+    for (const cat of categories) {
+      const { id, parentId, ...data } = cat;
+      await this.prisma.budgetCategory.create({
+        data: {
+          ...data,
+          monthlyBudgetId: budget.id,
+        },
+      });
+    }
+
+    const fullBudget = await this.findOne(budget.id, userId);
+
+    fullBudget.categories.forEach((cat) => {
       this.eventEmitter.emit(FINANCE_EVENT.BUDGET_UPDATED, {
         userId,
-        budget,
+        budget: fullBudget,
         category: cat,
       });
     });
 
-    return budget;
+    return fullBudget;
   }
 
   async findByMonth(userId: number, month: number, year: number) {
@@ -131,5 +143,48 @@ export class BudgetService {
     });
 
     return deleted;
+  }
+
+  async applyCategory(id: number, userId: number) {
+    const category = await this.prisma.budgetCategory.findFirst({
+      where: { id, monthlyBudget: { userId } },
+      include: { monthlyBudget: true },
+    });
+
+    if (!category) {
+      throw new NotFoundException(`Category with ID ${id} not found`);
+    }
+
+    if (category.type === AllocationType.SUB_WALLET) {
+      throw new BadRequestException('Sub-wallet category cannot be manually applied');
+    }
+
+    if (!category.targetWalletId) {
+      throw new BadRequestException('Target wallet must be set for manual application');
+    }
+
+    // Create a transaction based on the allocation
+    const transaction = await this.transactionService.create(
+      {
+        walletId: category.targetWalletId,
+        amount: category.limitAmount,
+        type: category.type === AllocationType.INCOME ? TransactionType.INCOME : TransactionType.EXPENSE,
+        allocationId: category.id,
+        note: `Applied allocation: ${category.name}`,
+        date: new Date().toISOString(),
+      },
+      userId,
+    );
+
+    // Mark as processed if it's a one-time thing per month
+    await this.prisma.budgetCategory.update({
+      where: { id },
+      data: {
+        automationProcessed: true,
+        lastRunAt: new Date(),
+      },
+    });
+
+    return transaction;
   }
 }

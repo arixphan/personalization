@@ -136,6 +136,13 @@ export async function deleteBudget(id: number) {
   return response.data;
 }
 
+export async function applyAllocation(id: number) {
+  const response = await ServerApiHandler.post(`/finance/budgets/categories/${id}/apply`, {});
+  if (response.error) throw new Error(response.error);
+  revalidatePath("/finance");
+  return response.data;
+}
+
 // Transactions
 export async function getTransactions(walletId?: number) {
   const query = walletId ? `?walletId=${walletId}` : "";
