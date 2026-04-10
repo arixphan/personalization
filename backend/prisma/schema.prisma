@@ -40,6 +40,7 @@ model User {
   mindMaps       MindMap[]
   progressTrackers ProgressTracker[]
   englishRecords EnglishRecord[]
+  notes          Note[]
   englishWritings EnglishWriting[]
 }
 
@@ -503,4 +504,20 @@ model EnglishWriting {
   user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+}
+
+// Notes Module
+model Note {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  title     String   @db.VarChar(255)
+  content   String   @db.Text
+  color     String   @default("#6366f1")
+  isPinned  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isPinned])
 }

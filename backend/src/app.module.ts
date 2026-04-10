@@ -32,6 +32,7 @@ import {
   AppConfigModule,
   ProgressModule,
   EnglishLearningModule,
+  NotesModule,
 } from './modules';
 import { TradingModule } from './modules/trading/trading.module';
 
@@ -71,6 +72,7 @@ import { TradingModule } from './modules/trading/trading.module';
     AppConfigModule,
     ProgressModule,
     EnglishLearningModule,
+    NotesModule,
     I18nModule.forRoot({
       fallbackLanguage: 'en',
       loaderOptions: {

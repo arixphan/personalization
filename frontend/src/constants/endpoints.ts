@@ -116,3 +116,20 @@ export const EnglishLearningEndpoint = {
   }),
 };
 
+export const NotesEndpoint = {
+  list: createRoute({ path: "notes" }),
+  create: createRoute({ path: "notes" }),
+  update: createRoute({
+    path: "notes/:id",
+    params: z.object({ id: z.coerce.string() }),
+  }),
+  delete: createRoute({
+    path: "notes/:id",
+    params: z.object({ id: z.coerce.string() }),
+  }),
+  pin: createRoute({
+    path: "notes/:id/pin",
+    params: z.object({ id: z.coerce.string() }),
+  }),
+};
+
