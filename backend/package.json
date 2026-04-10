@@ -19,7 +19,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "seed": "prisma db seed"
+    "seed": "prisma db seed",
+    "prisma:docs": "prisma generate && open prisma/docs/index.html"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.52",
@@ -52,13 +53,13 @@
     "googleapis": "^171.4.0",
     "ioredis": "^5.10.1",
     "jsonwebtoken": "catalog:",
+    "multer": "^1.4.5-lts.1",
     "nestjs-i18n": "^10.6.0",
     "openai": "^6.32.0",
     "passport": "catalog:",
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "catalog:",
     "passport-local": "catalog:",
-    "multer": "^1.4.5-lts.1",
     "pgvector": "^0.2.1",
     "reflect-metadata": "catalog:",
     "rss-parser": "^3.13.0",
@@ -92,6 +93,7 @@
     "jest": "catalog:",
     "prettier": "catalog:",
     "prisma": "catalog:",
+    "prisma-docs-generator": "^0.8.0",
     "source-map-support": "catalog:",
     "supertest": "catalog:",
     "ts-jest": "catalog:",
