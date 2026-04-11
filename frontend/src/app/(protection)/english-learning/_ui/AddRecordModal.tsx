@@ -169,7 +169,7 @@ export function AddRecordModal({ isOpen, onClose, onSuccess, initialData, autoAi
                 size="icon" 
                 variant="outline"
                 className="shrink-0 border-primary/20 text-primary hover:bg-primary/10"
-                onClick={handleAiAssist}
+                onClick={() => handleAiAssist()}
                 disabled={aiLoading}
               >
                 {aiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
