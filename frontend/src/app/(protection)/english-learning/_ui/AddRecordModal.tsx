@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,9 +16,15 @@ interface AddRecordModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  initialData?: Partial<{
+    type: EnglishRecordType;
+    content: string;
+    tagsStr: string;
+  }>;
+  autoAi?: boolean;
 }
 
-export function AddRecordModal({ isOpen, onClose, onSuccess }: AddRecordModalProps) {
+export function AddRecordModal({ isOpen, onClose, onSuccess, initialData, autoAi }: AddRecordModalProps) {
   const [loading, setLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -30,6 +36,32 @@ export function AddRecordModal({ isOpen, onClose, onSuccess }: AddRecordModalPro
     note: "",
     tagsStr: "",
   });
+
+  const handleAiAssist = async (content?: string, type?: EnglishRecordType) => {
+    const targetContent = content || formData.content;
+    const targetType = type || formData.type;
+    
+    if (!targetContent) {
+      toast.error("Please enter a word or phrase first");
+      return;
+    }
+    setAiLoading(true);
+    try {
+      const assist = await generateAiAssist(targetContent, targetType);
+      setFormData(prev => ({
+        ...prev,
+        definition: assist.definition || prev.definition,
+        translation: assist.translation || prev.translation,
+        example: assist.example || prev.example,
+        note: assist.note || prev.note,
+      }));
+      // toast.success("AI magic applied!"); // Removed toast for auto-ai to keep it clean
+    } catch (error) {
+      toast.error("AI assistant failed. Check your settings.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,28 +92,24 @@ export function AddRecordModal({ isOpen, onClose, onSuccess }: AddRecordModalPro
     }
   };
 
-  const handleAiAssist = async () => {
-    if (!formData.content) {
-      toast.error("Please enter a word or phrase first");
-      return;
-    }
-    setAiLoading(true);
-    try {
-      const assist = await generateAiAssist(formData.content, formData.type);
+  // Handle initial data and auto-AI
+  React.useEffect(() => {
+    if (isOpen && initialData) {
       setFormData(prev => ({
         ...prev,
-        definition: assist.definition || prev.definition,
-        translation: assist.translation || prev.translation,
-        example: assist.example || prev.example,
-        note: assist.note || prev.note,
+        ...initialData,
+        // Reset fields that shouldn't persist from previous opens if initialData is provided
+        definition: "",
+        translation: "",
+        example: "",
+        note: "",
       }));
-      toast.success("AI magic applied!");
-    } catch (error) {
-      toast.error("AI assistant failed. Check your settings.");
-    } finally {
-      setAiLoading(false);
+
+      if (autoAi && initialData.content) {
+        handleAiAssist(initialData.content, initialData.type || EnglishRecordType.WORD);
+      }
     }
-  };
+  }, [isOpen, initialData, autoAi]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
