@@ -1,5 +1,5 @@
 import { ForwardRefExoticComponent, RefAttributes } from "react";
-import { ClipboardList, LucideProps, TrendingUp, HandCoins, Bot, BrainCircuit, Activity, BookOpenCheck, StickyNote } from "lucide-react";
+import { ClipboardList, LucideProps, TrendingUp, HandCoins, Bot, BrainCircuit, Activity, BookOpenCheck, StickyNote, CalendarDays } from "lucide-react";
 
 export interface AppModule {
   id: string;
@@ -69,6 +69,13 @@ export const APP_MODULES: AppModule[] = [
     url: "/notes",
     isActive: true,
   },
+  {
+    id: "calendar",
+    name: "Calendar",
+    icon: CalendarDays,
+    url: "/calendar",
+    isActive: true,
+  },
 ];
 
 export const MODULE_ROUTES: Record<
@@ -122,6 +129,12 @@ export const MODULE_ROUTES: Record<
   },
   notes: {
     prefix: "notes",
+    routes: {
+      main: "/",
+    },
+  },
+  calendar: {
+    prefix: "calendar",
     routes: {
       main: "/",
     },
