@@ -1,10 +1,4 @@
 import {
-  Home,
-  Calendar,
-  ClipboardList,
-  DollarSign,
-  BookOpen,
-  FileText,
   Settings,
   LucideProps,
 } from "lucide-react";
