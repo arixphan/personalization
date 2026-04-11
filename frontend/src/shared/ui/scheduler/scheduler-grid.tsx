@@ -24,6 +24,9 @@ interface SchedulerGridProps {
   updateEvent: (event: Event) => void;
   createEvent: (newEvent: NewEventMeta, finishCallback: () => void) => void;
   onEventClick?: (event: Event) => void;
+  renderEvent?: (event: Event) => React.ReactNode;
+  timeFormat?: "12h" | "24h";
+  canChangeColumn?: (event: Event) => boolean;
 }
 
 const hasScrollbar = doesScrollbarAffectLayout();
@@ -35,6 +38,9 @@ export const SchedulerGrid = memo(function SchedulerGrid({
   updateEvent,
   createEvent,
   onEventClick,
+  renderEvent,
+  timeFormat = "12h",
+  canChangeColumn,
 }: SchedulerGridProps) {
   const timeSlotRef = useRef<HTMLDivElement>(null);
   const headRowRef = useRef<HTMLDivElement>(null);
@@ -45,8 +51,8 @@ export const SchedulerGrid = memo(function SchedulerGrid({
 
   const timeSlots: TimeSlot[] = useMemo(() => {
     const { start, end } = timeFrame;
-    return generateTimeRange(start, end);
-  }, [timeFrame]);
+    return generateTimeRange(start, end, timeFormat);
+  }, [timeFrame, timeFormat]);
 
   const {
     container: { height, width, toolbarHeight },
@@ -163,6 +169,9 @@ export const SchedulerGrid = memo(function SchedulerGrid({
                 updateEvent={updateEvent}
                 createEvent={createEvent}
                 onEventClick={onEventClick}
+                renderEvent={renderEvent}
+                timeFormat={timeFormat}
+                canChangeColumn={canChangeColumn}
               >
                 <SchedulerTimeSlotGrid
                   timeSlots={timeSlots}

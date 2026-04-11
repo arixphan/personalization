@@ -42,6 +42,8 @@ model User {
   englishRecords EnglishRecord[]
   notes          Note[]
   englishWritings EnglishWriting[]
+  calendarEvents  CalendarEvent[]
+  calendarTasks   CalendarTask[]
 }
 
 model UserProfile {
@@ -520,4 +522,57 @@ model Note {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, isPinned])
+}
+
+// Calendar Module
+enum RecurrenceType {
+  NONE
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+model CalendarEvent {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  title       String   @db.VarChar(255)
+  description String?  @db.Text
+  start       DateTime
+  end         DateTime
+  color       String?  @db.VarChar(20)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, start])
+}
+
+model CalendarTask {
+  id            Int            @id @default(autoincrement())
+  userId        Int
+  title         String         @db.VarChar(255)
+  description   String?        @db.Text
+  startTime     DateTime       // Original start time
+  duration      Int            // Duration in minutes
+  recurrence    RecurrenceType @default(NONE)
+  recurrenceEnd DateTime?      // Optional end date for recurrence
+  color         String?        @db.VarChar(20)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  completions   TaskCompletion[]
+
+  @@index([userId])
+}
+
+model TaskCompletion {
+  id          Int          @id @default(autoincrement())
+  taskId      Int
+  userId      Int
+  completedAt DateTime     // The date of the occurrence that is completed
+  createdAt   DateTime     @default(now())
+  task        CalendarTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, completedAt])
+  @@index([userId, completedAt])
 }

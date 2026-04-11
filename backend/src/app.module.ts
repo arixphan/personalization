@@ -33,6 +33,7 @@ import {
   ProgressModule,
   EnglishLearningModule,
   NotesModule,
+  CalendarModule,
 } from './modules';
 import { TradingModule } from './modules/trading/trading.module';
 
@@ -73,6 +74,7 @@ import { TradingModule } from './modules/trading/trading.module';
     ProgressModule,
     EnglishLearningModule,
     NotesModule,
+    CalendarModule,
     I18nModule.forRoot({
       fallbackLanguage: 'en',
       loaderOptions: {

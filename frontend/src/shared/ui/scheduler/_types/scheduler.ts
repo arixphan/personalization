@@ -9,6 +9,7 @@ export interface Event extends Identifier {
   columnId: string;
   start: string;
   duration: number;
+  metadata?: Record<string, unknown>;
 }
 
 export type Events = Array<Event>;

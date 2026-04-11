@@ -49,6 +49,7 @@
     "class-transformer": "catalog:",
     "class-validator": "catalog:",
     "cookie-parser": "catalog:",
+    "date-fns": "^4.1.0",
     "express": "catalog:",
     "googleapis": "^171.4.0",
     "ioredis": "^5.10.1",

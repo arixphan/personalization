@@ -1,5 +1,5 @@
 import { Event } from "../_types";
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
 
 export function formatTimeRange(event: Event) {
   const startDate = new Date(event.start);
@@ -23,7 +23,7 @@ export function formatDateItem(date: Date) {
   };
 }
 
-export function generateTimeRange(start: number, end: number) {
+export function generateTimeRange(start: number, end: number, timeFormat: '12h' | '24h' = '12h') {
   if (start > end) {
     throw Error("Start is higher than end");
   }
@@ -32,7 +32,7 @@ export function generateTimeRange(start: number, end: number) {
     throw Error("End is out of bound");
   }
 
-  if (start < 1) {
+  if (start < 0) {
     throw Error("Start is out of bound");
   }
   const slots = [];
@@ -45,18 +45,24 @@ export function generateTimeRange(start: number, end: number) {
     const hours = current.getHours();
     const minutes = current.getMinutes();
 
-    const ampm = hours >= 12 ? "PM" : "AM";
-    let displayHours = hours % 12;
-    displayHours = displayHours ? displayHours : 12;
+    let displayString = "";
+    let timeString = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+    let ampm = "";
 
-    let timeString = `${displayHours.toString()}:${minutes.toString()}`;
-    let displayString;
-
-    if (minutes === 0) {
-      displayString = `${displayHours} ${ampm}`;
-      timeString = displayHours.toString();
+    if (timeFormat === '12h') {
+      const h12 = hours % 12 || 12;
+      ampm = hours >= 12 ? "PM" : "AM";
+      if (minutes === 0) {
+        displayString = `${h12} ${ampm}`;
+      } else {
+        displayString = minutes.toString();
+      }
     } else {
-      displayString = minutes.toString();
+      if (minutes === 0) {
+        displayString = `${hours.toString().padStart(2, "0")}:00`;
+      } else {
+        displayString = minutes.toString();
+      }
     }
 
     slots.push({
@@ -72,4 +78,24 @@ export function generateTimeRange(start: number, end: number) {
   }
 
   return slots;
+}
+
+export function generateWeekDays(baseDate: Date) {
+  const start = new Date(baseDate);
+  // Find Monday of the current week
+  const day = start.getDay();
+  const diff = start.getDate() - day + (day === 0 ? -6 : 1);
+  start.setDate(diff);
+  start.setHours(0, 0, 0, 0);
+
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(start, i);
+    days.push({
+      id: format(d, "yyyy-MM-dd"),
+      name: format(d, "EEE dd/MM"),
+      date: d,
+    });
+  }
+  return days;
 }

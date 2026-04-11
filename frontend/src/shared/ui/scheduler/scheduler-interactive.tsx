@@ -50,6 +50,9 @@ interface SchedulerInteractiveProps {
   updateEvent: (event: Event) => void;
   createEvent: (newEvent: NewEventMeta, finishCallback: () => void) => void;
   onEventClick?: (event: Event) => void;
+  renderEvent?: (event: Event) => React.ReactNode;
+  timeFormat?: "12h" | "24h";
+  canChangeColumn?: (event: Event) => boolean;
 }
 
 export const SchedulerInteractive = memo(function SchedulerInteractive({
@@ -65,6 +68,9 @@ export const SchedulerInteractive = memo(function SchedulerInteractive({
   updateEvent,
   createEvent,
   onEventClick,
+  renderEvent,
+  timeFormat = "12h",
+  canChangeColumn,
 }: SchedulerInteractiveProps) {
   const {
     timeUnit: { oneMinute, oneHour },
@@ -123,6 +129,7 @@ export const SchedulerInteractive = memo(function SchedulerInteractive({
     groupColumns,
     timeFrame,
     updateEvent,
+    canChangeColumn,
   });
 
   const { onResize, onResizeEnd, onResizeStart, resizeEvent } = useResizeEvent({
@@ -365,7 +372,7 @@ export const SchedulerInteractive = memo(function SchedulerInteractive({
                 resizeEvent?.origin.id === layoutEvent.id
               }
             >
-              <EventCard event={layoutEvent.event} />
+              {renderEvent ? renderEvent(layoutEvent.event) : <EventCard event={layoutEvent.event} />}
             </LayoutContainer>
           );
         });
@@ -379,18 +386,30 @@ export const SchedulerInteractive = memo(function SchedulerInteractive({
           y={dragEvent.y}
           cursor="move"
         >
-          <EventCard
-            event={{
-              ...dragEvent.origin.event,
-              start: convertYToTime(
-                dragEvent!.origin.event.start,
-                dragEvent!.y,
-                timeFrame.start,
-                oneMinute
-              ),
-            }}
-          />
-        </PreviewContainer>
+            {renderEvent ? (
+              renderEvent({
+                ...dragEvent.origin.event,
+                start: convertYToTime(
+                  dragEvent!.origin.event.start,
+                  dragEvent!.y,
+                  timeFrame.start,
+                  oneMinute
+                ),
+              })
+            ) : (
+              <EventCard
+                event={{
+                  ...dragEvent.origin.event,
+                  start: convertYToTime(
+                    dragEvent!.origin.event.start,
+                    dragEvent!.y,
+                    timeFrame.start,
+                    oneMinute
+                  ),
+                }}
+              />
+            )}
+          </PreviewContainer>
       )}
 
       {resizeEvent && (
@@ -401,19 +420,32 @@ export const SchedulerInteractive = memo(function SchedulerInteractive({
           y={resizeEvent.y}
           cursor={resizeEvent.side === "bottom" ? "s-resize" : "n-resize"}
         >
-          <EventCard
-            event={{
-              ...resizeEvent.origin.event,
-              start: convertYToTime(
-                resizeEvent!.origin.event.start,
-                resizeEvent!.y,
-                timeFrame.start,
-                oneMinute
-              ),
-              duration: resizeEvent!.height / oneMinute,
-            }}
-          />
-        </PreviewContainer>
+            {renderEvent ? (
+              renderEvent({
+                ...resizeEvent.origin.event,
+                start: convertYToTime(
+                  resizeEvent!.origin.event.start,
+                  resizeEvent!.y,
+                  timeFrame.start,
+                  oneMinute
+                ),
+                duration: resizeEvent!.height / oneMinute,
+              })
+            ) : (
+              <EventCard
+                event={{
+                  ...resizeEvent.origin.event,
+                  start: convertYToTime(
+                    resizeEvent!.origin.event.start,
+                    resizeEvent!.y,
+                    timeFrame.start,
+                    oneMinute
+                  ),
+                  duration: resizeEvent!.height / oneMinute,
+                }}
+              />
+            )}
+          </PreviewContainer>
       )}
 
       {newEvent && (

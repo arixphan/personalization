@@ -13,3 +13,4 @@ export { AppConfigModule, AppConfigService } from './config/index';
 export { ProgressModule } from './progress/progress.module';
 export { EnglishLearningModule } from './english-learning/english-learning.module';
 export { NotesModule } from './notes/notes.module';
+export { CalendarModule } from './calendar/calendar.module';

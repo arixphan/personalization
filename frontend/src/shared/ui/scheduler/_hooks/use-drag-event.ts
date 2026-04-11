@@ -30,6 +30,7 @@ interface DragEventParams {
   columns: Columns;
   groupColumns: Array<LayoutEvent[]>;
   updateEvent: (event: Event) => void;
+  canChangeColumn?: (event: Event) => boolean;
 }
 
 export const useDragEvent = ({
@@ -42,6 +43,7 @@ export const useDragEvent = ({
   columns,
   groupColumns,
   updateEvent,
+  canChangeColumn,
 }: DragEventParams) => {
   const [dragEvent, setDragEvent] = useState<DraggingEvent>();
 
@@ -168,7 +170,10 @@ export const useDragEvent = ({
         return;
       }
 
-      const newX = calculateX(clientX, scrollLeft, containerLeft, columnWidth);
+      const allowColumnChange = canChangeColumn ? canChangeColumn(dragEvent.origin.event) : true;
+      const newX = allowColumnChange
+        ? calculateX(clientX, scrollLeft, containerLeft, columnWidth)
+        : dragEvent.origin.x;
       if (newX < 0 || newX >= columns.length * columnWidth) return;
 
       const absoluteY = getAbsoluteY(mouseY, scrollTop);

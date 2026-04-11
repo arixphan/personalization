@@ -30,6 +30,13 @@ export interface SchedulerProps {
   createEvent: (newEvent: NewEventMeta, finishCallback: () => void) => void;
   onSelectDate: (date: Date) => void;
   onEventClick?: (event: Event) => void;
+  renderEvent?: (event: Event) => React.ReactNode;
+  renderToolbar?: (props: {
+    initialDate?: Date;
+    onSelectDate: (date: Date) => void;
+  }) => React.ReactNode;
+  timeFormat?: "12h" | "24h";
+  canChangeColumn?: (event: Event) => boolean;
 }
 
 export const Scheduler = memo(function Scheduler({
@@ -42,6 +49,10 @@ export const Scheduler = memo(function Scheduler({
   initialDate,
   onSelectDate,
   onEventClick,
+  renderEvent,
+  renderToolbar,
+  timeFormat = "12h",
+  canChangeColumn,
 }: SchedulerProps) {
   const [timeUnitValues, setTimeUnitValues] = useState<TimeUnit>(
     getTimePxValue()
@@ -72,7 +83,13 @@ export const Scheduler = memo(function Scheduler({
   return (
     <SchedulerContext.Provider value={schedulerContextValue}>
       <ResponsiveContainer height={height} onResize={onResizeContainer}>
-        <DateToolbar initialDate={initialDate} onSelectDate={onSelectDate} />
+        <div className="scheduler-toolbar-area">
+          {renderToolbar ? (
+            renderToolbar({ initialDate, onSelectDate })
+          ) : (
+            <DateToolbar initialDate={initialDate} onSelectDate={onSelectDate} />
+          )}
+        </div>
         <div className="rounded-lg border border-border bg-background overflow-hidden">
           <SchedulerGrid
             columns={columns}
@@ -81,6 +98,9 @@ export const Scheduler = memo(function Scheduler({
             updateEvent={updateEvent}
             createEvent={createEvent}
             onEventClick={onEventClick}
+            renderEvent={renderEvent}
+            timeFormat={timeFormat}
+            canChangeColumn={canChangeColumn}
           />
         </div>
       </ResponsiveContainer>

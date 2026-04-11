@@ -133,3 +133,28 @@ export const NotesEndpoint = {
   }),
 };
 
+export const CalendarEndpoint = {
+  list: createRoute({ path: "calendar" }),
+  createEvent: createRoute({ path: "calendar/events" }),
+  updateEvent: createRoute({
+    path: "calendar/events/:id",
+    params: z.object({ id: z.coerce.string() }),
+  }),
+  deleteEvent: createRoute({
+    path: "calendar/events/:id",
+    params: z.object({ id: z.coerce.string() }),
+  }),
+  createTask: createRoute({ path: "calendar/tasks" }),
+  updateTask: createRoute({
+    path: "calendar/tasks/:id",
+    params: z.object({ id: z.coerce.string() }),
+  }),
+  deleteTask: createRoute({
+    path: "calendar/tasks/:id",
+    params: z.object({ id: z.coerce.string() }),
+  }),
+  completeTask: createRoute({
+    path: "calendar/tasks/:id/complete",
+    params: z.object({ id: z.coerce.string() }),
+  }),
+};
