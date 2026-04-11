@@ -5,7 +5,7 @@ import { addDays, addWeeks, addMonths, isBefore, isAfter, startOfDay, endOfDay, 
 
 @Injectable()
 export class CalendarService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   // --- Events ---
 
@@ -103,12 +103,26 @@ export class CalendarService {
   }
 
   async updateTask(userId: number, id: number, dto: UpdateTaskDto) {
-    await this.assertTaskOwnership(userId, id);
+    const task = await this.assertTaskOwnership(userId, id);
+
+    let updatedStartTime: Date | undefined = undefined;
+    if (dto.startTime) {
+      const oldStartTime = new Date(task.startTime);
+      const newStartTime = new Date(dto.startTime);
+      updatedStartTime = new Date(oldStartTime);
+      updatedStartTime.setHours(
+        newStartTime.getHours(),
+        newStartTime.getMinutes(),
+        newStartTime.getSeconds(),
+        newStartTime.getMilliseconds()
+      );
+    }
+
     return this.prisma.calendarTask.update({
       where: { id },
       data: {
         ...dto,
-        startTime: dto.startTime ? new Date(dto.startTime) : undefined,
+        startTime: updatedStartTime,
         recurrenceEnd: dto.recurrenceEnd ? new Date(dto.recurrenceEnd) : undefined,
       },
     });
@@ -121,7 +135,7 @@ export class CalendarService {
 
   async completeTask(userId: number, taskId: number, dto: CompleteTaskDto) {
     const completedAt = startOfDay(new Date(dto.completedAt));
-    
+
     // Check if already completed
     const existing = await this.prisma.taskCompletion.findUnique({
       where: {
@@ -158,10 +172,10 @@ export class CalendarService {
 
     // Fast forward to rangeStart if possible
     // (This is a naive implementation; for many years of data it might be slow, but for "current year" it's fine)
-    
+
     while (isBefore(current, limit) || current.getTime() === limit.getTime()) {
-      if ((isAfter(current, rangeStart) || current.getTime() === rangeStart.getTime()) && 
-          (isBefore(current, rangeEnd) || current.getTime() === rangeEnd.getTime())) {
+      if ((isAfter(current, rangeStart) || current.getTime() === rangeStart.getTime()) &&
+        (isBefore(current, rangeEnd) || current.getTime() === rangeEnd.getTime())) {
         occurrences.push(new Date(current));
       }
 

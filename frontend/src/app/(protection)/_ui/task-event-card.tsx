@@ -1,10 +1,9 @@
-"use client";
-
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { Event } from "@/shared/ui/scheduler/_types";
 import { formatTimeRange } from "@/shared/ui/scheduler/_utils/time";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
+import { isBefore, startOfDay } from "date-fns";
 import { getCalendarMeta } from "../_types/calendar-event";
 
 interface TaskEventCardProps {
@@ -18,6 +17,11 @@ export const TaskEventCard = memo(function TaskEventCard({
 }: TaskEventCardProps) {
   const { isTask, isCompleted, color, title } = getCalendarMeta(event);
 
+  const isPast = useMemo(() => {
+    const eventDate = new Date(event.start);
+    return isBefore(startOfDay(eventDate), startOfDay(new Date()));
+  }, [event.start]);
+
   return (
     <div
       className={cn(
@@ -26,7 +30,8 @@ export const TaskEventCard = memo(function TaskEventCard({
           ? "bg-muted/50 text-muted-foreground border-muted"
           : color
             ? "border-primary/20 text-white"
-            : "bg-primary/95 text-primary-foreground border-primary/20"
+            : "bg-primary/95 text-primary-foreground border-primary/20",
+        !isTask && isPast && "opacity-40 grayscale-[0.5]"
       )}
       style={{
         backgroundColor: !isCompleted && color ? color : undefined,

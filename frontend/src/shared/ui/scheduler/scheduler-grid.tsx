@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { format } from "date-fns";
 import { Columns, NewEventMeta, TimeFrame, TimeSlot } from "./_types";
 import { SchedulerInteractive } from "./scheduler-interactive";
 import { Events, Event } from "./_types";
@@ -206,6 +207,8 @@ const SchedulerTimeSlotGrid = memo(function SchedulerTimeSlotGrid({
     timeUnit: { fifteenMinute },
   } = useContext(SchedulerContext);
 
+  const todayStr = useMemo(() => format(new Date(), "yyyy-MM-dd"), []);
+
   return (
     <table
       style={{
@@ -221,7 +224,8 @@ const SchedulerTimeSlotGrid = memo(function SchedulerTimeSlotGrid({
           const isLastRow = rowIndex === timeSlots.length - 1;
           return (
             <tr key={rowIndex}>
-              {columns.map((_, colIndex) => {
+              {columns.map((column, colIndex) => {
+                const isToday = column.id === todayStr;
                 return (
                   <SchedulerCell
                     key={`${rowIndex}-${colIndex}`}
@@ -229,6 +233,7 @@ const SchedulerTimeSlotGrid = memo(function SchedulerTimeSlotGrid({
                     isLastRow={isLastRow}
                     slot={slot}
                     fifteenMinute={fifteenMinute}
+                    isToday={isToday}
                   />
                 );
               })}
@@ -245,6 +250,7 @@ interface SchedulerCellProps {
   isLastRow: boolean;
   slot: TimeSlot;
   fifteenMinute: number;
+  isToday?: boolean;
 }
 
 // CSS vars cannot be read inline so we use CSS classes via data attributes
@@ -253,6 +259,7 @@ const SchedulerCell = memo(function SchedulerCell({
   isLastRow,
   slot,
   fifteenMinute,
+  isToday,
 }: SchedulerCellProps) {
   const borderStyle = !isLastRow && slot.isEnd ? "solid" : "dashed";
 
@@ -261,7 +268,8 @@ const SchedulerCell = memo(function SchedulerCell({
       data-col={colIndex}
       className={`
         scheduler-cell text-left box-border cursor-pointer
-        text-muted-foreground bg-background
+        text-muted-foreground
+        ${isToday ? "bg-primary/[0.03]" : "bg-background"}
         ${colIndex !== 0 ? "border-l border-l-border" : ""}
         ${borderStyle === "solid" ? "border-b border-b-border" : "border-b border-b-border/30 border-dashed"}
       `}
@@ -285,6 +293,8 @@ interface SchedulerHeaderProps {
 }
 
 const SchedulerHeader = memo(({ headRowRef, hasScroll, columns }: SchedulerHeaderProps) => {
+  const todayStr = useMemo(() => format(new Date(), "yyyy-MM-dd"), []);
+
   return (
     <div
       ref={headRowRef}
@@ -304,20 +314,28 @@ const SchedulerHeader = memo(({ headRowRef, hasScroll, columns }: SchedulerHeade
       >
         <tbody>
           <tr>
-            {columns.map((column, index) => (
-              <td
-                key={index}
-                className="border-b border-border bg-background text-foreground font-semibold"
-                style={{
-                  width: "80px",
-                  boxSizing: "border-box",
-                  fontSize: "max(0.85vw, 13px)",
-                  padding: "10px 8px",
-                }}
-              >
-                {column.name}
-              </td>
-            ))}
+            {columns.map((column, index) => {
+              const isToday = column.id === todayStr;
+              return (
+                <td
+                  key={index}
+                  className={`
+                    border-b border-border text-foreground font-semibold
+                    ${isToday ? "bg-primary/[0.05] border-b-primary" : "bg-background"}
+                  `}
+                  style={{
+                    width: "80px",
+                    boxSizing: "border-box",
+                    fontSize: "max(0.85vw, 13px)",
+                    padding: "10px 8px",
+                  }}
+                >
+                  <span className={isToday ? "text-primary" : ""}>
+                    {column.name}
+                  </span>
+                </td>
+              );
+            })}
           </tr>
         </tbody>
       </table>

@@ -196,6 +196,9 @@ export default function Home() {
   };
 
   const allEvents = useMemo(() => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
     const mappedEvents = events.map((event: any) => ({
       id: String(event.id),
       columnId: format(new Date(event.start), "yyyy-MM-dd"),
@@ -208,19 +211,25 @@ export default function Home() {
       },
     } satisfies Event));
 
-    const mappedTasks = tasks.map((task: any) => ({
-      id: String(task.id),
-      columnId: format(new Date(task.start), "yyyy-MM-dd"),
-      start: task.start,
-      duration: task.duration,
-      metadata: {
-        title: task.title,
-        color: task.color,
-        isTask: true,
-        isCompleted: task.isCompleted,
-        originalId: task.originalId,
-      },
-    } satisfies Event));
+    const mappedTasks = tasks
+      .filter((task: any) => {
+        const taskDate = new Date(task.start);
+        const taskStartOfDay = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
+        return taskStartOfDay >= today;
+      })
+      .map((task: any) => ({
+        id: String(task.id),
+        columnId: format(new Date(task.start), "yyyy-MM-dd"),
+        start: task.start,
+        duration: task.duration,
+        metadata: {
+          title: task.title,
+          color: task.color,
+          isTask: true,
+          isCompleted: task.isCompleted,
+          originalId: task.originalId,
+        },
+      } satisfies Event));
 
     return [...mappedEvents, ...mappedTasks];
   }, [events, tasks]);

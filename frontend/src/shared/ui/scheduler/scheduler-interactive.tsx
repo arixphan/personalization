@@ -7,6 +7,7 @@ import {
   UIEvent,
   useContext,
   useEffect,
+  useEffectEvent,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -287,6 +288,10 @@ export const SchedulerInteractive = memo(function SchedulerInteractive({
     pointerMoveRef.current = onPointerMove;
   });
 
+  const onReadyEvent = useEffectEvent(() => {
+    onReady?.();
+  })
+
   useEffect(() => {
     const handleTouchMove = (e: TouchEvent) => touchMoveRef.current!(e);
     const handlePointerMove = (e: PointerEvent) => pointerMoveRef.current!(e);
@@ -325,23 +330,18 @@ export const SchedulerInteractive = memo(function SchedulerInteractive({
           if (timeColRef.current) {
             timeColRef.current.scrollTop = scrollPos;
           }
-          onReady?.();
+          onReadyEvent();
         }
       };
 
       // Immediate attempt, then two follow-up frames to ensure layout has settled
       performScroll();
-      const raf1 = requestAnimationFrame(performScroll);
-      const raf2 = requestAnimationFrame(() => requestAnimationFrame(performScroll));
 
-      return () => {
-        cancelAnimationFrame(raf1);
-        cancelAnimationFrame(raf2);
-      };
     } else {
-      onReady?.();
+      onReadyEvent();
     }
-  }, [autoScrollToCurrentTime, oneHour, timeFrame.start, timeColRef, onReady]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoScrollToCurrentTime, oneHour, timeFrame.start, timeColRef]);
 
   useEffect(() => {
     const initContainerRect = (container: HTMLDivElement) => {
