@@ -53,6 +53,8 @@ interface SchedulerInteractiveProps {
   renderEvent?: (event: Event) => React.ReactNode;
   timeFormat?: "12h" | "24h";
   canChangeColumn?: (event: Event) => boolean;
+  autoScrollToCurrentTime?: boolean;
+  onReady?: () => void;
 }
 
 export const SchedulerInteractive = memo(function SchedulerInteractive({
@@ -71,6 +73,8 @@ export const SchedulerInteractive = memo(function SchedulerInteractive({
   renderEvent,
   timeFormat = "12h",
   canChangeColumn,
+  autoScrollToCurrentTime,
+  onReady,
 }: SchedulerInteractiveProps) {
   const {
     timeUnit: { oneMinute, oneHour },
@@ -296,16 +300,48 @@ export const SchedulerInteractive = memo(function SchedulerInteractive({
         passive: false,
       });
     }
+
     return () => {
       if (container) {
         container.removeEventListener("touchmove", handleTouchMove);
-        container.addEventListener("pointermove", handlePointerMove, {
-          passive: false,
-        });
+        container.removeEventListener("pointermove", handlePointerMove);
         clearScrollInterval();
       }
     };
   }, []);
+
+  // Scroll to current hour on load if enabled.
+  // Delegates visibility signal to the parent via onReady so that
+  // the ENTIRE grid (including the side hours column) can be shown together.
+  useLayoutEffect(() => {
+    if (autoScrollToCurrentTime && containerRef.current && oneHour) {
+      const currentHour = new Date().getHours();
+      const scrollPos = Math.max(0, (currentHour - timeFrame.start) * oneHour);
+
+      const performScroll = () => {
+        if (containerRef.current) {
+          containerRef.current.scrollTop = scrollPos;
+          // Synchronize the side hours column at the same time
+          if (timeColRef.current) {
+            timeColRef.current.scrollTop = scrollPos;
+          }
+          onReady?.();
+        }
+      };
+
+      // Immediate attempt, then two follow-up frames to ensure layout has settled
+      performScroll();
+      const raf1 = requestAnimationFrame(performScroll);
+      const raf2 = requestAnimationFrame(() => requestAnimationFrame(performScroll));
+
+      return () => {
+        cancelAnimationFrame(raf1);
+        cancelAnimationFrame(raf2);
+      };
+    } else {
+      onReady?.();
+    }
+  }, [autoScrollToCurrentTime, oneHour, timeFrame.start, timeColRef, onReady]);
 
   useEffect(() => {
     const initContainerRect = (container: HTMLDivElement) => {
@@ -386,8 +422,19 @@ export const SchedulerInteractive = memo(function SchedulerInteractive({
           y={dragEvent.y}
           cursor="move"
         >
-            {renderEvent ? (
-              renderEvent({
+          {renderEvent ? (
+            renderEvent({
+              ...dragEvent.origin.event,
+              start: convertYToTime(
+                dragEvent!.origin.event.start,
+                dragEvent!.y,
+                timeFrame.start,
+                oneMinute
+              ),
+            })
+          ) : (
+            <EventCard
+              event={{
                 ...dragEvent.origin.event,
                 start: convertYToTime(
                   dragEvent!.origin.event.start,
@@ -395,21 +442,10 @@ export const SchedulerInteractive = memo(function SchedulerInteractive({
                   timeFrame.start,
                   oneMinute
                 ),
-              })
-            ) : (
-              <EventCard
-                event={{
-                  ...dragEvent.origin.event,
-                  start: convertYToTime(
-                    dragEvent!.origin.event.start,
-                    dragEvent!.y,
-                    timeFrame.start,
-                    oneMinute
-                  ),
-                }}
-              />
-            )}
-          </PreviewContainer>
+              }}
+            />
+          )}
+        </PreviewContainer>
       )}
 
       {resizeEvent && (
@@ -420,8 +456,20 @@ export const SchedulerInteractive = memo(function SchedulerInteractive({
           y={resizeEvent.y}
           cursor={resizeEvent.side === "bottom" ? "s-resize" : "n-resize"}
         >
-            {renderEvent ? (
-              renderEvent({
+          {renderEvent ? (
+            renderEvent({
+              ...resizeEvent.origin.event,
+              start: convertYToTime(
+                resizeEvent!.origin.event.start,
+                resizeEvent!.y,
+                timeFrame.start,
+                oneMinute
+              ),
+              duration: resizeEvent!.height / oneMinute,
+            })
+          ) : (
+            <EventCard
+              event={{
                 ...resizeEvent.origin.event,
                 start: convertYToTime(
                   resizeEvent!.origin.event.start,
@@ -430,22 +478,10 @@ export const SchedulerInteractive = memo(function SchedulerInteractive({
                   oneMinute
                 ),
                 duration: resizeEvent!.height / oneMinute,
-              })
-            ) : (
-              <EventCard
-                event={{
-                  ...resizeEvent.origin.event,
-                  start: convertYToTime(
-                    resizeEvent!.origin.event.start,
-                    resizeEvent!.y,
-                    timeFrame.start,
-                    oneMinute
-                  ),
-                  duration: resizeEvent!.height / oneMinute,
-                }}
-              />
-            )}
-          </PreviewContainer>
+              }}
+            />
+          )}
+        </PreviewContainer>
       )}
 
       {newEvent && (

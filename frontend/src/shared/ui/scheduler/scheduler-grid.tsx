@@ -27,6 +27,7 @@ interface SchedulerGridProps {
   renderEvent?: (event: Event) => React.ReactNode;
   timeFormat?: "12h" | "24h";
   canChangeColumn?: (event: Event) => boolean;
+  autoScrollToCurrentTime?: boolean;
 }
 
 const hasScrollbar = doesScrollbarAffectLayout();
@@ -41,6 +42,7 @@ export const SchedulerGrid = memo(function SchedulerGrid({
   renderEvent,
   timeFormat = "12h",
   canChangeColumn,
+  autoScrollToCurrentTime,
 }: SchedulerGridProps) {
   const timeSlotRef = useRef<HTMLDivElement>(null);
   const headRowRef = useRef<HTMLDivElement>(null);
@@ -48,6 +50,7 @@ export const SchedulerGrid = memo(function SchedulerGrid({
   const [scroll, setScroll] = useState({ x: false, y: false });
   const [headerHeight, setHeaderHeight] = useState<number>(0);
   const [columnWidth, setColumnWidth] = useState<number>(0);
+  const [isReady, setIsReady] = useState(!autoScrollToCurrentTime);
 
   const timeSlots: TimeSlot[] = useMemo(() => {
     const { start, end } = timeFrame;
@@ -129,6 +132,8 @@ export const SchedulerGrid = memo(function SchedulerGrid({
         width: "100%",
         WebkitUserSelect: "none",
         userSelect: "none",
+        opacity: isReady ? 1 : 0,
+        transition: "opacity 0.2s ease-in-out",
       }}
     >
       <tbody>
@@ -172,6 +177,8 @@ export const SchedulerGrid = memo(function SchedulerGrid({
                 renderEvent={renderEvent}
                 timeFormat={timeFormat}
                 canChangeColumn={canChangeColumn}
+                autoScrollToCurrentTime={autoScrollToCurrentTime}
+                onReady={() => setIsReady(true)}
               >
                 <SchedulerTimeSlotGrid
                   timeSlots={timeSlots}

@@ -37,6 +37,7 @@ export interface SchedulerProps {
   }) => React.ReactNode;
   timeFormat?: "12h" | "24h";
   canChangeColumn?: (event: Event) => boolean;
+  autoScrollToCurrentTime?: boolean;
 }
 
 export const Scheduler = memo(function Scheduler({
@@ -53,6 +54,7 @@ export const Scheduler = memo(function Scheduler({
   renderToolbar,
   timeFormat = "12h",
   canChangeColumn,
+  autoScrollToCurrentTime,
 }: SchedulerProps) {
   const [timeUnitValues, setTimeUnitValues] = useState<TimeUnit>(
     getTimePxValue()
@@ -101,6 +103,7 @@ export const Scheduler = memo(function Scheduler({
             renderEvent={renderEvent}
             timeFormat={timeFormat}
             canChangeColumn={canChangeColumn}
+            autoScrollToCurrentTime={autoScrollToCurrentTime}
           />
         </div>
       </ResponsiveContainer>

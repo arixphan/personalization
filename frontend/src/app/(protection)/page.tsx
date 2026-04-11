@@ -165,7 +165,7 @@ export default function Home() {
         });
       } else {
         const end = new Date(start.getTime() + updatedEvent.duration * 60000);
-        await updateCalendarEvent(updatedEvent.id as number, {
+        await updateCalendarEvent(Number(updatedEvent.id), {
           start: startStr,
           end: end.toISOString(),
         });
@@ -267,6 +267,7 @@ export default function Home() {
           onSelectDate={setCurrentDate}
           onEventClick={handleEventClick}
           canChangeColumn={(event) => !getCalendarMeta(event).isTask}
+          autoScrollToCurrentTime={true}
           renderToolbar={() => null}
           renderEvent={(event) => (
             <TaskEventCard
