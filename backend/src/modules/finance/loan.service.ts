@@ -19,9 +19,19 @@ export class LoanService {
     }
     const loan = await this.prisma.$transaction(async (tx) => {
       const { dueDate, walletId, ...rest } = dto;
+      
+      // If wallet is provided, we'll let transaction service handle the balance state
+      // so we initialize to 0 to avoid double-counting.
+      const initialRemaining = walletId ? 0 : rest.remaining;
+      const initialStatus = walletId 
+        ? LoanStatus.ACTIVE 
+        : (rest.remaining === 0 ? LoanStatus.PAID_OFF : LoanStatus.ACTIVE);
+
       const loan = await tx.loan.create({
         data: {
           ...rest,
+          remaining: initialRemaining,
+          status: initialStatus,
           dueDate: dueDate ? new Date(dueDate) : null,
           userId,
         },
@@ -30,6 +40,7 @@ export class LoanService {
       // Handle automatic transactions if wallet is provided
       if (walletId) {
         // 1. Log the principal movement
+        // Date is "today" per user requirement
         await this.transactionService.create({
           type: loan.type === LoanType.PAYABLE ? TransactionType.INCOME : TransactionType.EXPENSE,
           amount: loan.principal,
@@ -39,8 +50,8 @@ export class LoanService {
           loanId: loan.id,
         }, userId, tx);
 
-        // 2. Log the "difference" (payments already made)
-        const paidAmount = loan.principal - loan.remaining;
+        // 2. Log the "difference" (any payments already made before tracking)
+        const paidAmount = loan.principal - dto.remaining;
         if (paidAmount > 0) {
           await this.transactionService.create({
             type: loan.type === LoanType.PAYABLE ? TransactionType.EXPENSE : TransactionType.INCOME,
@@ -90,7 +101,29 @@ export class LoanService {
     const { dueDate, walletId, ...rest } = dto;
 
     const loan = await this.prisma.$transaction(async (tx) => {
-      // Determine status if remaining is changing
+      // Handle automatic transactions on remaining change
+      if (walletId && rest.remaining !== undefined && rest.remaining !== oldLoan.remaining) {
+        const delta = oldLoan.remaining - rest.remaining;
+        if (delta !== 0) {
+          await this.transactionService.create({
+            type: delta > 0
+              ? (oldLoan.type === LoanType.PAYABLE ? TransactionType.EXPENSE : TransactionType.INCOME)
+              : (oldLoan.type === LoanType.PAYABLE ? TransactionType.INCOME : TransactionType.EXPENSE),
+            amount: Math.abs(delta),
+            walletId,
+            note: `Loan balance manual adjustment: ${oldLoan.counterparty}`,
+            date: new Date().toISOString(),
+            loanId: oldLoan.id,
+          }, userId, tx);
+          
+          // CRITICAL: Remove remaining from rest so it's NOT updated in tx.loan.update
+          // This prevents the double-deduction bug because transactionService already updated it.
+          delete (rest as any).remaining;
+          delete (rest as any).status;
+        }
+      }
+
+      // Determine status if remaining is changing (manually, without wallet)
       if (rest.remaining !== undefined) {
         rest.status = rest.remaining === 0 ? LoanStatus.PAID_OFF : LoanStatus.ACTIVE;
       }
@@ -106,23 +139,6 @@ export class LoanService {
               : undefined,
         },
       });
-
-      // Handle automatic transactions on remaining change
-      if (walletId && rest.remaining !== undefined && rest.remaining !== oldLoan.remaining) {
-        const delta = oldLoan.remaining - rest.remaining;
-        if (delta !== 0) {
-          await this.transactionService.create({
-            type: delta > 0
-              ? (loan.type === LoanType.PAYABLE ? TransactionType.EXPENSE : TransactionType.INCOME)
-              : (loan.type === LoanType.PAYABLE ? TransactionType.INCOME : TransactionType.EXPENSE),
-            amount: Math.abs(delta),
-            walletId,
-            note: `Loan balance manual adjustment: ${loan.counterparty}`,
-            date: new Date().toISOString(),
-            loanId: loan.id,
-          }, userId, tx);
-        }
-      }
 
       return loan;
     });

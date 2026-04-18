@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ArrowUpRight, ArrowDownLeft, Wallet, Landmark, Loader2 } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, Wallet, Landmark, Loader2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "motion/react";
 import { format } from "date-fns";
@@ -27,6 +27,20 @@ export function DashboardTab({
   const [cashFlowData, setCashFlowData] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAmountVisible, setIsAmountVisible] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("finance_amount_visible");
+    if (stored !== null) {
+      setIsAmountVisible(stored === "true");
+    }
+  }, []);
+
+  const toggleVisibility = () => {
+    const newState = !isAmountVisible;
+    setIsAmountVisible(newState);
+    localStorage.setItem("finance_amount_visible", newState.toString());
+  };
 
   const fetchData = async () => {
     try {
@@ -74,27 +88,43 @@ export function DashboardTab({
                   </div>
                   
                   <div className="relative z-10">
-                    <span className="text-indigo-400 text-sm font-semibold uppercase tracking-wider">{t("netWorth")}</span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-indigo-400 text-sm font-semibold uppercase tracking-wider">{t("netWorth")}</span>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={toggleVisibility}
+                        className="text-gray-400 hover:text-white hover:bg-white/10 rounded-full"
+                      >
+                        {isAmountVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </Button>
+                    </div>
                     <h2 className="text-5xl font-black text-white mt-2 mb-8">
-                      {formatCurrency(netWorthData?.netWorth || 0)}
+                      {isAmountVisible ? formatCurrency(netWorthData?.netWorth || 0) : "••••••••"}
                     </h2>
                     
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-6 pt-6 border-t border-gray-800">
-                       <div>
-                         <p className="text-gray-500 text-xs font-bold uppercase">{t("wallets")}</p>
-                         <p className="text-xl font-bold text-white">{formatCurrency(netWorthData?.totalCash || 0)}</p>
-                       </div>
-                       <div>
-                         <p className="text-gray-500 text-xs font-bold uppercase">{t("totalProperties")}</p>
-                         <p className="text-xl font-bold text-white">{formatCurrency(netWorthData?.totalAssets || 0)}</p>
-                       </div>
-                       <div>
-                         <p className="text-gray-500 text-xs font-bold uppercase">{t("totalLoans")}</p>
-                         <p className={`text-xl font-bold ${(netWorthData?.totalReceivables || 0) - (netWorthData?.totalPayables || 0) >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                           {formatCurrency((netWorthData?.totalReceivables || 0) - (netWorthData?.totalPayables || 0))}
-                         </p>
-                       </div>
-                    </div>
+                     <div className="grid grid-cols-2 md:grid-cols-3 gap-6 pt-6 border-t border-gray-800">
+                        <div>
+                          <p className="text-gray-500 text-xs font-bold uppercase">{t("wallets")}</p>
+                          <p className="text-xl font-bold text-white">
+                            {isAmountVisible ? formatCurrency(netWorthData?.totalCash || 0) : "••••••••"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500 text-xs font-bold uppercase">{t("totalProperties")}</p>
+                          <p className="text-xl font-bold text-white">
+                            {isAmountVisible ? formatCurrency(netWorthData?.totalAssets || 0) : "••••••••"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500 text-xs font-bold uppercase">{t("totalLoans")}</p>
+                          <p className={`text-xl font-bold ${(netWorthData?.totalReceivables || 0) - (netWorthData?.totalPayables || 0) >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                            {isAmountVisible 
+                              ? formatCurrency((netWorthData?.totalReceivables || 0) - (netWorthData?.totalPayables || 0)) 
+                              : "••••••••"}
+                          </p>
+                        </div>
+                     </div>
                   </div>
                 </motion.div>
 
@@ -113,7 +143,7 @@ export function DashboardTab({
                         <div key={w_item.id} className="space-y-2">
                           <div className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm">
                             <span className="font-black text-sm dark:text-gray-200 uppercase tracking-tighter">{w_item.name}</span>
-                            <span className="font-black dark:text-white">{formatCurrency(w_item.balance)}</span>
+                            <span className="font-black dark:text-white">{isAmountVisible ? formatCurrency(w_item.balance) : "••••••••"}</span>
                           </div>
                           {subWallets?.length > 0 && (
                             <div className="pl-6 space-y-2 border-l-2 border-primary/20 ml-4 pb-2">
@@ -125,7 +155,9 @@ export function DashboardTab({
                                     <div className="flex flex-col">
                                       <span className="text-xs font-bold dark:text-gray-400 uppercase tracking-tight">{sw.name}</span>
                                       <span className={`text-[10px] font-black tracking-widest ${isOverLimit ? 'text-red-500' : 'text-gray-400'}`}>
-                                        {formatCurrency(sw.spentAmount || 0)} / {formatCurrency(sw.limitAmount)}
+                                        {isAmountVisible 
+                                          ? `${formatCurrency(sw.spentAmount || 0)} / ${formatCurrency(sw.limitAmount)}`
+                                          : "••••••••"}
                                       </span>
                                     </div>
                                     <div className="flex flex-col items-end">
@@ -219,7 +251,9 @@ export function DashboardTab({
                           </div>
                         </div>
                         <p className={`font-black tracking-tighter ${t_item.type === 'INCOME' ? 'text-green-500' : 'text-gray-900 dark:text-white'}`}>
-                          {t_item.type === 'INCOME' ? '+' : '-'}{formatCurrency(t_item.amount)}
+                          {isAmountVisible 
+                            ? `${t_item.type === 'INCOME' ? '+' : '-'}${formatCurrency(t_item.amount)}`
+                            : "••••••••"}
                         </p>
                       </div>
                     ))}

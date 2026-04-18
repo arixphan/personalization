@@ -110,18 +110,22 @@ export class TransactionService {
         });
 
         if (loan) {
-          const isIncomeOnReceivable =
-            dto.type === TransactionType.INCOME && loan.type === 'RECEIVABLE';
-          const isExpenseOnPayable =
-            dto.type === TransactionType.EXPENSE && loan.type === 'PAYABLE';
+          let adjustment = 0;
+          if (loan.type === 'PAYABLE') {
+            if (dto.type === TransactionType.EXPENSE) adjustment = -dto.amount;
+            else if (dto.type === TransactionType.INCOME) adjustment = dto.amount;
+          } else if (loan.type === 'RECEIVABLE') {
+            if (dto.type === TransactionType.INCOME) adjustment = -dto.amount;
+            else if (dto.type === TransactionType.EXPENSE) adjustment = dto.amount;
+          }
 
-          if (isIncomeOnReceivable || isExpenseOnPayable) {
-            const newRemaining = Math.max(0, loan.remaining - dto.amount);
+          if (adjustment !== 0) {
+            const newRemaining = Math.max(0, loan.remaining + adjustment);
             await tx.loan.update({
               where: { id: dto.loanId },
               data: {
                 remaining: newRemaining,
-                status: newRemaining === 0 ? 'PAID_OFF' : loan.status
+                status: newRemaining === 0 ? 'PAID_OFF' : loan.status,
               },
             });
           }
@@ -219,18 +223,22 @@ export class TransactionService {
         });
 
         if (loan) {
-          const isIncomeOnReceivable = 
-            transaction.type === TransactionType.INCOME && loan.type === 'RECEIVABLE';
-          const isExpenseOnPayable = 
-            transaction.type === TransactionType.EXPENSE && loan.type === 'PAYABLE';
+          let adjustment = 0;
+          if (loan.type === 'PAYABLE') {
+            if (transaction.type === TransactionType.EXPENSE) adjustment = transaction.amount;
+            else if (transaction.type === TransactionType.INCOME) adjustment = -transaction.amount;
+          } else if (loan.type === 'RECEIVABLE') {
+            if (transaction.type === TransactionType.INCOME) adjustment = transaction.amount;
+            else if (transaction.type === TransactionType.EXPENSE) adjustment = -transaction.amount;
+          }
 
-          if (isIncomeOnReceivable || isExpenseOnPayable) {
-            const newRemaining = loan.remaining + transaction.amount;
+          if (adjustment !== 0) {
+            const newRemaining = Math.max(0, loan.remaining + adjustment);
             await tx.loan.update({
               where: { id: (transaction as any).loanId },
-              data: { 
+              data: {
                 remaining: newRemaining,
-                status: newRemaining > 0 && loan.status === 'PAID_OFF' ? 'ACTIVE' : loan.status
+                status: newRemaining > 0 && loan.status === 'PAID_OFF' ? 'ACTIVE' : loan.status,
               },
             });
           }

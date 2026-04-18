@@ -8,8 +8,9 @@ import {
   deleteLoan,
   getWallets
 } from "../../_actions/finance.actions";
-import { Loader2, Plus, Calendar, ArrowRight, ArrowLeft, MoreVertical, X, Save, Trash2, Edit2, CheckCircle, HandCoins, Wallet } from "lucide-react";
+import { Loader2, Plus, Calendar, ArrowRight, ArrowLeft, MoreVertical, X, Save, Trash2, Edit2, CheckCircle, HandCoins, Wallet, Sliders } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 import { CustomInput } from "@/components/ui/input";
 import { CustomSelect } from "@/components/ui/input/custom-select";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -27,6 +28,10 @@ export function LoanModule({ refreshKey }: { refreshKey?: number }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingLoan, setEditingLoan] = useState<any>(null);
+  const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
+  const [adjustingLoan, setAdjustingLoan] = useState<any>(null);
+  const [sliderValue, setSliderValue] = useState<number>(0);
+  const [adjustmentWalletId, setAdjustmentWalletId] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Form state
@@ -125,6 +130,25 @@ export function LoanModule({ refreshKey }: { refreshKey?: number }) {
       toast.error("Failed to update status");
     }
   };
+  
+  const handleAdjustSubmit = async () => {
+    if (!adjustingLoan) return;
+    setIsSubmitting(true);
+    try {
+      await updateLoan(adjustingLoan.id, { 
+        remaining: sliderValue,
+        status: sliderValue === 0 ? LoanStatus.PAID_OFF : LoanStatus.ACTIVE,
+        walletId: adjustmentWalletId ? parseInt(adjustmentWalletId) : null
+      });
+      toast.success("Balance adjusted");
+      setIsAdjustModalOpen(false);
+      fetchData();
+    } catch (error) {
+      toast.error("Failed to adjust balance");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const openEdit = (loan: any) => {
     setEditingLoan(loan);
@@ -135,6 +159,13 @@ export function LoanModule({ refreshKey }: { refreshKey?: number }) {
     setDueDate(loan.dueDate ? loan.dueDate.split("T")[0] : "");
     setNote(loan.note || "");
     setIsModalOpen(true);
+  };
+
+  const openAdjust = (loan: any) => {
+    setAdjustingLoan(loan);
+    setSliderValue(loan.remaining);
+    setAdjustmentWalletId("");
+    setIsAdjustModalOpen(true);
   };
 
   const resetForm = () => {
@@ -201,6 +232,9 @@ export function LoanModule({ refreshKey }: { refreshKey?: number }) {
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button variant="ghost" size="icon" onClick={() => handleMarkAsPaid(loan)} className="rounded-full hover:bg-emerald-50 dark:hover:bg-emerald-900/20" title="Mark as Paid">
                       <CheckCircle className="w-4 h-4 text-emerald-500" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => openAdjust(loan)} className="rounded-full hover:bg-indigo-50 dark:hover:bg-indigo-900/20" title="Quick Adjust">
+                      <Sliders className="w-4 h-4 text-indigo-500" />
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => openEdit(loan)} className="rounded-full hover:bg-gray-100">
                       <Edit2 className="w-4 h-4 text-gray-400" />
@@ -322,6 +356,79 @@ export function LoanModule({ refreshKey }: { refreshKey?: number }) {
                       )}
                    </Button>
                 </form>
+             </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+       <AnimatePresence>
+        {isAdjustModalOpen && adjustingLoan && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+             <motion.div 
+               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+               className="absolute inset-0 bg-black/60 backdrop-blur-md" 
+               onClick={() => setIsAdjustModalOpen(false)}
+             />
+             <motion.div 
+               initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }}
+               className="relative w-full max-w-sm bg-white dark:bg-gray-950 rounded-[2.5rem] p-8 shadow-2xl border border-gray-200 dark:border-gray-800"
+             >
+                <div className="flex items-center justify-between mb-8">
+                   <h2 className="text-xl font-black dark:text-white uppercase tracking-tighter">
+                      Adjust Balance
+                   </h2>
+                   <Button variant="ghost" size="icon" onClick={() => setIsAdjustModalOpen(false)} className="rounded-full">
+                      <X className="w-5 h-5 text-gray-500" />
+                   </Button>
+                </div>
+
+                <div className="space-y-8">
+                   <div className="space-y-4">
+                      <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest text-center">{adjustingLoan.counterparty}</p>
+                      <CustomInput
+                        id="adjust-amount"
+                        label="Remaining Amount"
+                        isCurrency={true}
+                        value={sliderValue.toString()}
+                        onChange={(v) => {
+                          const num = parseFloat(v);
+                          if (!isNaN(num)) setSliderValue(Math.min(num, adjustingLoan.principal));
+                          else if (v === "") setSliderValue(0);
+                        }}
+                      />
+                   </div>
+
+                   <div className="space-y-4">
+                      <Slider
+                        value={[sliderValue]}
+                        max={adjustingLoan.principal}
+                        step={100000}
+                        onValueChange={(val) => setSliderValue(val[0])}
+                        className="py-4"
+                      />
+                      <div className="flex justify-between text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">
+                         <span>{formatCurrency(0)}</span>
+                         <span>MAX: {formatCurrency(adjustingLoan.principal)}</span>
+                      </div>
+                   </div>
+
+                   <div className="space-y-4">
+                      <div className="flex items-center gap-2 text-xs font-black text-gray-400 uppercase tracking-widest px-1">
+                         <Wallet className="w-3.5 h-3.5" />
+                         Affect Cash Flow (Optional)
+                      </div>
+                      <CustomSelect 
+                        id="adjust-wallet-select" 
+                        label="Select Wallet" 
+                        value={adjustmentWalletId} 
+                        onChange={setAdjustmentWalletId} 
+                        options={wallets.map(w => ({ value: w.id.toString(), label: w.name }))} 
+                      />
+                   </div>
+
+                   <Button onClick={handleAdjustSubmit} disabled={isSubmitting} className="w-full h-14 rounded-2xl font-bold shadow-xl">
+                      {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : "Save Adjustment"}
+                   </Button>
+                </div>
              </motion.div>
           </div>
         )}
